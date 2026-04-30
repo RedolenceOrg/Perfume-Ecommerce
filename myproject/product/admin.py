@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Atomizer, Perfume, PerfumeImage, PerfumeNote, Notes, Family, Brand,Decant,Longevity,Sillage
+from .models import Atomizer, AtomizerVariant, Perfume, PerfumeImage, PerfumeNote, Notes, Family, Brand,Decant,Longevity,Sillage
 
 
 class DecantInline(admin.TabularInline):
@@ -22,12 +22,19 @@ class LongevityInline(admin.StackedInline):
     model = Longevity
     extra = 1
 
+class AtomizerVariantInline(admin.TabularInline):
+    model = AtomizerVariant
+
+
 class PerfumeAdmin(admin.ModelAdmin):
     search_fields = ['name', 'brand__name'] 
     inlines = [DecantInline,SillageInline, LongevityInline, PerfumeNoteInline, PerfumeImageInline]
+
+class AtomizerAdmin(admin.ModelAdmin):
+    inlines = [AtomizerVariantInline]
 
 admin.site.register(Perfume, PerfumeAdmin)
 admin.site.register(Notes)
 admin.site.register(Family)
 admin.site.register(Brand)
-admin.site.register(Atomizer)
+admin.site.register(Atomizer,AtomizerAdmin)

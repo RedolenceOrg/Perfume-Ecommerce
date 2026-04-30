@@ -8,7 +8,7 @@ const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'Perfumes', href: '/shop?type=Perfume' },
     { label: 'Attars', href: '/shop?type=Attar' },
-    { label: 'Decant', href: '/decant' },
+    { label: 'Atomizer', href: '/atomizer' },
     { label: 'Thrift', href: '/thrift' },
     { label: 'About Us', href: '/about' },
 ];

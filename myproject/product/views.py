@@ -1,9 +1,9 @@
-from django.shortcuts import render
+
 from rest_framework.views import APIView
 from django.db.models import Count
 from rest_framework.response import Response
-from .serializers import PerfumeListSerializer, PerfumeSerializer
-from .models import Perfume
+from .serializers import AtomizerSerializer, PerfumeListSerializer, PerfumeSerializer
+from .models import Atomizer, AtomizerVariant, Perfume
 
 class getPerfumeHome(APIView):
     def get(self,request):
@@ -89,4 +89,10 @@ class RelatedPerfumesView(APIView):
             .order_by('-match_count')[:10]
         
         serializer = PerfumeListSerializer(perfumes, many=True)
+        return Response(serializer.data)
+    
+class AtomizerPage(APIView):
+    def get(self, request):
+        atomizers = Atomizer.objects.all().prefetch_related('variants')
+        serializer = AtomizerSerializer(atomizers, many=True)
         return Response(serializer.data)

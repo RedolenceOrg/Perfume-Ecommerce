@@ -93,8 +93,18 @@ class Decant(models.Model):
     
 
 class Atomizer(models.Model):
-    size = models.DecimalField(max_digits=5, decimal_places=2)  # Size in ml
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    def __str__(self):
-        return f"{self.size} - {self.price}"
+    name = models.CharField(max_length=15)
+    description = models.TextField(max_length=100)
+    is_premium = models.BooleanField(default=False)
 
+    def __str__(self):
+        return f"{self.name}"
+
+class AtomizerVariant(models.Model):
+    atomizer = models.ForeignKey(Atomizer, on_delete=models.CASCADE, related_name='variants')
+    size = models.DecimalField(max_digits=5, decimal_places=2)  # Size in ml
+    price = models.DecimalField(max_digits=6, decimal_places=2)
+    colors = models.CharField(max_length=50,blank=True)
+
+    def __str__(self):
+        return f"{self.atomizer.description} - {self.size}ml Atomizer"
