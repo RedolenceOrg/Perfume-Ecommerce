@@ -40,3 +40,19 @@ export interface PerfumeSummary {
     images: PerfumeImage[];
     slug: string;
 }
+export interface AtomizerVariant {
+    id: number;
+
+    size: number;
+    price: number;
+    colors: string;
+
+}
+export interface Atomizer {
+    id: number;
+    name: string;
+    description: string;
+    is_premium: boolean;
+    variants: AtomizerVariant[];
+}
+
