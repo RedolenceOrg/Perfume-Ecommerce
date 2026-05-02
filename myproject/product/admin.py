@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Atomizer, AtomizerVariant, Perfume, PerfumeImage, PerfumeNote, Notes, Family, Brand,Decant,Longevity,Sillage
+from .models import Atomizer, AtomizerVariant, Perfume, PerfumeImage, PerfumeNote, Notes, Family, Brand,Decant,Longevity,Sillage, Thrift
 
 
 class DecantInline(admin.TabularInline):
@@ -38,3 +38,4 @@ admin.site.register(Notes)
 admin.site.register(Family)
 admin.site.register(Brand)
 admin.site.register(Atomizer,AtomizerAdmin)
+admin.site.register(Thrift)

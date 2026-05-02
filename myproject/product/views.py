@@ -2,8 +2,8 @@
 from rest_framework.views import APIView
 from django.db.models import Count
 from rest_framework.response import Response
-from .serializers import AtomizerSerializer, PerfumeListSerializer, PerfumeSerializer
-from .models import Atomizer, AtomizerVariant, Perfume
+from .serializers import AtomizerSerializer, PerfumeListSerializer, PerfumeSerializer, ThriftSerializer
+from .models import Atomizer, AtomizerVariant, Perfume, Thrift
 
 class getPerfumeHome(APIView):
     def get(self,request):
@@ -95,4 +95,10 @@ class AtomizerPage(APIView):
     def get(self, request):
         atomizers = Atomizer.objects.all().prefetch_related('variants')
         serializer = AtomizerSerializer(atomizers, many=True)
+        return Response(serializer.data)
+    
+class ThriftPage(APIView):
+    def get(self, request):
+        thrifts = Thrift.objects.all().select_related('perfume').prefetch_related('perfume__images')
+        serializer = ThriftSerializer(thrifts, many=True)
         return Response(serializer.data)

@@ -109,11 +109,7 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
                                                 : 'border-transparent hover:scale-105'}`}
                                         style={{ backgroundColor: variant.colors.toLowerCase() }}
                                     >
-                                        {selectedVariant.id === variant.id && (
-                                            <span className="absolute inset-0 flex items-center justify-center text-white mix-blend-difference">
-                                                ✓
-                                            </span>
-                                        )}
+
                                     </button>
                                 ))}
                             </div>
@@ -125,13 +121,13 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
                 <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between gap-4">
                     <div className="flex flex-col">
                         <span className="text-[10px] font-bold text-gray-400 uppercase">Total Price</span>
-                        <span className="text-2xl font-black text-secondary">
+                        <span className="text-2xl font-body text-secondary">
                             ${Number(selectedVariant?.price || 0).toFixed(2)}
                         </span>
                     </div>
                     <button
                         onClick={handleAddToCart}
-                        className="flex-1 md:flex-none bg-secondary px-8 py-3 text-white text-sm font-bold rounded-xl hover:bg-secondary/90 transition-all shadow-lg active:scale-95 uppercase tracking-tight"
+                        className="flex-1 md:flex-none bg-secondary px-8 py-3 text-white text-sm font-body rounded-xl hover:bg-secondary/90 transition-all shadow-lg active:scale-95 uppercase tracking-tight"
                     >
                         Add to Cart
                     </button>

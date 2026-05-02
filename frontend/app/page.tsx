@@ -5,6 +5,7 @@ import SeasonalPick from "@/components/SeasonalPick";
 import BestSellers from "@/components/BestSellers";
 import DecantsHighlight from "@/components/decantSection";
 import MembersSection from "@/components/MembersSection";
+import ThriftSection from "@/components/ThriftSection";
 
 
 export default async function Home() {
@@ -22,6 +23,7 @@ export default async function Home() {
       <BestSellers perfumes={perfumes.restocked} />
       <MembersSection />
       <DecantsHighlight />
+      <ThriftSection />
 
     </div>
   );

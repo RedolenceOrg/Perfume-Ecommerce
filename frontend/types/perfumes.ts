@@ -55,4 +55,12 @@ export interface Atomizer {
     is_premium: boolean;
     variants: AtomizerVariant[];
 }
+export interface Thrift {
+    id: number;
+    perfume_name: string;
+    brand: string;
+    remaining_juice: number;
+    thrift_price: number;
+    image: PerfumeImage[];
+}
 

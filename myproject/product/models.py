@@ -108,3 +108,11 @@ class AtomizerVariant(models.Model):
 
     def __str__(self):
         return f"{self.atomizer.description} - {self.size}ml Atomizer"
+    
+class Thrift(models.Model):
+    perfume = models.ForeignKey(Perfume, on_delete=models.CASCADE, related_name='thrifts')
+    remaining_juice = models.DecimalField(max_digits=5, decimal_places=2)  # Remaining juice in ml
+    thrift_price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.perfume.name} - Thrift Condition: {self.remaining_juice}"
