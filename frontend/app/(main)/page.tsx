@@ -24,7 +24,6 @@ export default async function Home() {
       <MembersSection />
       <DecantsHighlight />
       <ThriftSection />
-
     </div>
   );
 }
