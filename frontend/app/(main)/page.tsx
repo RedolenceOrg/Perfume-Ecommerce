@@ -1,4 +1,4 @@
-import Image from "next/image";
+
 import Arrivals from "@/components/Arrivals";
 import Hero from "@/components/Hero";
 import SeasonalPick from "@/components/SeasonalPick";
@@ -9,7 +9,8 @@ import ThriftSection from "@/components/ThriftSection";
 
 
 export default async function Home() {
-  const res = await fetch('http://127.0.0.1:8000/api/getperfumeHome/')
+  const BASEURL = process.env.NEXT_PUBLIC_API_URL
+  const res = await fetch(`${BASEURL}/api/getperfumeHome/`)
   const perfumes = await res.json()
 
 
