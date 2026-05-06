@@ -1,4 +1,4 @@
-
+export const revalidate = 60
 import Arrivals from "@/components/Arrivals";
 import Hero from "@/components/Hero";
 import SeasonalPick from "@/components/SeasonalPick";
@@ -6,6 +6,7 @@ import BestSellers from "@/components/BestSellers";
 import DecantsHighlight from "@/components/decantSection";
 import MembersSection from "@/components/MembersSection";
 import ThriftSection from "@/components/ThriftSection";
+
 
 
 export default async function Home() {

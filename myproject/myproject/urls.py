@@ -9,4 +9,5 @@ urlpatterns = [
     path('', views.home),
     path('about/', views.about),
     path('api/', include('product.urls')),
+    path('authenticate/',include('people.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
