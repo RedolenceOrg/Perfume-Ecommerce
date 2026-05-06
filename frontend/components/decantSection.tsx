@@ -58,7 +58,7 @@ export default function DecantsHighlight() {
                 <div className="flex-1 mt-5 group">
                     <div className="aspect-[3/4] overflow-hidden bg-surface-container-highest relative shadow-xl">
                         <img
-                            src="https://www.scento.com/_next/image?url=https%3A%2F%2Fassets.seobotai.com%2Fcdn-cgi%2Fimage%2Fquality%3D75%2Cw%3D1536%2Ch%3D1024%2Fscento.com%2F69434dd912e0ddc125dbfe6f-1766027562989.jpg&w=3840&q=75"
+                            src="https://i.pinimg.com/1200x/bb/3e/b4/bb3eb42021ab810584abbb7d95e83a49.jpg"
                             alt="Fragrance Collection"
                             className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
                         />
@@ -78,7 +78,7 @@ export default function DecantsHighlight() {
                 <div className="flex-1 mt-[90px] group">
                     <div className="aspect-[2/3] overflow-hidden bg-surface-container-highest relative shadow-xl">
                         <img
-                            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZqs0HQndBbN4UwHVMgl8XajqaelWpefGK1Q&s"
+                            src="https://i.pinimg.com/1200x/bb/3e/b4/bb3eb42021ab810584abbb7d95e83a49.jpg"
                             alt="Luxury Decants"
                             className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
                         />

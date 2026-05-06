@@ -1,6 +1,5 @@
 // components/ThriftProductCard.tsx
 'use client';
-import Image from 'next/image';
 import { Thrift } from '@/types/perfumes';
 
 export default function ThriftProductCard({ perfume }: { perfume: Thrift }) {

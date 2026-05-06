@@ -13,6 +13,18 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'perfume-ecommerce-production.up.railway.app',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'https://lelabo.ips.photos'
+      },
     ],
   },
 };
