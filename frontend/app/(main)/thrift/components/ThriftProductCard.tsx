@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { Thrift } from '@/types/perfumes';
 
 export default function ThriftProductCard({ perfume }: { perfume: Thrift }) {
-    const BASE_URL = 'http://127.0.0.1:8000';
+    const BASE_URL = process.env.NEXT_PUBLIC_API_URL
     const primaryImage = perfume.image.find((img) => img.is_primary)?.image || '/placeholder.png';
     console.log(BASE_URL + primaryImage);
 

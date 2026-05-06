@@ -4,7 +4,7 @@ import { PerfumeSummary } from "@/types/perfumes";
 import Link from "next/link";
 
 export default function BestSellers({ perfumes }: { perfumes: PerfumeSummary[] }) {
-    const BASE_URL = 'http://127.0.0.1:8000';
+    const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
     const getImg = (perfume: PerfumeSummary) => {
         const secondary =

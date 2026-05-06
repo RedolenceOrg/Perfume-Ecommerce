@@ -1,4 +1,5 @@
 export default function Hero() {
+    const BASEURL = process.env.NEXT_PUBLIC_API_URL
     return (
         <section className="relative h-[calc(100vh-88px)] w-full overflow-hidden">
 
@@ -6,7 +7,7 @@ export default function Hero() {
             <div className="absolute inset-0 w-full h-full">
                 <img
                     className="w-full h-full object-cover transition-transform duration-[3s] hover:scale-105"
-                    src="http://127.0.0.1:8000/media/perfume_images/herosomething.jpg"
+                    src={`${BASEURL}/media/perfume_images/herosomething.jpg`}
                     alt="Redolence Nepal"
                 />
                 <div className="absolute inset-0" />

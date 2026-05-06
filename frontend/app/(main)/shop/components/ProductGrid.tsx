@@ -11,6 +11,7 @@ export default function ProductGrid() {
     const [loading, setLoading] = useState(false);
     const observerRef = useRef<HTMLDivElement>(null);
     const searchParams = useSearchParams();
+    const BASEURL = process.env.NEXT_PUBLIC_API_URL
 
     // Combined fetch logic
     const fetchPerfumes = useCallback(async (currentPage: number, isReset: boolean) => {
@@ -24,7 +25,7 @@ export default function ProductGrid() {
                 ...Object.fromEntries(searchParams.entries())
             });
 
-            const res = await fetch(`http://127.0.0.1:8000/api/shop/?${params}`);
+            const res = await fetch(`${BASEURL}/api/shop/?${params}`);
             const data = await res.json();
 
             setPerfumes(prev => isReset ? data.perfumes : [...prev, ...data.perfumes]);

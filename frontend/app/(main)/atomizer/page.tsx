@@ -3,7 +3,8 @@ import AtomizerHero from "./components/atomizerHero";
 
 
 export default async function Atomizer() {
-    const res = await fetch("http://127.0.0.1:8000/api/atomizers/");
+    const BASEURL = process.env.NEXT_PUBLIC_API_URL
+    const res = await fetch(`${BASEURL}/api/atomizers/`);
     const products = await res.json();
 
     return (

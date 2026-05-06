@@ -5,7 +5,7 @@ export default function PerfumeCard({ id, name, brand, price, images, slug }: Pe
     // Logic fix: Ensure we are accessing the array correctly
     const imageObj = images?.find(img => img.is_primary) || images?.[0];
     const imagePath = imageObj?.image || '';
-    const BASE_URL = "http://127.0.0.1:8000";
+    const BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
     return (
         <Link href={`/perfume/${slug}`} className="w-full group cursor-pointer">

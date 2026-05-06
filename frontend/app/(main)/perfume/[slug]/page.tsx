@@ -4,7 +4,8 @@ import Performance from "@/components/perfume/Performance"
 
 export default async function PerfumePage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
-    const res = await fetch(`http://127.0.0.1:8000/api/perfume/${slug}/`)
+    const BASEURL = process.env.NEXT_PUBLIC_API_URL
+    const res = await fetch(`${BASEURL}/api/perfume/${slug}/`)
     const perfume = await res.json()
 
     const allNotes = [
@@ -14,7 +15,7 @@ export default async function PerfumePage({ params }: { params: Promise<{ slug: 
     ]
     const noteParams = allNotes.map((n: string) => `note=${n}`).join('&')
 
-    const relatedRes = await fetch(`http://127.0.0.1:8000/api/related/?${noteParams}&exclude=${slug}`)
+    const relatedRes = await fetch(`${BASEURL}/api/related/?${noteParams}&exclude=${slug}`)
     const relatedPerfumes = await relatedRes.json()
 
 

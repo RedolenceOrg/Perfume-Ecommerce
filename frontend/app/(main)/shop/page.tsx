@@ -2,7 +2,8 @@ import FilterTag from "./components/FilterTag";
 import ProductGrid from "./components/ProductGrid";
 import ShopSidebar from "./components/Sidebar";
 export default async function Shop() {
-    const res = await fetch('http://127.0.0.1:8000/api/filter/');
+    const BASEURL = process.env.NEXT_PUBLIC_API_URL
+    const res = await fetch(`${BASEURL}/api/filter/`);
     const filters = await res.json();
 
     return ( // <--- Add this return statement
