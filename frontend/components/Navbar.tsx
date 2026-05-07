@@ -4,6 +4,9 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
 
+
+
+
 const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'Perfumes', href: '/shop?type=Perfume' },
@@ -84,9 +87,9 @@ export default function Navbar() {
 
                 {/* Action Icons */}
                 <div className="flex items-center gap-2 md:gap-6">
-                    <button aria-label="Favorites" className="p-2 transition-all duration-300 ease-out hover:opacity-80 group">
+                    <button aria-label="Cart" className="p-2 transition-all duration-300 ease-out hover:opacity-80 group">
                         <span className="material-symbols-outlined text-primary group-hover:text-secondary">
-                            favorite
+                            cart
                         </span>
                     </button>
                     <button aria-label="Account" className="p-2 transition-all duration-300 ease-out hover:opacity-80 group">

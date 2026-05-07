@@ -1,15 +1,60 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link"
+import { apiPost, apiGet } from "@/context/api";
+import { useRouter } from "next/navigation";
 
 const LoginForm = () => {
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    useEffect(() => {
+        apiGet('/authenticate/csrf/')
+    }, [])
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log("Attempting login for:", email);
+        setLoading(true);
+        setError(null);
+
+        const formData = new FormData(e.currentTarget);
+
+        const payload = {
+            email: email,
+            password: password,
+        };
+
+        try {
+            const res = await apiPost('/authenticate/login/', payload);
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setError(
+                    data?.email?.[0] ||
+                    data?.username?.[0] ||
+                    data?.detail ||
+                    "Login failed"
+                );
+                setLoading(false);
+                return;
+            }
+
+            // success → redirect
+            router.push("/");
+
+        } catch (err) {
+            setError("Something went wrong. Please try again.");
+        }
+        finally {
+
+            setLoading(false);
+        }
+
+
     };
 
     return (

@@ -1,34 +1,110 @@
-from django.shortcuts import render
+import json
+from django.views import View
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_protect
+from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as auth_login
+from django.contrib.auth import logout as auth_logout
+from .serializers import RegistrationSerializer,LoginSerializer
 
-# Create your views here.
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import Profile
-from .serializers import RegistrationSerializer
-from rest_framework import status
+User = get_user_model()
 
 
-class signup(APIView):
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class CSRFView(View):
+    def get(self, request):
+        return JsonResponse({'csrfToken': 'set'})
+
+
+@method_decorator(csrf_protect, name='dispatch')
+class SignupView(View):
     def post(self, request):
-        serializer = RegistrationSerializer(data=request.data)
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'detail': 'Invalid JSON'}, status=400)
 
+        serializer = RegistrationSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
+            return JsonResponse({
+                'message': 'User created successfully',
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                }
+            }, status=201)
+        return JsonResponse(serializer.errors, status=400)
 
-            return Response(
-                {
-                    "message": "User created successfully",
-                    "user": {
-                        "id": user.id,
-                        "username": user.username,
-                        "email": user.email,
-                    }
-                },
-                status=status.HTTP_201_CREATED
+
+@method_decorator(csrf_protect, name='dispatch')
+class LoginView(View):
+    def post(self, request):
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'detail': 'Invalid JSON'}, status=400)
+        
+
+        serializer = LoginSerializer(data = data)
+
+
+
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors,status = 400)
+
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+        
+        
+        
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return JsonResponse(
+                {'detail': 'Invalid credentials'},
+                status=401
+            )
+        
+
+
+        user = authenticate(request, username=user.username, password=password)
+
+        if user is None:
+            return JsonResponse(
+                {'detail': 'Invalid credentials'},
+                status=401
             )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    pass 
+        auth_login(request, user)
 
-class login(APIView):
-    pass
+        return JsonResponse({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+        })
+
+
+@method_decorator(csrf_protect, name='dispatch')
+class LogoutView(View):
+    def post(self, request):
+        auth_logout(request)
+        return JsonResponse({'message': 'Logged out successfully'})
+
+
+class MeView(View):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {'detail': 'Not logged in'},
+                status=403
+            )
+        return JsonResponse({
+            'id': request.user.id,
+            'username': request.user.username,
+            'email': request.user.email,
+        })

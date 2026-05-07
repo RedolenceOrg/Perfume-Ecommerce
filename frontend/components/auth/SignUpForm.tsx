@@ -1,18 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiGet, apiPost } from "@/context/api";
 
 export default function SignupForm() {
-    const BASEURL = process.env.NEXT_PUBLIC_API_URL
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+
+    useEffect(() => {
+        apiGet('/authenticate/csrf/')
+    }, [])
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+
+
+
 
         const formData = new FormData(e.currentTarget);
 
@@ -23,13 +31,7 @@ export default function SignupForm() {
         };
 
         try {
-            const res = await fetch(`${BASEURL}/authenticate/signup/`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
-            });
+            const res = await apiPost('/authenticate/signup/', payload);
 
             const data = await res.json();
 
@@ -50,8 +52,10 @@ export default function SignupForm() {
         } catch (err) {
             setError("Something went wrong. Please try again.");
         }
+        finally {
 
-        setLoading(false);
+            setLoading(false);
+        }
     };
 
     return (
