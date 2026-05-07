@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link"
 import { apiPost, apiGet } from "@/context/api";
 import { useRouter } from "next/navigation";
+import { useAuth } from '@/context/AuthContext'
 
 const LoginForm = () => {
     const router = useRouter();
@@ -12,6 +13,8 @@ const LoginForm = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const { refreshUser } = useAuth()
+
     useEffect(() => {
         apiGet('/authenticate/csrf/')
     }, [])
@@ -19,8 +22,6 @@ const LoginForm = () => {
         e.preventDefault();
         setLoading(true);
         setError(null);
-
-        const formData = new FormData(e.currentTarget);
 
         const payload = {
             email: email,
@@ -42,15 +43,13 @@ const LoginForm = () => {
                 setLoading(false);
                 return;
             }
-
-            // success → redirect
+            await refreshUser()
             router.push("/");
 
         } catch (err) {
             setError("Something went wrong. Please try again.");
         }
         finally {
-
             setLoading(false);
         }
 

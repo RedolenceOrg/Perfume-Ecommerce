@@ -9,8 +9,10 @@ export interface Notes {
     base: string[];
 }
 export interface Decant {
+    id: number;
     size: number;
     price: number;
+    stock: number;
 }
 export interface PerformanceMetrics {
     longevity: number;
@@ -29,6 +31,7 @@ export interface Perfume {
     family: string[];
     slug: string;
     decant: Decant[];
+    stock: number;
     performance: PerformanceMetrics[]
 }
 
@@ -63,4 +66,14 @@ export interface Thrift {
     thrift_price: number;
     image: PerfumeImage[];
 }
+export interface CartItem {
+    id: number
+    perfume_name: string
+    variant_name: string
+    unit_price: number
+    total_price: number
+    quantity: number
+    images: string
+}
+
 

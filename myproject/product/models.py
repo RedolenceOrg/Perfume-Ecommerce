@@ -43,7 +43,7 @@ class Perfume(models.Model):
     type = models.CharField(choices= [("Perfume","perfume"),("Attar","attar")],max_length=20,default="perfume")
     name = models.CharField(max_length=100)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(default=0,max_digits=10, decimal_places=2)
     description = models.TextField()
     family = models.ManyToManyField(Family,blank=False)
     note = models.ManyToManyField(Notes, through='PerfumeNote',blank=True)
@@ -87,6 +87,7 @@ class Decant(models.Model):
     perfume = models.ForeignKey(Perfume, on_delete=models.CASCADE)
     size = models.DecimalField(max_digits=5, decimal_places=2)  # Size in ml
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.PositiveIntegerField(default = 0)
 
     def __str__(self):
         return f"{self.perfume.name} - {self.size}ml Decant"

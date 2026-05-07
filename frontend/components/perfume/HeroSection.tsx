@@ -2,6 +2,7 @@
 import { Perfume, Decant } from '@/types/perfumes'
 import NotePyramid from './NotePyramid'
 import { useState } from 'react'
+import { apiPost, apiGet } from '@/context/api'
 
 interface HeroProps {
     perfume: Perfume
@@ -17,22 +18,55 @@ export default function HeroSection({ perfume }: HeroProps) {
     const [quantity, setQuantity] = useState(1)
     const [selectedImage, setSelectedImage] = useState(primaryImage)
 
+    // Helper to determine stock of the current selection
+    const currentMaxStock = selectedSize === 'full'
+        ? perfume.stock
+        : selectedSize?.stock || 0
+
     const selectedPrice = selectedSize === 'full'
         ? fullPrice
         : selectedSize
             ? selectedSize.price
             : 0
 
-    const totalPrice = selectedPrice * quantity
+    const totalPrice = Number(selectedPrice) * quantity
 
-    const handleSelect = (size: Decant | 'full') => {
-        if (selectedSize === size) {
+
+
+
+    const handleAddToCartSubmit = async () => {
+        const payload = {
+            quantity: quantity,
+            perfume_id: perfume.id,
+            decant_id: selectedSize === 'full' ? null : (selectedSize as Decant).id,
+        }
+        try {
+            const res = await apiPost('/cart/add-to-cart/', payload)
+            const data = await res.json()
+            if (!res.ok) {
+                console.log(data)
+            }
+        }
+        catch (err) {
+            console.log(err)
+
+        }
+
+    };
+
+    const handleSelect = (variant: Decant | 'full') => {
+        // Prevent selection if out of stock
+        const stock = variant === 'full' ? perfume.stock : variant.stock
+        if (stock <= 0) return
+
+        if (selectedSize === variant) {
             setSelectedSize(null)
             setQuantity(1)
         } else {
-            setSelectedSize(size)
+            setSelectedSize(variant)
             setQuantity(1)
         }
+
     }
 
     const isSelected = (size: Decant | 'full') => {
@@ -42,11 +76,8 @@ export default function HeroSection({ perfume }: HeroProps) {
 
     return (
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-20 px-6 lg:px-16 items-start pt-3 lg:pt-6">
-
-            {/* Left - Image */}
+            {/* Left - Image (unchanged) */}
             <div className="flex gap-4 top-10 self-start">
-
-                {/* Thumbnails */}
                 <div className="flex flex-col gap-3 w-28 flex-shrink-0">
                     {perfume.images.map((img, index) => (
                         <div
@@ -67,8 +98,7 @@ export default function HeroSection({ perfume }: HeroProps) {
                     ))}
                 </div>
 
-                {/* Main Image */}
-                <div className="flex-1 aspect-square overflow-hidden bg-surface-container-high  shadow-sm hover:shadow-md transition-shadow duration-300">
+                <div className="flex-1 aspect-square overflow-hidden bg-surface-container-high shadow-sm">
                     <img
                         src={`${BASE_URL}${selectedImage?.image || primaryImage.image}`}
                         alt={perfume.name}
@@ -79,8 +109,6 @@ export default function HeroSection({ perfume }: HeroProps) {
 
             {/* Right - Details */}
             <div className="flex flex-col space-y-6 py-4 px-6">
-
-                {/* Title */}
                 <div className="space-y-2">
                     <p className="text-xs uppercase tracking-[0.25em] text-secondary font-semibold">
                         {perfume.brand}
@@ -93,46 +121,50 @@ export default function HeroSection({ perfume }: HeroProps) {
                     </p>
                 </div>
 
-                {/* Description */}
                 <p className="text-sm text-on-surface-variant leading-relaxed max-w-md">
                     {perfume.description}
                 </p>
 
                 {/* Size Selection */}
                 <div className="grid grid-cols-3 gap-3">
-                    {perfume.decant.map((decant) => (
-                        <div
-                            key={decant.size}
-                            onClick={() => handleSelect(decant)}
-                            className={`border p-4 text-center cursor-pointer transition-all duration-300 rounded-xl
-                            ${isSelected(decant)
-                                    ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
-                                    : 'border-outline/20 hover:border-secondary hover:shadow-sm'
-                                }`}
-                        >
-                            <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
-                                {Math.round(decant.size)}ml
-                            </p>
-                            <p className="font-headline text-sm font-semibold text-primary">
-                                NRS {Math.round(decant.price)}
-                            </p>
-                        </div>
-                    ))}
+                    {perfume.decant.map((decant) => {
+                        const isOutOfStock = decant.stock <= 0;
+                        return (
+                            <div
+                                key={decant.size}
+                                onClick={() => handleSelect(decant)}
+                                className={`border p-4 text-center transition-all duration-300 rounded-xl relative
+                                ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-surface-container-low' : 'cursor-pointer'}
+                                ${isSelected(decant)
+                                        ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
+                                        : !isOutOfStock ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10'
+                                    }`}
+                            >
+                                <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
+                                    {Math.round(Number(decant.size))}ml
+                                </p>
+                                <p className="font-headline text-sm font-semibold text-primary">
+                                    {isOutOfStock ? 'OUT OF STOCK' : `NRS ${Math.round(Number(decant.price))}`}
+                                </p>
+                            </div>
+                        )
+                    })}
 
                     {/* Full Bottle */}
                     <div
                         onClick={() => handleSelect('full')}
-                        className={`col-span-3 border p-4 text-center cursor-pointer transition-all duration-300 rounded-xl
+                        className={`col-span-3 border p-4 text-center transition-all duration-300 rounded-xl
+                        ${perfume.stock <= 0 ? 'opacity-50 cursor-not-allowed bg-surface-container-low' : 'cursor-pointer'}
                         ${isSelected('full')
                                 ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
-                                : 'border-outline/20 hover:border-secondary hover:shadow-sm'
+                                : perfume.stock > 0 ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10'
                             }`}
                     >
                         <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
                             Full Bottle
                         </p>
                         <p className="font-headline text-sm font-semibold text-primary">
-                            NRS {Math.round(fullPrice).toLocaleString()}
+                            {perfume.stock <= 0 ? 'OUT OF STOCK' : `NRS ${Math.round(Number(fullPrice)).toLocaleString()}`}
                         </p>
                     </div>
                 </div>
@@ -140,8 +172,6 @@ export default function HeroSection({ perfume }: HeroProps) {
                 {/* Quantity + Total */}
                 {selectedSize && (
                     <div className="flex items-center justify-between border-t border-outline/10 pt-4 animate-fadeIn">
-
-                        {/* Counter */}
                         <div className="flex items-center gap-6 border border-outline/20 px-5 py-2 rounded-full">
                             <button
                                 onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -153,16 +183,16 @@ export default function HeroSection({ perfume }: HeroProps) {
                                 {quantity}
                             </span>
                             <button
-                                onClick={() => setQuantity(q => q + 1)}
-                                className="text-lg hover:text-secondary transition"
+                                onClick={() => setQuantity(q => Math.min(currentMaxStock, q + 1))}
+                                className="text-lg hover:text-secondary transition disabled:opacity-30"
+                                disabled={quantity >= currentMaxStock}
                             >
                                 +
                             </button>
                         </div>
 
-                        {/* Price */}
                         <div className="font-headline text-xl font-semibold text-secondary">
-                            NRS {Math.round(totalPrice)}
+                            NRS {Math.round(totalPrice).toLocaleString()}
                         </div>
                     </div>
                 )}
@@ -170,14 +200,15 @@ export default function HeroSection({ perfume }: HeroProps) {
                 {/* Actions */}
                 <div className="flex gap-3 pt-2">
                     <button
-                        disabled={!selectedSize}
+                        disabled={!selectedSize || currentMaxStock <= 0}
                         className={`flex-1 py-3 text-xs uppercase tracking-widest rounded-full transition-all duration-300
-                        ${!selectedSize
-                                ? 'bg-primary/30 cursor-not-allowed'
-                                : 'bg-primary hover:opacity-90 shadow-sm hover:shadow-md'
-                            } text-white`}
+                        ${(!selectedSize || currentMaxStock <= 0)
+                                ? 'bg-outline/20 text-outline cursor-not-allowed'
+                                : 'bg-primary hover:opacity-90 shadow-sm hover:shadow-md text-white'
+                            }`}
+                        onClick={handleAddToCartSubmit}
                     >
-                        Add to Cart
+                        {!selectedSize ? 'Select a size' : currentMaxStock <= 0 ? 'Out of Stock' : 'Add to Cart'}
                     </button>
 
                     <button className="material-symbols-outlined border border-outline/20 p-3 rounded-full hover:bg-surface-container-high transition">
@@ -185,7 +216,6 @@ export default function HeroSection({ perfume }: HeroProps) {
                     </button>
                 </div>
 
-                {/* Notes */}
                 <div className="border-t border-outline/10 pt-6">
                     <NotePyramid perfume={perfume} />
                 </div>

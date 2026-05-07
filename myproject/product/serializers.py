@@ -40,7 +40,7 @@ class PerfumeListSerializer(serializers.ModelSerializer):
 class DecantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Decant
-        fields = ['size', 'price']
+        fields = ['id','size', 'price','stock']
 
 class SillageSerializer(serializers.Serializer):
     level = serializers.CharField()
