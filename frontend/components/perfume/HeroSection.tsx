@@ -37,14 +37,17 @@ export default function HeroSection({ perfume }: HeroProps) {
 
     const handleAddToCartSubmit = async () => {
         // Determine the type and ID based on what is selected
+
         const product_type = selectedSize === 'full' ? 'perfume' : 'decant';
         const product_id = selectedSize === 'full' ? perfume.id : selectedSize?.id;
+
 
         const payload = {
             product_type: product_type,
             product_id: product_id,
             quantity: quantity,
         }
+        console.log(payload)
 
         try {
             const res = await authapiPost('/cart/add-to-cart/', payload)

@@ -8,7 +8,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from .models import Cart, CartItem, Order, OrderItem
 from .utils.helper import get_product
-from .serializers import deleteCartItemSerializer,updateCartItemSerialiser
+from .serializers import deleteCartItemSerializer,updateCartItemSerialiser, addCartItemSerializer
 
 @method_decorator(csrf_protect, name='dispatch')
 class AddToCartView(LoginRequiredMixin, View):
@@ -16,12 +16,16 @@ class AddToCartView(LoginRequiredMixin, View):
         try:
             data = json.loads(request.body)
 
+            serializer = addCartItemSerializer(data = data)
+
+            if not serializer.is_valid():
+                return JsonResponse(serializer.errors,status = 400)
             #get_or_create returns a tuple of the cart and a boolean representing newly created or not
 
             cart, _ = Cart.objects.get_or_create(user=request.user)
 
-            product_type = data.get("product_type")
-            product_id = data.get("product_id")
+            product_type = serializer.validated_data.get("product_type")
+            product_id = serializer.validated_data.get("product_id")
             qty = int(data.get("quantity", 1))
 
             # Get actual product
@@ -132,7 +136,10 @@ class CartUpdateView(LoginRequiredMixin,View):
                 return JsonResponse({'detail':"Item not found in your cart"},status = 400)
             
             product = item.get_product()
-
+            
+            if item.product_type == "thrift":
+                return JsonResponse({'detail':"Cannot add more of thrift"},status = 400)
+            
             if product.stock < quantity:
                 return JsonResponse({'detail':'Not enough stock'},status =400)
             
@@ -263,7 +270,7 @@ class CartDetailView(LoginRequiredMixin, View):
             if product:
                 if item.product_type == "atomizer":
                     img_url = product.image.url if product.image else ""
-                elif item.product_type in ["perfume", "decant", "thrift","atomizer"] and product:
+                elif item.product_type in ["perfume", "decant", "thrift"] and product:
                     perfume = product.perfume if hasattr(product, "perfume") else product
                     img = perfume.images.filter(is_primary=True).first()
                     img_url = img.image.url if img else ""

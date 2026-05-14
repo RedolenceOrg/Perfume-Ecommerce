@@ -20,7 +20,7 @@ export interface PerformanceMetrics {
 }
 
 export interface Perfume {
-    id?: number;
+    id: number;
     name: string;
     brand: string;
     price: number;

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
+from .models import Profile
 
 User = get_user_model()
 
@@ -50,5 +51,25 @@ class LoginSerializer(serializers.Serializer):
     class Meta:
         model = User
         fields = ['email', 'password']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['email','username']
+
+class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+
+    class Meta:
+        model = Profile 
+        fields =["user","phone_number","address","total_spend"]
+
+class updateProfileSerializer(serializers.Serializer):
+    phone_number = serializers.DecimalField(max_digits=10,decimal_places=0)
+    address = serializers.CharField()
+
+
+
 
 

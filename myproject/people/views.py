@@ -7,7 +7,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
-from .serializers import RegistrationSerializer,LoginSerializer
+from .serializers import RegistrationSerializer,LoginSerializer,ProfileSerializer,updateProfileSerializer
+
 
 User = get_user_model()
 
@@ -15,6 +16,7 @@ User = get_user_model()
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class CSRFView(View):
     def get(self, request):
+        
         return JsonResponse({'csrfToken': 'set'})
 
 
@@ -94,7 +96,7 @@ class LogoutView(View):
     def post(self, request):
         auth_logout(request)
         return JsonResponse({'message': 'Logged out successfully'})
-
+    
 
 class MeView(View):
     def get(self, request):
@@ -108,3 +110,56 @@ class MeView(View):
             'username': request.user.username,
             'email': request.user.email,
         })
+    
+
+@method_decorator(csrf_protect, name='dispatch')
+class ProfileView(View):
+    def get(self,request):
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {'detail': 'Not logged in'},
+                status=403
+            )
+
+        profile = request.user.profile
+        data = ProfileSerializer(profile).data
+
+        return JsonResponse(data, status=200)
+    
+
+@method_decorator(csrf_protect,name = 'dispatch')
+class UpdateProfile(View):
+    def patch(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'detail': 'Invalid JSON'}, status=400)
+     
+        serializer = updateProfileSerializer(data = data)
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors,status= 400)
+        
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {'detail': 'Not logged in'},
+                status=403
+            )
+        
+        profile = request.user.profile
+
+        address = serializer.validated_data.get('address')
+        phone_number = serializer.validated_data.get('phone_number')
+
+        if address is not None:
+            profile.address = address
+        if phone_number is not None:
+            profile.phone_number = phone_number
+        profile.save()
+        return JsonResponse({
+            'address': profile.address,
+            'phone_number': profile.phone_number
+        }   
+        )
+        
+        
+

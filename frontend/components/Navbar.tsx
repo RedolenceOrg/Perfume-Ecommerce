@@ -110,21 +110,22 @@ export default function Navbar() {
                     {loading ? (
                         <div className="w-6 h-6" />
                     ) : user ? (
-                        <div className="flex items-center gap-3">
-                            <span className="text-sm font-medium text-primary">
-                                {user.username}
-                            </span>
-                            <button
-                                onClick={() => {
-                                    logout()
-                                    refreshUser()
+                        <Link href={"/profile"}>
+                            <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-primary group-hover:text-secondary">
+                                    person
+                                </span>
+                                <span className="text-sm font-medium text-primary">
+                                    {user.username}
+                                </span>
+                                <button onClick={async () => {
+                                    await logout()
+                                    refreshUser();
                                     router.push('/')
-                                }}
-                                className="text-xs uppercase tracking-widest text-primary/60 hover:text-primary transition-all"
-                            >
-                                Logout
-                            </button>
-                        </div>
+                                }}>Logout</button>
+
+                            </div>
+                        </Link>
                     ) : (
                         <Link
                             href="/login"
