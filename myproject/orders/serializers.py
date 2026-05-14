@@ -8,7 +8,7 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CartItem
-        fields = ['id', 'perfume', 'decant', 'thrift', 'atomizer', 'quantity', 'name', 'price']
+        fields = ['id','quantity', 'name', 'price']
 
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
@@ -16,3 +16,16 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ['id', 'items', 'created_at']
+
+class deleteCartItemSerializer(serializers.Serializer):
+    item_id = serializers.IntegerField()
+
+
+    
+class updateCartItemSerialiser(serializers.Serializer):
+    item_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value =1)
+
+    
+
+

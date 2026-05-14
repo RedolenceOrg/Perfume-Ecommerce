@@ -2,7 +2,8 @@
 import { Perfume, Decant } from '@/types/perfumes'
 import NotePyramid from './NotePyramid'
 import { useState } from 'react'
-import { apiPost, apiGet } from '@/context/api'
+import { authapiPost } from '@/context/api'
+import { toast } from 'react-toastify'
 
 interface HeroProps {
     perfume: Perfume
@@ -18,7 +19,7 @@ export default function HeroSection({ perfume }: HeroProps) {
     const [quantity, setQuantity] = useState(1)
     const [selectedImage, setSelectedImage] = useState(primaryImage)
 
-    // Helper to determine stock of the current selection
+
     const currentMaxStock = selectedSize === 'full'
         ? perfume.stock
         : selectedSize?.stock || 0
@@ -32,26 +33,37 @@ export default function HeroSection({ perfume }: HeroProps) {
     const totalPrice = Number(selectedPrice) * quantity
 
 
-
+    const isDisabled = !selectedSize || currentMaxStock <= 0
 
     const handleAddToCartSubmit = async () => {
+        // Determine the type and ID based on what is selected
+        const product_type = selectedSize === 'full' ? 'perfume' : 'decant';
+        const product_id = selectedSize === 'full' ? perfume.id : selectedSize?.id;
+
         const payload = {
+            product_type: product_type,
+            product_id: product_id,
             quantity: quantity,
-            perfume_id: perfume.id,
-            decant_id: selectedSize === 'full' ? null : (selectedSize as Decant).id,
         }
+
         try {
-            const res = await apiPost('/cart/add-to-cart/', payload)
+            const res = await authapiPost('/cart/add-to-cart/', payload)
             const data = await res.json()
+
             if (!res.ok) {
-                console.log(data)
+                toast.error(data.error || "Failed to add to cart")
+                return
+            }
+
+            if (data.already_in_cart) {
+                toast.info("Cart quantity updated")
+            } else {
+                toast.success("Added to cart")
             }
         }
         catch (err) {
-            console.log(err)
-
+            toast.error('You must log in to add to cart')
         }
-
     };
 
     const handleSelect = (variant: Decant | 'full') => {
@@ -200,15 +212,18 @@ export default function HeroSection({ perfume }: HeroProps) {
                 {/* Actions */}
                 <div className="flex gap-3 pt-2">
                     <button
-                        disabled={!selectedSize || currentMaxStock <= 0}
-                        className={`flex-1 py-3 text-xs uppercase tracking-widest rounded-full transition-all duration-300
-                        ${(!selectedSize || currentMaxStock <= 0)
-                                ? 'bg-outline/20 text-outline cursor-not-allowed'
-                                : 'bg-primary hover:opacity-90 shadow-sm hover:shadow-md text-white'
+                        disabled={isDisabled}
+                        className={`flex-1 py-3 text-xs uppercase tracking-widest rounded-full transition-all duration-30 ${isDisabled
+                            ? 'bg-outline/20 text-outline cursor-not-allowed'
+                            : 'bg-primary hover:opacity-90 shadow-sm hover:shadow-md text-white'
                             }`}
                         onClick={handleAddToCartSubmit}
                     >
-                        {!selectedSize ? 'Select a size' : currentMaxStock <= 0 ? 'Out of Stock' : 'Add to Cart'}
+                        {!selectedSize
+                            ? 'Select a size'
+                            : currentMaxStock <= 0
+                                ? 'Out of Stock'
+                                : 'Add to Cart'}
                     </button>
 
                     <button className="material-symbols-outlined border border-outline/20 p-3 rounded-full hover:bg-surface-container-high transition">

@@ -106,6 +106,8 @@ class AtomizerVariant(models.Model):
     size = models.DecimalField(max_digits=5, decimal_places=2)  # Size in ml
     price = models.DecimalField(max_digits=6, decimal_places=2)
     colors = models.CharField(max_length=50,blank=True)
+    stock = models.PositiveIntegerField(default=0)
+    image = models.ImageField(upload_to='atomizer_images/',null=True,blank=True)
 
     def __str__(self):
         return f"{self.atomizer.description} - {self.size}ml Atomizer"

@@ -1,15 +1,15 @@
 import Arrivals from "@/components/Arrivals"
 import HeroSection from "@/components/perfume/HeroSection"
 import Performance from "@/components/perfume/Performance"
+import { apiGet } from "@/context/api"
 
-export const revalidate = 60
+
 
 export default async function PerfumePage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
-    const BASEURL = process.env.NEXT_PUBLIC_API_URL
 
     try {
-        const res = await fetch(`${BASEURL}/api/perfume/${slug}/`)
+        const res = await apiGet(`/api/perfume/${slug}/`)
         if (!res.ok) return <div>Perfume not found</div>
         const perfume = await res.json()
 
@@ -21,7 +21,7 @@ export default async function PerfumePage({ params }: { params: Promise<{ slug: 
 
         const noteParams = allNotes.map((n: string) => `note=${n}`).join('&')
 
-        const relatedRes = await fetch(`${BASEURL}/api/related/?${noteParams}&exclude=${slug}`)
+        const relatedRes = await apiGet(`/api/related/?${noteParams}&exclude=${slug}`)
         if (!relatedRes.ok) return <div>Perfume not found</div>
         const relatedPerfumes = await relatedRes.json()
 

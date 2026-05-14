@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import PerfumeCard from '@/components/perfumeCard';
 import { PerfumeSummary as Perfume } from '@/types/perfumes';
+import { apiGet } from '@/context/api';
 
 export default function ProductGrid() {
     const [perfumes, setPerfumes] = useState<Perfume[]>([]);
@@ -26,7 +27,7 @@ export default function ProductGrid() {
                 ...Object.fromEntries(searchParams.entries())
             });
 
-            const res = await fetch(`${BASEURL}/api/shop/?${params}`);
+            const res = await apiGet(`/api/shop/?${params}`);
             const data = await res.json();
 
             setPerfumes(prev => isReset ? data.perfumes : [...prev, ...data.perfumes]);

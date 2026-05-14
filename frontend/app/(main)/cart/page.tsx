@@ -1,21 +1,22 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { apiGet } from '@/context/api'
+import { authapiDelete, authapiGet, authApiUpdate } from '@/context/api'
 import { CartItem } from '@/types/perfumes'
+import { toast } from 'react-toastify'
 
 export default function CartPage() {
     const [cartData, setCartData] = useState<{ items: CartItem[], grand_total: number } | null>(null)
     const [loading, setLoading] = useState(true)
     const router = useRouter()
     const BASE_URL = process.env.NEXT_PUBLIC_API_URL
-
+    console.log(cartData)
     useEffect(() => {
         const fetchCart = async () => {
             try {
-                const res = await apiGet('/orders/cart/')
+                const res = await authapiGet('/cart/view/')
                 if (res.status === 401 || res.status === 403) {
-                    router.push('/login?next=/cart')
+                    router.push('/login')
                     return
                 }
                 if (res.ok) {
@@ -32,8 +33,49 @@ export default function CartPage() {
     }, [router])
 
     // Placeholders for your actions
-    const handleRemoveItem = (id: number) => console.log("Delete:", id)
-    const handleUpdateQuantity = (id: number, delta: number) => console.log("Update:", id, delta)
+    const handleRemoveItem = async (id: number) => {
+        const payload = {
+            item_id: id
+        }
+        const res = await authapiDelete('/cart/delete/', payload)
+        if (res.ok) {
+            const data = await res.json()
+            toast.success("Deleted Item Successfully")
+            setCartData(prev => prev ? {
+                items: prev.items.filter(item => item.id !== id),
+                grand_total: data.grand_total
+            } : null)
+        }
+        else
+            toast.error("Something went wrong")
+
+
+    }
+    const handleUpdateQuantity = async (id: number, quantity: number) => {
+        const payload = {
+            item_id: id,
+            quantity: quantity,
+        }
+
+        const res = await authApiUpdate('/cart/update/', payload)
+        const data = await res.json()
+        if (res.ok) {
+
+            toast.info("Updated Item Successfully")
+            setCartData(prev => prev ? {
+                items: prev.items.map(item =>
+                    item.id === data.item_id
+                        ? { ...item, quantity: data.quantity, total_price: data.total_price }
+                        : item
+                ),
+                grand_total: data.grand_total
+            } : null)
+        }
+        else
+            toast.error(data.detail || "Failed to update cart")
+
+
+    }
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center bg-background">
@@ -49,7 +91,7 @@ export default function CartPage() {
                     The finest fragrances from Nepal and beyond are waiting to be discovered.
                 </p>
                 <button
-                    onClick={() => router.push('/')}
+                    onClick={() => router.push('/shop')}
                     className="bg-primary text-surface-container-lowest px-10 py-4 rounded-xl uppercase text-[11px] tracking-[0.25em] hover:opacity-90 transition-all shadow-sm"
                 >
                     View Collections
@@ -59,7 +101,7 @@ export default function CartPage() {
     }
 
     return (
-        <main className="pt-32 pb-24 px-6 md:px-12 max-w-7xl mx-auto min-h-screen bg-background text-primary">
+        <main className="pt-16 pb-24 px-6 md:px-12 max-w-7xl mx-auto min-h-screen bg-background text-primary">
             <header className="mb-20">
                 <h1 className="font-headline text-5xl md:text-7xl tracking-tight mb-4">
                     Your Selection
@@ -117,14 +159,14 @@ export default function CartPage() {
                                         {/* Quantity Selector */}
                                         <div className="flex items-center gap-5 px-3 py-1 border border-outline-variant rounded-full text-primary">
                                             <button
-                                                onClick={() => handleUpdateQuantity(item.id, -1)}
+                                                onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                                                 className="hover:text-secondary transition-colors font-bold"
                                             >
                                                 −
                                             </button>
                                             <span className="text-sm font-label tabular-nums">{item.quantity}</span>
                                             <button
-                                                onClick={() => handleUpdateQuantity(item.id, 1)}
+                                                onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                                                 className="hover:text-secondary transition-colors font-bold"
                                             >
                                                 +

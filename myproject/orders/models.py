@@ -5,10 +5,10 @@ from django.conf import settings
 STATUS_CHOICES = [('pending', 'Pending'), ('shipped', 'Shipped'), ('delivered', 'Delivered')]
 class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders', null =True, blank= True)
-    # Snapshot of the total at checkout
+
     total_amount = models.DecimalField(max_digits=12, decimal_places=2,default= 0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    # Billing/Shipping details (snapshot these so they don't change)
+
     shipping_address = models.TextField(blank = True)
     phone_number = models.CharField(max_length=15,blank=True)
     
@@ -40,45 +40,79 @@ class Cart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def grand_total(self):
+        return sum(item.total_price for item in self.items.all())
+
     def __str__(self):
         return f"Cart of {self.user.username}"
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
-    perfume = models.ForeignKey('product.Perfume', on_delete=models.CASCADE, null=True, blank=True)
-    decant = models.ForeignKey('product.Decant', on_delete=models.CASCADE, null=True, blank=True)
-    thrift = models.ForeignKey('product.Thrift', on_delete=models.CASCADE, null=True, blank=True)
-    atomizer = models.ForeignKey('product.AtomizerVariant', on_delete=models.CASCADE, null=True, blank=True)
+
+    product_type = models.CharField(max_length=20)  # perfume / decant / thrift / atomizer
+    product_id = models.PositiveIntegerField()
+
     quantity = models.PositiveIntegerField(default=1)
 
     class Meta:
-        unique_together = ('cart', 'perfume', 'decant', 'thrift', 'atomizer')
+        unique_together = ('cart', 'product_type', 'product_id')
+
+    @property
+    def unit_price(self):
+        """
+        Fetches the current price from the actual product model.
+        """
+        product = self.get_product()
+        if not product:
+            return 0
+        
+        # Thrift uses 'thrift_price', others use 'price'
+        if self.product_type == "thrift":
+            return getattr(product, 'thrift_price', 0)
+        
+        return getattr(product, 'price', 0)
+
+    @property
+    def total_price(self):
+        """
+        Calculates total based on quantity.
+        """
+        return self.unit_price * self.quantity
 
     def __str__(self):
         return f"{self.quantity} x {self.get_item_name()}"
 
-    def get_item_name(self):
-        # We check the specific objects to generate the name
-        if self.decant:
-            return f"{self.perfume.name} ({self.decant.size}ml Decant)"
-        if self.thrift:
-            return f"Thrifted {self.perfume.name} ({self.thrift.remaining_juice}ml)"
-        if self.atomizer:
-            # AtomizerVariant points to Atomizer, so we can reach the name
-            return f"{self.atomizer.atomizer.name} ({self.atomizer.size}ml)"
-        if self.perfume:
-            return f"{self.perfume.name} (Full Bottle)"
-        return "Unknown Item"
+    def get_product(self):
+        from product.models import Perfume, Decant, Thrift, AtomizerVariant
 
-    @property
-    def total_price(self):
-        # Calculation based on which variant is selected
-        if self.decant:
-            return self.decant.price * self.quantity
-        if self.thrift:
-            return self.thrift.thrift_price * self.quantity
-        if self.atomizer:
-            return self.atomizer.price * self.quantity
-        if self.perfume:
-            return self.perfume.price * self.quantity
-        return 0
+        if self.product_type == "perfume":
+            return Perfume.objects.filter(id=self.product_id).first()
+        if self.product_type == "decant":
+            return Decant.objects.filter(id=self.product_id).first()
+        if self.product_type == "thrift":
+            return Thrift.objects.filter(id=self.product_id).first()
+        if self.product_type == "atomizer":
+            return AtomizerVariant.objects.filter(id=self.product_id).first()
+        return None
+    
+    
+    def get_item_name(self):
+        product = self.get_product()
+
+        if not product:
+            return "Unknown Item"
+
+        if self.product_type == "perfume":
+            return f"{product.name} (Full Bottle)"
+
+        if self.product_type == "decant":
+            return f"{product.perfume.name} ({product.size}ml Decant)"
+
+        if self.product_type == "thrift":
+            return f"Thrifted {product.perfume.name} ({product.remaining_juice}ml)"
+
+        if self.product_type == "atomizer":
+            return f"{product.atomizer.name} ({product.size}ml)"
+
+        return "Unknown"

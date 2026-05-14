@@ -1,13 +1,13 @@
 export const dynamic = 'force-dynamic'
+import { apiGet } from "@/context/api";
 import FilterTag from "./components/FilterTag";
 import ProductGrid from "./components/ProductGrid";
 import ShopSidebar from "./components/Sidebar";
 export default async function Shop() {
-    const BASEURL = process.env.NEXT_PUBLIC_API_URL
 
 
     try {
-        const res = await fetch(`${BASEURL}/api/filter/`);
+        const res = await apiGet(`/api/filter/`);
         if (!res.ok) return <div>No data found</div>
         const filters = await res.json();
 

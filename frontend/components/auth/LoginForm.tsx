@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link"
-import { apiPost, apiGet } from "@/context/api";
+import { authapiPost, authapiGet } from "@/context/api";
 import { useRouter } from "next/navigation";
 import { useAuth } from '@/context/AuthContext'
 
@@ -16,7 +16,7 @@ const LoginForm = () => {
     const { refreshUser } = useAuth()
 
     useEffect(() => {
-        apiGet('/authenticate/csrf/')
+        authapiGet('/authenticate/csrf/')
     }, [])
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -29,7 +29,7 @@ const LoginForm = () => {
         };
 
         try {
-            const res = await apiPost('/authenticate/login/', payload);
+            const res = await authapiPost('/authenticate/login/', payload);
 
             const data = await res.json();
 

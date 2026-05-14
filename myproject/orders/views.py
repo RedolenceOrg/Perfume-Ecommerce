@@ -7,44 +7,204 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from .models import Cart, CartItem, Order, OrderItem
+from .utils.helper import get_product
+from .serializers import deleteCartItemSerializer,updateCartItemSerialiser
 
 @method_decorator(csrf_protect, name='dispatch')
 class AddToCartView(LoginRequiredMixin, View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            cart, _ = Cart.objects.get_or_create(user=request.user)
-            
-            # Extract IDs
-            p_id = data.get('perfume_id')
-            d_id = data.get('decant_id')
-            t_id = data.get('thrift_id')
-            a_id = data.get('atomizer_id')
-            qty = int(data.get('quantity', 1))
 
-            # get_or_create handles the "is_decant" logic automatically 
-            # by checking which FKs are present
-            item, created = CartItem.objects.get_or_create(
+            #get_or_create returns a tuple of the cart and a boolean representing newly created or not
+
+            cart, _ = Cart.objects.get_or_create(user=request.user)
+
+            product_type = data.get("product_type")
+            product_id = data.get("product_id")
+            qty = int(data.get("quantity", 1))
+
+            # Get actual product
+            product = get_product(product_type, product_id)
+
+            if not product:
+                return JsonResponse({
+                    "error": "Product not found"
+                }, status=404)
+
+            # Check if already exists in cart
+            existing_item = CartItem.objects.filter(
                 cart=cart,
-                perfume_id=p_id,
-                decant_id=d_id,
-                thrift_id=t_id,
-                atomizer_id=a_id
+                product_type=product_type,
+                product_id=product_id
+            ).first()
+
+            # =========================
+            # THRIFT VALIDATION
+            # =========================
+            if product_type == "thrift":
+
+                if existing_item:
+                    return JsonResponse({
+                        "error": "This thrift item is already in your cart"
+                    }, status=400)
+
+                CartItem.objects.create(
+                    cart=cart,
+                    product_type=product_type,
+                    product_id=product_id,
+                    quantity=1
+                )
+
+                return JsonResponse({
+                    "message": "Added thrift item",
+                    "cart_count": cart.items.count()
+                }, status=200)
+
+            # =========================
+            # STOCK VALIDATION
+            # =========================
+
+            existing_qty = existing_item.quantity if existing_item else 0
+            new_total = existing_qty + qty
+
+            # Assumes product has stock field
+            if new_total > product.stock:
+                return JsonResponse({
+                    "error": "This much quantity is out of stock"
+                }, status=400)
+
+            # =========================
+            # UPDATE / CREATE CART ITEM
+            # =========================
+
+            if existing_item:
+                existing_item.quantity = new_total
+                existing_item.save()
+
+                return JsonResponse({
+                    "message": "Cart quantity updated",
+                    "already_in_cart": True,
+                    "cart_count": cart.items.count()
+                }, status=200)
+
+            CartItem.objects.create(
+                cart=cart,
+                product_type=product_type,
+                product_id=product_id,
+                quantity=qty
             )
 
-            if not created:
-                item.quantity += qty
-            else:
-                item.quantity = qty
-            
-            item.save()
             return JsonResponse({
-                "message": "Added to cart", 
+                "message": "Added to cart",
+                "already_in_cart": False,
                 "cart_count": cart.items.count()
             }, status=200)
 
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            return JsonResponse({
+                "error": str(e)
+            }, status=400)
+        
+
+@method_decorator(csrf_protect, name = "dispatch")
+class CartUpdateView(LoginRequiredMixin,View):
+    def patch(self,request):
+        try: 
+            data = json.loads(request.body)
+        except Exception as e:
+            return JsonResponse({'detail': 'invalid format'},status = 400)
+        
+        try:
+            serializer = updateCartItemSerialiser(data = data)
+
+
+            if not serializer.is_valid():
+                return JsonResponse(serializer.errors,status= 400)
+            
+            
+            quantity = serializer.validated_data["quantity"]
+            item_id = serializer.validated_data["item_id"]
+
+            try:
+                item = CartItem.objects.get(id = item_id, cart__user = request.user)
+            except CartItem.DoesNotExist:
+                return JsonResponse({'detail':"Item not found in your cart"},status = 400)
+            
+            product = item.get_product()
+
+            if product.stock < quantity:
+                return JsonResponse({'detail':'Not enough stock'},status =400)
+            
+            
+            item.quantity = quantity
+
+            item.save()
+
+            cart = item.cart
+            grand_total = sum(
+                float(i.total_price) for i in cart.items.all())
+            
+            return JsonResponse({
+            'item_id': item.id,
+            'quantity': item.quantity,
+            'total_price': float(item.total_price),
+            'grand_total': grand_total
+            })
+
+
+        
+        except Exception as e:
+            return JsonResponse(e,status =400)
+            
+
+
+
+
+@method_decorator(csrf_protect, name= 'dispatch')
+class CartDeleteView(LoginRequiredMixin,View):
+    def delete(self,request):
+        try:
+            data = json.loads(request.body)
+        except Exception as e:
+            return JsonResponse({"Error parsing the json, invalid format"})
+        try:
+            serializer = deleteCartItemSerializer(data=data)
+            if not serializer.is_valid():
+                return JsonResponse({serializer.errors},status = 400)
+            
+            item_id = serializer.validated_data["item_id"]
+
+            try:
+                item = CartItem.objects.get(
+                    id=item_id,
+                    cart__user=request.user  # security check
+                    )
+            except CartItem.DoesNotExist:
+                return JsonResponse(
+                {'detail': 'Item not found in your cart'},
+                status=404
+            )
+
+            item.delete()
+
+
+            cart = Cart.objects.get(user=request.user)
+
+            grand_total = sum(
+            float(i.total_price)
+            for i in cart.items.all())
+            
+            return JsonResponse({
+            'message': 'Item removed',
+            'grand_total': grand_total})
+        except Exception as e:
+            return JsonResponse({
+                "error":str(e)
+            })
+    
+
+
 
 @method_decorator(csrf_protect, name='dispatch')
 class CheckoutView(LoginRequiredMixin, View):
@@ -95,18 +255,29 @@ class CartDetailView(LoginRequiredMixin, View):
     def get(self, request):
         cart, _ = Cart.objects.get_or_create(user=request.user)
         items = []
+
         for item in cart.items.all():
-            img = item.perfume.images.filter(is_primary=True).first()
-            img_url = img.image.url if img else ""
-            items.append({
+            product = item.get_product()
+
+            img_url = ""
+            if product:
+                if item.product_type == "atomizer":
+                    img_url = product.image.url if product.image else ""
+                elif item.product_type in ["perfume", "decant", "thrift","atomizer"] and product:
+                    perfume = product.perfume if hasattr(product, "perfume") else product
+                    img = perfume.images.filter(is_primary=True).first()
+                    img_url = img.image.url if img else ""
+
+            items.append({  
                 "id": item.id,
-                "perfume_name":item.perfume.name,
                 "variant_name": item.get_item_name(),
+                "variant_type":item.product_type,
                 "unit_price": float(item.total_price / item.quantity),
-                "total_price":float(item.total_price),
+                "total_price": float(item.total_price),
                 "quantity": item.quantity,
-                "images":img_url
+                "images": img_url
             })
+
         return JsonResponse({
             "items": items,
             "grand_total": sum(i['total_price'] for i in items)

@@ -1,6 +1,6 @@
 'use client'
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { apiGet, apiPost } from './api'
+import { authapiGet, authapiPost } from './api'
 
 interface User {
     id: number
@@ -29,8 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const initAuth = async () => {
             try {
-                await apiGet('/authenticate/csrf/')
-                const res = await apiGet('/authenticate/me/')
+                await authapiGet('/authenticate/csrf/')
+                const res = await authapiGet('/authenticate/me/')
                 if (res.ok) {
                     const data = await res.json()
                     setUser(data)
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = async () => {
         try {
-            await apiPost('/authenticate/logout/')
+            await authapiPost('/authenticate/logout/')
         } finally {
             setUser(null)
         }
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const refreshUser = async () => {
         try {
-            const res = await apiGet('/authenticate/me/')
+            const res = await authapiGet('/authenticate/me/')
             if (res.ok) {
                 const data = await res.json()
                 setUser(data)

@@ -1,3 +1,4 @@
+import { apiGet } from "@/context/api";
 import AtomizerCard from "./components/atomizerCard";
 import AtomizerHero from "./components/atomizerHero";
 
@@ -5,10 +6,9 @@ export const revalidate = 60
 
 
 export default async function Atomizer() {
-    const BASEURL = process.env.NEXT_PUBLIC_API_URL
 
     try {
-        const res = await fetch(`${BASEURL}/api/atomizers/`);
+        const res = await apiGet(`/api/atomizers/`);
         if (!res.ok) return <div>Product not found</div>
         const products = await res.json();
 

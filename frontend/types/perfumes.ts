@@ -45,11 +45,11 @@ export interface PerfumeSummary {
 }
 export interface AtomizerVariant {
     id: number;
-
+    stock: number;
     size: number;
     price: number;
     colors: string;
-
+    image: string;
 }
 export interface Atomizer {
     id: number;
@@ -60,6 +60,7 @@ export interface Atomizer {
 }
 export interface Thrift {
     id: number;
+    perfume_id: number;
     perfume_name: string;
     brand: string;
     remaining_juice: number;
@@ -67,13 +68,13 @@ export interface Thrift {
     image: PerfumeImage[];
 }
 export interface CartItem {
-    id: number
-    perfume_name: string
-    variant_name: string
-    unit_price: number
-    total_price: number
-    quantity: number
-    images: string
+    id: number;
+    perfume_name: string;
+    variant_name: string;
+    unit_price: number;
+    total_price: number;
+    quantity: number;
+    images: string;
 }
 
 

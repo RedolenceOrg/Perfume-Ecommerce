@@ -83,7 +83,7 @@ class PerfumeSerializer(serializers.ModelSerializer):
 class AtomizerVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = AtomizerVariant
-        fields = ['id','size', 'price','colors']
+        fields = ['id','size', 'price','colors','stock','image']
 
 
 class AtomizerSerializer(serializers.ModelSerializer):
@@ -96,8 +96,9 @@ class ThriftSerializer(serializers.ModelSerializer):
     image = PerfumeImageSerializer(source='perfume.images', many=True, read_only=True)
     perfume_name = serializers.CharField(source='perfume.name', read_only=True)
     brand = serializers.CharField(source='perfume.brand.name', read_only=True)
+    perfume_id = serializers.IntegerField(source='perfume.id',read_only= True)
     class Meta:
         model = Thrift
-        fields = ['id','perfume_name','brand','remaining_juice', 'thrift_price','image',]
+        fields = ['id','perfume_id','perfume_name','brand','remaining_juice', 'thrift_price','image',]
 
 

@@ -1,6 +1,8 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { Atomizer, AtomizerVariant } from '@/types/perfumes';
+import { authapiPost } from '@/context/api';
+import { toast } from 'react-toastify'
 
 export default function AtomizerCard({ atomizers }: { atomizers: Atomizer[] }) {
     if (!atomizers?.length) return null;
@@ -38,13 +40,24 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
         setSelectedVariant(match);
     }, [selectedSize, availableVariantsForSize]);
 
-    function handleAddToCart() {
-        console.log('Adding to cart:', {
-            atomizerId: atomizer.id,
-            variantId: selectedVariant.id,
-            color: selectedVariant.colors,
-            size: selectedVariant.size,
-        });
+    const handleAddToCart = async () => {
+        const payload = {
+            product_type: 'atomizer',
+            product_id: selectedVariant.id,
+            quantity: 1
+        }
+        try {
+            const res = await authapiPost('/cart/add-to-cart/', payload)
+            if (!res.ok) {
+                toast.error('Failed to add to cart')
+            }
+            else {
+                toast.success('Added to cart')
+            }
+        }
+        catch (err) {
+            toast.error("Failed you must log in to add to cart")
+        }
     }
 
     return (
@@ -53,7 +66,7 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
             {/* Image Section - Fixed aspect ratio for mobile */}
             <div className="relative w-full aspect-square md:aspect-auto">
                 <img
-                    src="https://klipshop.co.uk/136818-prod_large/jean-paul-gaultier-le-beau-le-parfum-perfume-atomizer-for-men-edp.jpg"
+                    src={`${process.env.NEXT_PUBLIC_API_URL}${selectedVariant.image}`}
                     alt={atomizer.name}
                     className="w-full h-full object-cover rounded-xl"
                 />

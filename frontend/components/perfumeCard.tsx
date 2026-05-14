@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { PerfumeSummary } from "@/types/perfumes";
 export default function PerfumeCard({ id, name, brand, price, images, slug }: PerfumeSummary) {
-    // Logic fix: Ensure we are accessing the array correctly
+
     const imageObj = images?.find(img => img.is_primary) || images?.[0];
     const imagePath = imageObj?.image || '';
     const BASE_URL = process.env.NEXT_PUBLIC_API_URL
@@ -30,8 +30,14 @@ export default function PerfumeCard({ id, name, brand, price, images, slug }: Pe
                 <p className="font-body text-xs text-[#775a19] uppercase tracking-widest font-bold">
                     {brand}
                 </p>
-                <p className="font-body font-bold text-sm text-[#1b1c1a] pt-2">
-                    NRS {Math.round(parseFloat(price)).toLocaleString()}
+                <p className="font-body font-bold text-sm text-primary pt-2">
+                    {Math.round(parseFloat(price)) === 0 ? (
+                        <span className="text-secondary text-[10px] uppercase tracking-widest font-bold bg-secondary-container/30 px-2 py-1 rounded-sm">
+                            Decants Available
+                        </span>
+                    ) : (
+                        `NRS ${Math.round(parseFloat(price)).toLocaleString()}`
+                    )}
                 </p>
             </div>
         </Link>

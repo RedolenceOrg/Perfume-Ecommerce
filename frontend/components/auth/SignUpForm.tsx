@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiGet, apiPost } from "@/context/api";
+import { authapiGet, authapiPost } from "@/context/api";
 
 export default function SignupForm() {
     const router = useRouter();
@@ -11,7 +11,7 @@ export default function SignupForm() {
 
 
     useEffect(() => {
-        apiGet('/authenticate/csrf/')
+        authapiGet('/authenticate/csrf/')
     }, [])
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -31,7 +31,7 @@ export default function SignupForm() {
         };
 
         try {
-            const res = await apiPost('/authenticate/signup/', payload);
+            const res = await authapiPost('/authenticate/signup/', payload);
 
             const data = await res.json();
 
@@ -45,8 +45,6 @@ export default function SignupForm() {
                 setLoading(false);
                 return;
             }
-
-            // success → redirect
             router.push("/login");
 
         } catch (err) {
