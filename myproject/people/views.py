@@ -7,7 +7,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
-from .serializers import RegistrationSerializer,LoginSerializer,ProfileSerializer,updateProfileSerializer
+from .serializers import RegistrationSerializer,LoginSerializer,ProfileSerializer,updateProfileSerializer,ChangePasswordSerializer
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 User = get_user_model()
@@ -160,6 +161,38 @@ class UpdateProfile(View):
             'phone_number': profile.phone_number
         }   
         )
+        
+@method_decorator(csrf_protect,name = 'dispatch')
+class UpdatePasword(LoginRequiredMixin,View):
+    def patch(self,request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError as e:
+            return JsonResponse({"detail":"Error parsing to JSON format"},status = 400)
+        
+        
+        serializer = ChangePasswordSerializer(data = data)
+
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors,status = 400)
+        
+        old_pass = serializer.validated_data['current_password']
+        new_pass = serializer.validated_data['new_password']
+
+        if  not request.user.check_password(old_pass):
+            return JsonResponse(
+                {'detail': 'Current password is incorrect'},
+                status=400
+            )
+        
+        
+        request.user.set_password(new_pass)
+        
+        request.user.save()
+
+        auth_logout(request)
+        
+        return JsonResponse({'detail':"Password successfully changed"},status = 200)
         
         
 

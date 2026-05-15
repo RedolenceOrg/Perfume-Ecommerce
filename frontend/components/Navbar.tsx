@@ -120,7 +120,6 @@ export default function Navbar() {
                                 </span>
                                 <button onClick={async () => {
                                     await logout()
-                                    refreshUser();
                                     router.push('/')
                                 }}>Logout</button>
 

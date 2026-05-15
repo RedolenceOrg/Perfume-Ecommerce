@@ -97,6 +97,12 @@ const LoginForm = () => {
                     className="w-full bg-transparent border-b border-gray-200 py-3 px-1 text-sm transition-all focus:border-black focus:outline-none placeholder:text-gray-300"
                 />
             </div>
+            {error && (
+                <div className="flex items-center gap-2 text-red-500 text-[11px] uppercase tracking-widest font-bold">
+                    <span className="material-symbols-outlined text-sm">error</span>
+                    {error}
+                </div>
+            )}
 
             {/* Actions */}
             <div className="space-y-4 pt-4">

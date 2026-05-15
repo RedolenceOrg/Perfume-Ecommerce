@@ -6,6 +6,7 @@ import ProfileHeader from "@/components/profile/ProfileHeader"
 import ProfileEditForm from "@/components/profile/ProfileEditForm"
 import OrderHistory from "@/components/profile/OrderHistory"
 import LoyaltyMilestones from "@/components/profile/LoyaltyMilestones"
+import PasswordChangeForm from "@/components/profile/PasswordChangeForm"
 
 export default function ProfilePage() {
     const [profile, setProfile] = useState<any>(null)
@@ -43,6 +44,7 @@ export default function ProfilePage() {
                     initialPhone={profile.phone_number}
                     initialAddress={profile.address}
                 />
+                <PasswordChangeForm />
                 <LoyaltyMilestones totalSpend={profile.total_spend} />
 
                 <OrderHistory orders={profile.orders || []} />

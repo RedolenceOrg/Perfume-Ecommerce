@@ -48,9 +48,6 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True,min_length=8)
     email = serializers.EmailField()
 
-    class Meta:
-        model = User
-        fields = ['email', 'password']
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -70,6 +67,17 @@ class updateProfileSerializer(serializers.Serializer):
     address = serializers.CharField()
 
 
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(min_length=8)
+    new_password = serializers.CharField(min_length=8)
+    confirm_new_password = serializers.CharField(min_length=8)
+
+    def validate(self, data):
+        if data['new_password'] != data['confirm_new_password']:
+            raise serializers.ValidationError({
+                'confirm_new_password': 'New passwords do not match'
+            })
+        return data
 
 
 
