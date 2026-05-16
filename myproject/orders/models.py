@@ -1,16 +1,28 @@
 from django.db import models
 from django.conf import settings
+import uuid
 
 
 STATUS_CHOICES = [('pending', 'Pending'), ('shipped', 'Shipped'), ('delivered', 'Delivered')]
+PRODUCT_TYPES = [
+    ('perfume', 'Perfume'),
+    ('decant', 'Decant'),
+    ('atomizer', 'Atomizer'),
+    ('thrift', 'Thrift'),
+]
 class Order(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders', null =True, blank= True)
+    id = models.UUIDField(
+        primary_key=True,
+        default= uuid.uuid4,
+        editable= False
+    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
 
     total_amount = models.DecimalField(max_digits=12, decimal_places=2,default= 0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
-    shipping_address = models.TextField(blank = True)
-    phone_number = models.CharField(max_length=15,blank=True)
+    shipping_address = models.TextField()
+    phone_number = models.CharField(max_length=15)
     
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -20,13 +32,20 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     
-
-    perfume = models.ForeignKey('product.Perfume', on_delete=models.SET_NULL, null=True)
-    
-    # We store the name and price as they were at the MOMENT of checkout
-    product_name = models.CharField(max_length=255) # e.g., "Sauvage (10ml Decant)"
+    # snapshot fields — frozen at purchase time
+    product_name = models.CharField(max_length=255)      # "Sauvage (10ml Decant)"
     price_at_purchase = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)  # price × quantity
+    
+    # optional reference back to product
+    product_type = models.CharField(max_length=20,choices= PRODUCT_TYPES)
+    perfume = models.ForeignKey(
+        'product.Perfume',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
     def __str__(self):
         return f"{self.quantity} x {self.product_name} in Order #{self.order.id}"
@@ -113,6 +132,6 @@ class CartItem(models.Model):
             return f"Thrifted {product.perfume.name} ({product.remaining_juice}ml)"
 
         if self.product_type == "atomizer":
-            return f"{product.atomizer.name} ({product.size}ml)"
+            return f"{product.atomizer.name} ({product.size}ml in {product.colors})"
 
         return "Unknown"
