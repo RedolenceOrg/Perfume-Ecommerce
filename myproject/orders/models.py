@@ -4,12 +4,7 @@ import uuid
 
 
 STATUS_CHOICES = [('pending', 'Pending'), ('shipped', 'Shipped'), ('delivered', 'Delivered')]
-PRODUCT_TYPES = [
-    ('perfume', 'Perfume'),
-    ('decant', 'Decant'),
-    ('atomizer', 'Atomizer'),
-    ('thrift', 'Thrift'),
-]
+
 class Order(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -36,10 +31,8 @@ class OrderItem(models.Model):
     product_name = models.CharField(max_length=255)      # "Sauvage (10ml Decant)"
     price_at_purchase = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2)  # price × quantity
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2,default=0)  # price × quantity
     
-    # optional reference back to product
-    product_type = models.CharField(max_length=20,choices= PRODUCT_TYPES)
     perfume = models.ForeignKey(
         'product.Perfume',
         on_delete=models.SET_NULL,

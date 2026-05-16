@@ -16,6 +16,8 @@ class updateCartItemSerialiser(serializers.Serializer):
     item_id = serializers.IntegerField()
     quantity = serializers.IntegerField(min_value =1)
 
+
+
     
 
 

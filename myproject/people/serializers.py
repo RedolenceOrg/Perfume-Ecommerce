@@ -10,10 +10,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8, trim_whitespace=False)
     email = serializers.EmailField()
     username = serializers.CharField(max_length = 20)
+    first_name = serializers.CharField(max_length=50)
+    last_name = serializers.CharField(max_length=50)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password']
+        fields = ['username', 'email', 'password','first_name','last_name']
 
     def validate_email(self, value):
         email = value.strip().lower()
@@ -29,13 +31,17 @@ class RegistrationSerializer(serializers.ModelSerializer):
         username = validated_data['username'].strip()
         email = validated_data['email'].strip().lower()
         password = validated_data['password']
+        first_name = validated_data['first_name'].strip()
+        last_name = validated_data['last_name'].strip()
 
         try:
             with transaction.atomic():
                 user = User.objects.create_user(
                     username=username,
                     email=email,
-                    password=password
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name
                 )
                 return user
 

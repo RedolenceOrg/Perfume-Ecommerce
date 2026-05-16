@@ -110,6 +110,7 @@ class MeView(View):
             'id': request.user.id,
             'username': request.user.username,
             'email': request.user.email,
+            'first_name':request.user.first_name
         })
     
 

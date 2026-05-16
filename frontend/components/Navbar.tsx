@@ -116,7 +116,7 @@ export default function Navbar() {
                                     person
                                 </span>
                                 <span className="text-sm font-medium text-primary">
-                                    {user.username}
+                                    {user.first_name}
                                 </span>
                                 <button onClick={async () => {
                                     await logout()
