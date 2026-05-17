@@ -7,8 +7,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from .models import Cart, CartItem, Order, OrderItem
-from .utils.helper import get_product
-from .serializers import deleteCartItemSerializer,updateCartItemSerialiser, addCartItemSerializer
+from .utils.helper import get_product,get_discount_percent
+from .serializers import deleteCartItemSerializer,updateCartItemSerialiser, addCartItemSerializer,PlaceOrderSerializer
 
 @method_decorator(csrf_protect, name='dispatch')
 class AddToCartView(LoginRequiredMixin, View):
@@ -218,44 +218,73 @@ class CheckoutView(LoginRequiredMixin, View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            cart = get_object_or_404(Cart, user=request.user)
-            
-            if not cart.items.exists():
-                return JsonResponse({"error": "Cart is empty"}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({'detail': 'Failed to parse data'}, status=400)
 
-            with transaction.atomic():
-                # 1. Create the Order
-                order = Order.objects.create(
-                    user=request.user,
-                    total_amount=sum(i.total_price for i in cart.items.all()),
-                    shipping_address=data.get('address', ''),
-                    phone_number=data.get('phone', '')
+        serializer = PlaceOrderSerializer(data=data)
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors, status=400)
+
+        try:
+            cart = Cart.objects.get(user=request.user)
+        except Cart.DoesNotExist:
+            return JsonResponse({'detail': 'Cart not found'}, status=404)
+
+        if not cart.items.exists():
+            return JsonResponse({'detail': 'Cart is empty'}, status=400)
+
+        # stock check before transaction
+        for item in cart.items.all():
+            product = item.get_product()
+            if not product or product.stock < item.quantity:
+                return JsonResponse(
+                    {'detail': f'{item.get_item_name()} is out of stock'},
+                    status=400
                 )
 
-                # 2. Loop through items to create the Snapshot
-                for item in cart.items.all():
-                    OrderItem.objects.create(
-                        order=order,
-                        perfume=item.perfume,
-                        product_name=item.get_item_name(),
-                        price_at_purchase=item.total_price / item.quantity,
-                        quantity=item.quantity
-                    )
-                    
-                    # Stock subtraction logic would go here
+        # discount calculation
+        profile = request.user.profile
+        discount_percent = get_discount_percent(float(profile.total_spend))
+        discount_amount = cart.grand_total * discount_percent / 100
+        discounted_total = cart.grand_total - discount_amount
 
-                # 3. Clear the Cart
-                cart.items.all().delete()
+        with transaction.atomic():
+            order = Order.objects.create(
+                user=request.user,
+                shipping_address=serializer.validated_data['shipping_address'],
+                phone_number=serializer.validated_data['phone_number'],
+                total_amount=discounted_total,
+            )
 
-            return JsonResponse({
-                "message": "Order placed!", 
-                "order_id": order.id
-            }, status=201)
+            for item in cart.items.all():
+                product = item.get_product()
 
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-        
+                perfume = None
+                if item.product_type == 'perfume':
+                    perfume = product
+                elif item.product_type in ['decant', 'thrift']:
+                    perfume = product.perfume
 
+                OrderItem.objects.create(
+                    order=order,
+                    product_name=item.get_item_name(),
+                    price_at_purchase=item.unit_price,
+                    quantity=item.quantity,
+                    subtotal=item.total_price,
+                    perfume=perfume
+                )
+
+                product.stock -= item.quantity
+                product.save()
+
+            cart.items.all().delete()
+
+        return JsonResponse({
+            'order_id': str(order.id),
+            'discount_percent': float(discount_percent),
+            'discount_amount': float(discount_amount),
+            'total_amount': float(discounted_total),
+        })
 
 @method_decorator(csrf_protect, name='dispatch') 
 class CartDetailView(LoginRequiredMixin, View):
@@ -282,7 +311,8 @@ class CartDetailView(LoginRequiredMixin, View):
                 "unit_price": float(item.total_price / item.quantity),
                 "total_price": float(item.total_price),
                 "quantity": item.quantity,
-                "images": img_url
+                "images": img_url,
+                "in_stock":product.stock >= item.quantity if product else False
             })
 
         return JsonResponse({

@@ -2,6 +2,9 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from .models import Profile
+from orders.serializers import OrderSerializer
+from django.db.models import Sum
+
 
 User = get_user_model()
 
@@ -63,14 +66,31 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
-
+    total_spend = serializers.SerializerMethodField()
+    orders = serializers.SerializerMethodField()
     class Meta:
         model = Profile 
-        fields =["user","phone_number","address","total_spend"]
+        fields =["user","phone_number","address","total_spend",'orders']
+
+
+
+    def get_total_spend(self, obj):
+        return obj.user.orders.filter(
+            payment_status="paid",
+            status="delivered"
+        ).aggregate(
+            total=Sum("total_amount")
+        )["total"] or 0
+    
+
+    
+    def get_orders(self, obj):
+        orders = obj.user.orders.all().order_by("-created_at")
+        return OrderSerializer(orders, many=True).data
 
 class updateProfileSerializer(serializers.Serializer):
-    phone_number = serializers.DecimalField(max_digits=10,decimal_places=0)
-    address = serializers.CharField()
+    phone_number = serializers.DecimalField(required=False,max_digits=10,decimal_places=0)
+    address = serializers.CharField(required=False, allow_blank=True)
 
 
 class ChangePasswordSerializer(serializers.Serializer):
@@ -84,6 +104,6 @@ class ChangePasswordSerializer(serializers.Serializer):
                 'confirm_new_password': 'New passwords do not match'
             })
         return data
+    
 
-
-
+    

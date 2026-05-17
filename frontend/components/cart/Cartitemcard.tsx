@@ -9,7 +9,23 @@ interface CartItemCardProps {
 
 export default function CartItemCard({ item, baseUrl, onRemove, onUpdateQuantity }: CartItemCardProps) {
     return (
-        <div className="py-8 flex gap-8 group transition-all duration-500">
+        <div className="py-8 flex gap-8 group transition-all duration-500 relative">
+
+            {/* Out of stock overlay */}
+            {!item.in_stock && (
+                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-2">
+                    <p className="text-[10px] uppercase tracking-widest font-bold text-red-500">
+                        Out of Stock
+                    </p>
+                    <button
+                        onClick={() => onRemove(item.id)}
+                        className="text-[10px] uppercase tracking-widest text-outline hover:text-primary transition-all underline"
+                    >
+                        Remove Item
+                    </button>
+                </div>
+            )}
+
             {/* Image Box */}
             <div className="w-44 h-46 bg-surface-container-low rounded-lg overflow-hidden flex-shrink-0 border border-outline-variant/20">
                 <img
@@ -34,7 +50,6 @@ export default function CartItemCard({ item, baseUrl, onRemove, onUpdateQuantity
                     <p className="text-secondary font-body text-xs uppercase tracking-widest font-semibold">
                         Redolence Nepal Exclusive
                     </p>
-
                     <div className="mt-4 inline-flex items-center gap-3 px-4 py-1.5 bg-surface-container-high rounded-full">
                         <span className="text-[9px] font-label tracking-widest uppercase text-outline">Selection:</span>
                         <span className="text-xs font-bold text-primary">{item.variant_name}</span>
@@ -58,7 +73,6 @@ export default function CartItemCard({ item, baseUrl, onRemove, onUpdateQuantity
                             +
                         </button>
                     </div>
-
                     <div className="text-right">
                         <p className="font-headline text-xl">NRS {Math.round(item.total_price).toLocaleString()}</p>
                     </div>

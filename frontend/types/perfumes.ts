@@ -75,6 +75,7 @@ export interface CartItem {
     total_price: number;
     quantity: number;
     images: string;
+    in_stock: boolean;
 }
 
 

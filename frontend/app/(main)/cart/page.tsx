@@ -15,6 +15,7 @@ export default function CartPage() {
     const [loading, setLoading] = useState(true)
     const router = useRouter()
     const BASE_URL = process.env.NEXT_PUBLIC_API_URL
+    const hasOutOfStock = cartData?.items.some(item => !item.in_stock) ?? false
 
     useEffect(() => {
         const fetchCart = async () => {
@@ -73,7 +74,7 @@ export default function CartPage() {
     if (!cartData || cartData.items.length === 0) return <CartEmpty />
 
     return (
-        <main className="pt-16 pb-24 px-6 md:px-12 max-w-7xl mx-auto min-h-screen bg-background text-primary">
+        <main className="pt-8 pb-24 px-6 md:px-12 max-w-7xl mx-auto min-h-screen bg-background text-primary">
             <CartHeader />
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
@@ -83,7 +84,7 @@ export default function CartPage() {
                     onRemove={handleRemoveItem}
                     onUpdateQuantity={handleUpdateQuantity}
                 />
-                <OrderSummary grandTotal={cartData.grand_total} />
+                <OrderSummary grandTotal={cartData.grand_total} hasoutofstock={hasOutOfStock} />
             </div>
         </main>
     )

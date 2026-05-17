@@ -99,6 +99,6 @@ class AtomizerPage(APIView):
     
 class ThriftPage(APIView):
     def get(self, request):
-        thrifts = Thrift.objects.all().select_related('perfume').prefetch_related('perfume__images')
+        thrifts = Thrift.objects.filter(stock__gt=0).select_related('perfume').prefetch_related('perfume__images')
         serializer = ThriftSerializer(thrifts, many=True)
         return Response(serializer.data)

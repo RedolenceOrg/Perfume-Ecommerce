@@ -1,11 +1,13 @@
 import { useRouter } from 'next/navigation'
 
 interface OrderSummaryProps {
-    grandTotal: number
+    grandTotal: number;
+    hasoutofstock: boolean
 }
 
-export default function OrderSummary({ grandTotal }: OrderSummaryProps) {
+export default function OrderSummary({ grandTotal, hasoutofstock }: OrderSummaryProps) {
     const router = useRouter()
+
 
     return (
         <aside className="lg:col-span-4">
@@ -35,11 +37,16 @@ export default function OrderSummary({ grandTotal }: OrderSummaryProps) {
                 </div>
 
                 <button
-                    onClick={() => router.push('/checkout')}
-                    className="group flex items-center justify-between px-8 py-5 w-full bg-primary text-surface-container-lowest rounded-xl hover:opacity-90 transition-all duration-300 shadow-lg"
+                    onClick={() => !hasoutofstock && router.push('/checkout')}
+                    disabled={hasoutofstock}
+                    className={`group flex items-center justify-between px-8 py-5 w-full bg-primary text-surface-container-lowest rounded-xl transition-all duration-300 shadow-lg
+    ${hasoutofstock
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'hover:opacity-90'
+                        }`}
                 >
                     <span className="text-[11px] font-label font-bold uppercase tracking-[0.25em]">
-                        Proceed to Checkout
+                        {hasoutofstock ? 'Remove out of stock items' : 'Proceed to Checkout'}
                     </span>
                     <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
                         arrow_forward

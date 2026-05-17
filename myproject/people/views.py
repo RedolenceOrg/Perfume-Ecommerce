@@ -115,18 +115,14 @@ class MeView(View):
     
 
 @method_decorator(csrf_protect, name='dispatch')
-class ProfileView(View):
-    def get(self,request):
-        if not request.user.is_authenticated:
-            return JsonResponse(
-                {'detail': 'Not logged in'},
-                status=403
-            )
-
+class ProfileView(LoginRequiredMixin, View):
+    def get(self, request):
         profile = request.user.profile
-        data = ProfileSerializer(profile).data
-
-        return JsonResponse(data, status=200)
+        
+        serializer = ProfileSerializer(profile)
+        print(serializer.data)
+        
+        return JsonResponse(serializer.data, status=200)
     
 
 @method_decorator(csrf_protect,name = 'dispatch')

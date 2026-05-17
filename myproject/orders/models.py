@@ -3,8 +3,20 @@ from django.conf import settings
 import uuid
 
 
-STATUS_CHOICES = [('pending', 'Pending'), ('shipped', 'Shipped'), ('delivered', 'Delivered')]
-
+ORDER_STATUS_CHOICES = [
+    ('pending', 'Pending'),
+    ('processing', 'Processing'),
+    ('shipped', 'Shipped'),
+    ('delivered', 'Delivered'),
+    ('cancelled', 'Cancelled'),
+    ('returned', 'Returned'),
+]
+PAYMENT_METHODS = [('esewa','Esewa'),('khalti','Khalti'),('cod','COD')]
+PAYMENT_STATUS_CHOICES = [
+    ('pending', 'Pending'),
+    ('paid', 'Paid'),
+    ('failed', 'Failed'),
+]
 class Order(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -12,17 +24,17 @@ class Order(models.Model):
         editable= False
     )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
-
     total_amount = models.DecimalField(max_digits=12, decimal_places=2,default= 0)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-
+    status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
+    payment_method = models.CharField(max_length=20,choices=PAYMENT_METHODS,default='cod')
+    payment_status = models.CharField(max_length=20,choices=PAYMENT_STATUS_CHOICES,default='pending')
     shipping_address = models.TextField()
     phone_number = models.CharField(max_length=15)
     
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Order #{self.id} - {self.user.username}"
+        return f"Order #{self.id} - {self.user.username} - status:{self.status}"
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)

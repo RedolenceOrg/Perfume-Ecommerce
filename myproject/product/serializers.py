@@ -99,6 +99,6 @@ class ThriftSerializer(serializers.ModelSerializer):
     perfume_id = serializers.IntegerField(source='perfume.id',read_only= True)
     class Meta:
         model = Thrift
-        fields = ['id','perfume_id','perfume_name','brand','remaining_juice', 'thrift_price','image',]
+        fields = ['id','perfume_id','perfume_name','brand','remaining_juice', 'thrift_price','image','stock']
 
 
