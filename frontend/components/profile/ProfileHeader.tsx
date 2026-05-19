@@ -22,6 +22,10 @@ export default function ProfileHeader({ profile }: { profile: any }) {
                         <span className="material-symbols-outlined text-sm">call</span>
                         <span className="font-body text-sm tracking-wide">{profile.phone_number}</span>
                     </div>
+                    <div className="flex items-center space-x-3">
+                        <span className="material-symbols-outlined text-sm">house</span>
+                        <span className="font-body text-sm tracking-wide">{profile.place},{profile.district}</span>
+                    </div>
                 </div>
             </div>
 

@@ -120,7 +120,6 @@ class ProfileView(LoginRequiredMixin, View):
         profile = request.user.profile
         
         serializer = ProfileSerializer(profile)
-        print(serializer.data)
         
         return JsonResponse(serializer.data, status=200)
     
@@ -145,17 +144,24 @@ class UpdateProfile(View):
         
         profile = request.user.profile
 
-        address = serializer.validated_data.get('address')
+        district = serializer.validated_data.get('district')
+        place = serializer.validated_data.get('place')
+        
         phone_number = serializer.validated_data.get('phone_number')
 
-        if address is not None:
-            profile.address = address
+        print(district)
+
+        if district is not None:
+            profile.district = district
+        if place is not None:
+            profile.place  =  place    
         if phone_number is not None:
             profile.phone_number = phone_number
         profile.save()
         return JsonResponse({
-            'address': profile.address,
-            'phone_number': profile.phone_number
+            'phone_number': profile.phone_number,
+            'place':profile.place,
+            'district':profile.district
         }   
         )
         

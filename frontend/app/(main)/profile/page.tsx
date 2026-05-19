@@ -22,6 +22,9 @@ export default function ProfilePage() {
                     return
                 }
                 const data = await res.json()
+
+                console.log(data)
+
                 setProfile(data)
             } catch (err) {
                 setError("Failed to fetch profile")
@@ -42,7 +45,8 @@ export default function ProfilePage() {
 
                 <ProfileEditForm
                     initialPhone={profile.phone_number}
-                    initialAddress={profile.address}
+                    initialPlace={profile.place}
+                    initialDistrict={profile.district}
                 />
                 <PasswordChangeForm />
                 <LoyaltyMilestones totalSpend={profile.total_spend} />

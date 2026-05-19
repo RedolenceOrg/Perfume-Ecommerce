@@ -24,11 +24,17 @@ class Order(models.Model):
         editable= False
     )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
+
     total_amount = models.DecimalField(max_digits=12, decimal_places=2,default= 0)
+
     status = models.CharField(max_length=20, choices=ORDER_STATUS_CHOICES, default='pending')
     payment_method = models.CharField(max_length=20,choices=PAYMENT_METHODS,default='cod')
     payment_status = models.CharField(max_length=20,choices=PAYMENT_STATUS_CHOICES,default='pending')
-    shipping_address = models.TextField()
+
+
+
+    district = models.CharField(max_length=30,null=False)
+    place = models.CharField(max_length=50,null=False)
     phone_number = models.CharField(max_length=15)
     
     created_at = models.DateTimeField(auto_now_add=True)

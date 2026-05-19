@@ -70,7 +70,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     orders = serializers.SerializerMethodField()
     class Meta:
         model = Profile 
-        fields =["user","phone_number","address","total_spend",'orders']
+        fields =["user","phone_number","place","district","total_spend",'orders']
 
 
 
@@ -90,8 +90,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class updateProfileSerializer(serializers.Serializer):
     phone_number = serializers.DecimalField(required=False,max_digits=10,decimal_places=0)
-    address = serializers.CharField(required=False, allow_blank=True)
-
+    district = serializers.CharField(required=False, allow_blank=True)
+    place =  serializers.CharField(required =False, allow_blank = True,max_length=50)
 
 class ChangePasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(min_length=8)

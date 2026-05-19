@@ -26,7 +26,8 @@ export default function OrderSummary({ grandTotal, hasoutofstock }: OrderSummary
                     <div className="flex justify-between font-body text-sm">
                         <span className="text-outline">Estimated Delivery</span>
                         <span className="text-secondary text-[10px] uppercase tracking-tighter font-bold">
-                            Free Shipping
+                            Out of Valley: NRS 150<br />
+                            Inside Valley: NRS 100
                         </span>
                     </div>
 

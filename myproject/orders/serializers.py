@@ -9,15 +9,14 @@ class addCartItemSerializer(serializers.Serializer):
 
 class deleteCartItemSerializer(serializers.Serializer):
     item_id = serializers.IntegerField()
-
-
     
 class updateCartItemSerialiser(serializers.Serializer):
     item_id = serializers.IntegerField()
     quantity = serializers.IntegerField(min_value =1)
 
 class PlaceOrderSerializer(serializers.Serializer):
-    shipping_address =  serializers.CharField(required = True,max_length=50)
+    place  =  serializers.CharField(required = True,max_length=50)
+    district  = serializers.CharField(required=True,max_length=30)
     phone_number = serializers.DecimalField(required = True, max_digits=10,decimal_places=0)
 
 
