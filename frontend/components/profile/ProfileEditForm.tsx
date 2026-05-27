@@ -51,7 +51,6 @@ export default function ProfileEditForm({
     return (
         <section className="max-w-5xl mx-auto mb-20 bg-surface-container-low p-8 md:p-12 border border-outline-variant/10">
             <div className="flex items-center space-x-4 mb-10">
-                <div>{form.phone} {form.district}</div>
                 <h2 className="font-serif text-2xl text-primary">
                     Information Settings
                 </h2>

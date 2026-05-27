@@ -45,11 +45,13 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     
-    # snapshot fields — frozen at purchase time
-    product_name = models.CharField(max_length=255)      # "Sauvage (10ml Decant)"
+    product_name = models.CharField(max_length=255)
     price_at_purchase = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField()
-    subtotal = models.DecimalField(max_digits=10, decimal_places=2,default=0)  # price × quantity
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
+    product_type = models.CharField(max_length=20, null=True)
+    product_id = models.PositiveIntegerField(null=True)
     
     perfume = models.ForeignKey(
         'product.Perfume',
@@ -58,8 +60,20 @@ class OrderItem(models.Model):
         blank=True
     )
 
+    def get_product(self):
+        from product.models import Perfume, Decant, Thrift, AtomizerVariant
+        if self.product_type == "perfume":
+            return Perfume.objects.filter(id=self.product_id).first()
+        if self.product_type == "decant":
+            return Decant.objects.filter(id=self.product_id).first()
+        if self.product_type == "thrift":
+            return Thrift.objects.filter(id=self.product_id).first()
+        if self.product_type == "atomizer":
+            return AtomizerVariant.objects.filter(id=self.product_id).first()
+        return None
+
     def __str__(self):
-        return f"{self.quantity} x {self.product_name} in Order #{self.order.id}"
+        return ""
 
 class Cart(models.Model):
     user = models.OneToOneField(

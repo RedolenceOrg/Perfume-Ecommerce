@@ -18,6 +18,7 @@ class PlaceOrderSerializer(serializers.Serializer):
     place  =  serializers.CharField(required = True,max_length=50)
     district  = serializers.CharField(required=True,max_length=30)
     phone_number = serializers.DecimalField(required = True, max_digits=10,decimal_places=0)
+    payment_method = serializers.ChoiceField(choices=["cod","esewa",'khalti'],required=True)
 
 
 

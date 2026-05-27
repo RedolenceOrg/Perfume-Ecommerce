@@ -46,6 +46,4 @@ export async function authApiUpdate(endpoint: string, body?: object) {
         },
         body: body ? JSON.stringify(body) : undefined,
     })
-
-
 }

@@ -1,4 +1,7 @@
 import json
+import os
+import requests
+from decouple import config
 from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
@@ -9,6 +12,8 @@ from django.shortcuts import get_object_or_404
 from .models import Cart, CartItem, Order, OrderItem
 from .utils.helper import get_product,get_discount_percent
 from .serializers import deleteCartItemSerializer,updateCartItemSerialiser, addCartItemSerializer,PlaceOrderSerializer
+
+VALLEY_DISTRICTS = ["Kathmandu", "Bhaktapur", "Lalitpur"]
 
 @method_decorator(csrf_protect, name='dispatch')
 class AddToCartView(LoginRequiredMixin, View):
@@ -241,19 +246,26 @@ class CheckoutView(LoginRequiredMixin, View):
                     {'detail': f'{item.get_item_name()} is out of stock'},
                     status=400
                 )
+        
 
+        shipping_charge = 100 if serializer.validated_data['district'] in VALLEY_DISTRICTS else 150
         # discount calculation
+        
         profile = request.user.profile
         discount_percent = get_discount_percent(float(profile.total_spend))
         discount_amount = cart.grand_total * discount_percent / 100
         discounted_total = cart.grand_total - discount_amount
+        total_amount = discounted_total + shipping_charge
 
         with transaction.atomic():
             order = Order.objects.create(
                 user=request.user,
-                shipping_address=serializer.validated_data['shipping_address'],
+                district= serializer.validated_data['district'],
+                place = serializer.validated_data['place'],
                 phone_number=serializer.validated_data['phone_number'],
-                total_amount=discounted_total,
+                total_amount=total_amount,
+                status = 'pending',
+                payment_method = serializer.validated_data['payment_method'],
             )
 
             for item in cart.items.all():
@@ -271,19 +283,30 @@ class CheckoutView(LoginRequiredMixin, View):
                     price_at_purchase=item.unit_price,
                     quantity=item.quantity,
                     subtotal=item.total_price,
-                    perfume=perfume
+                    perfume=perfume,
+                    product_type=item.product_type,  
+                    product_id=item.product_id,       
                 )
-
-                product.stock -= item.quantity
-                product.save()
-
-            cart.items.all().delete()
+            if serializer.validated_data['payment_method'] == 'cod':
+                for item in order.items.all():
+                    product = item.get_product()
+                    if product:
+                        product.stock -= item.quantity
+                        product.save()
+                order.payment_status = 'pending'
+                order.status = 'processing'
+                order.save()
+                cart.items.all().delete()
+                return JsonResponse({'purchase_order_id': str(order.id),
+                                     'message': 'Order placed successfully with Cash on Delivery. Please prepare the payment upon delivery.',
+                                     'amount': float(total_amount),})
 
         return JsonResponse({
-            'order_id': str(order.id),
-            'discount_percent': float(discount_percent),
-            'discount_amount': float(discount_amount),
-            'total_amount': float(discounted_total),
+            'purchase_order_id': str(order.id),
+            'purchase_order_name': f"Order #{order.id} by {request.user.username}",
+            'return_url': f"http://localhost:3000/payment/{str(order.id)}",
+            'website': 'http://localhost:3000',
+            'amount': float(total_amount)*100
         })
 
 @method_decorator(csrf_protect, name='dispatch') 
@@ -315,7 +338,80 @@ class CartDetailView(LoginRequiredMixin, View):
                 "in_stock":product.stock >= item.quantity if product else False
             })
 
+
         return JsonResponse({
             "items": items,
             "grand_total": sum(i['total_price'] for i in items)
         })
+    
+
+@method_decorator(csrf_protect, name='dispatch')
+class KhaltiInitiateView(LoginRequiredMixin, View):
+    def post(self, request):
+        data = json.loads(request.body)
+        
+        response = requests.post(
+            'https://dev.khalti.com/api/v2/epayment/initiate/',
+            json={
+                'return_url': f"http://localhost:3000/payment/{data['purchase_order_id']}",
+                'website_url': 'http://localhost:3000',
+                'amount': data['amount'],  # in paisa, so Rs. 100 = 10000
+                'purchase_order_id': data['purchase_order_id'],
+                'purchase_order_name': data['purchase_order_name'],
+            },
+            headers={
+                'Authorization': f'Key {config("KHALTI_SECRET_KEY")}' 
+            }
+        )
+        
+        khalti_data = response.json()
+        
+        return JsonResponse(
+            khalti_data
+        )
+@method_decorator(csrf_protect, name='dispatch') 
+class KhaltiConfirmView(LoginRequiredMixin, View):
+    def post(self, request):
+        data = json.loads(request.body)
+        pidx = data.get('pidx')
+        order_id = data.get('order_id')
+
+        try:
+            order = Order.objects.get(id=order_id, user=request.user)
+        except Order.DoesNotExist:
+            return JsonResponse({'detail': 'Order not found'}, status=404)
+
+        # idempotency check
+        if order.payment_status == 'paid':
+            return JsonResponse({'status': 'Completed'})
+        if order.status == 'cancelled':
+            return JsonResponse({'status': 'User canceled'})
+
+        # verify with khalti
+        response = requests.post(
+            'https://dev.khalti.com/api/v2/epayment/lookup/',
+            json={'pidx': pidx},
+            headers={'Authorization': f'Key {config("KHALTI_SECRET_KEY")}'}
+        )
+        khalti_data = response.json()
+        status = khalti_data.get('status')
+
+        if status == 'Completed':
+            with transaction.atomic():
+                for item in order.items.all():
+                    product = item.get_product()
+                    if product:
+                        product.stock -= item.quantity
+                        product.save()
+                order.payment_status = 'paid'
+                order.status = 'processing'
+                order.save()
+
+        elif status == 'User canceled':
+            with transaction.atomic():
+                order.status = 'cancelled'
+                order.save()
+
+        Cart.objects.filter(user=request.user).delete()
+
+        return JsonResponse({'status': status})

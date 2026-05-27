@@ -1,5 +1,13 @@
 // components/OrderHistory.tsx
 import { useState } from "react";
+const statusStyles: Record<string, string> = {
+    pending: "bg-yellow-100 text-yellow-800",
+    processing: "bg-blue-100 text-blue-800",
+    shipped: "bg-purple-100 text-purple-800",
+    delivered: "bg-green-100 text-green-800",
+    cancelled: "bg-red-100 text-red-800",
+    returned: "bg-orange-100 text-orange-800",
+};
 
 export default function OrderHistory({ orders }: { orders: any[] }) {
     return (
@@ -74,7 +82,7 @@ function OrderRow({ order }: { order: any }) {
                 </td>
                 <td className="py-8 font-body text-sm text-right px-4 font-semibold text-primary">NPR {order.total_amount}</td>
                 <td className="py-8 text-right">
-                    <span className="bg-[#e7f3e8] text-[#1e4620] text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full">
+                    <span className={`${statusStyles[order.status] || "bg-gray-100 text-gray-800"} text-[10px] uppercase tracking-widest font-bold px-3 py-1 rounded-full`}>
                         {order.status}
                     </span>
                 </td>
