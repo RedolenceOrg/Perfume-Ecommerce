@@ -38,7 +38,6 @@ export default function CartPage() {
                 }
                 if (res.ok) {
                     const data = await res.json()
-                    console.log("Fetched Cart Data:", data)
                     setCartData(data)
                 }
             } catch (err) {
