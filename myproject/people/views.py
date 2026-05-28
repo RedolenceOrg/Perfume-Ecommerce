@@ -73,8 +73,6 @@ class LoginView(View):
                 status=401
             )
         
-
-
         user = authenticate(request, username=user.username, password=password)
 
         if user is None:
@@ -149,7 +147,6 @@ class UpdateProfile(View):
         
         phone_number = serializer.validated_data.get('phone_number')
 
-        print(district)
 
         if district is not None:
             profile.district = district
@@ -196,6 +193,14 @@ class UpdatePasword(LoginRequiredMixin,View):
         auth_logout(request)
         
         return JsonResponse({'detail':"Password successfully changed"},status = 200)
+    
+@method_decorator(csrf_protect,name = 'dispatch')
+class DeleteAccount(LoginRequiredMixin,View):
+    def delete(self,request):
+        user = request.user
+        auth_logout(request)
+        user.delete()
+        return JsonResponse({'detail':"Account successfully deleted"},status = 200)
         
         
 

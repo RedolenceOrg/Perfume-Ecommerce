@@ -10,12 +10,23 @@ import CartHeader from '@/components/cart/Cartheader'
 import CartList from '@/components/cart/Cartlist'
 import OrderSummary from '@/components/cart/Ordersummary'
 
+// Updated type definition to include discount data from your Django backend
+interface CartDataType {
+    items: CartItem[];
+    grand_total: number;
+    discount_percent: number;
+    discount_amount: number;
+}
+
 export default function CartPage() {
-    const [cartData, setCartData] = useState<{ items: CartItem[], grand_total: number } | null>(null)
+    const [cartData, setCartData] = useState<CartDataType | null>(null)
     const [loading, setLoading] = useState(true)
     const router = useRouter()
     const BASE_URL = process.env.NEXT_PUBLIC_API_URL
     const hasOutOfStock = cartData?.items.some(item => !item.in_stock) ?? false
+
+    // Calculate subtotal dynamically from the current items in state
+    const subtotal = cartData?.items.reduce((sum, item) => sum + item.total_price, 0) ?? 0
 
     useEffect(() => {
         const fetchCart = async () => {
@@ -27,6 +38,7 @@ export default function CartPage() {
                 }
                 if (res.ok) {
                     const data = await res.json()
+                    console.log("Fetched Cart Data:", data)
                     setCartData(data)
                 }
             } catch (err) {
@@ -43,9 +55,12 @@ export default function CartPage() {
         if (res.ok) {
             const data = await res.json()
             toast.success("Deleted Item Successfully")
+
             setCartData(prev => prev ? {
                 items: prev.items.filter(item => item.id !== id),
-                grand_total: data.grand_total
+                grand_total: data.grand_total,
+                discount_percent: data.discount_percent ?? prev.discount_percent,
+                discount_amount: data.discount_amount ?? prev.discount_amount
             } : null)
         } else {
             toast.error("Something went wrong")
@@ -57,13 +72,16 @@ export default function CartPage() {
         const data = await res.json()
         if (res.ok) {
             toast.info("Updated Item Successfully")
+
             setCartData(prev => prev ? {
                 items: prev.items.map(item =>
                     item.id === data.item_id
                         ? { ...item, quantity: data.quantity, total_price: data.total_price }
                         : item
                 ),
-                grand_total: data.grand_total
+                grand_total: data.grand_total,
+                discount_percent: data.discount_percent ?? prev.discount_percent,
+                discount_amount: data.discount_amount ?? prev.discount_amount
             } : null)
         } else {
             toast.error(data.detail || "Failed to update cart")
@@ -76,7 +94,6 @@ export default function CartPage() {
     return (
         <main className="pt-8 pb-24 px-6 md:px-12 max-w-7xl mx-auto min-h-screen bg-background text-primary">
             <CartHeader />
-
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
                 <CartList
                     items={cartData.items}
@@ -84,7 +101,13 @@ export default function CartPage() {
                     onRemove={handleRemoveItem}
                     onUpdateQuantity={handleUpdateQuantity}
                 />
-                <OrderSummary grandTotal={cartData.grand_total} hasoutofstock={hasOutOfStock} />
+                <OrderSummary
+                    subtotal={subtotal}
+                    discountPercent={cartData.discount_percent}
+                    discountAmount={cartData.discount_amount}
+                    grandTotal={cartData.grand_total}
+                    hasoutofstock={hasOutOfStock}
+                />
             </div>
         </main>
     )

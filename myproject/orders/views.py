@@ -1,5 +1,4 @@
 import json
-import os
 import requests
 from decouple import config
 from django.views import View
@@ -8,24 +7,22 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 from .models import Cart, CartItem, Order, OrderItem
-from .utils.helper import get_product,get_discount_percent
-from .serializers import deleteCartItemSerializer,updateCartItemSerialiser, addCartItemSerializer,PlaceOrderSerializer
+from .utils.helper import get_product, get_discount_percent
+from .serializers import deleteCartItemSerializer, updateCartItemSerialiser, addCartItemSerializer, PlaceOrderSerializer
 
 VALLEY_DISTRICTS = ["Kathmandu", "Bhaktapur", "Lalitpur"]
+
 
 @method_decorator(csrf_protect, name='dispatch')
 class AddToCartView(LoginRequiredMixin, View):
     def post(self, request):
         try:
             data = json.loads(request.body)
-
-            serializer = addCartItemSerializer(data = data)
+            serializer = addCartItemSerializer(data=data)
 
             if not serializer.is_valid():
-                return JsonResponse(serializer.errors,status = 400)
-            #get_or_create returns a tuple of the cart and a boolean representing newly created or not
+                return JsonResponse(serializer.errors, status=400)
 
             cart, _ = Cart.objects.get_or_create(user=request.user)
 
@@ -33,30 +30,21 @@ class AddToCartView(LoginRequiredMixin, View):
             product_id = serializer.validated_data.get("product_id")
             qty = int(data.get("quantity", 1))
 
-            # Get actual product
             product = get_product(product_type, product_id)
 
             if not product:
-                return JsonResponse({
-                    "error": "Product not found"
-                }, status=404)
+                return JsonResponse({"error": "Product not found"}, status=404)
 
-            # Check if already exists in cart
             existing_item = CartItem.objects.filter(
                 cart=cart,
                 product_type=product_type,
                 product_id=product_id
             ).first()
 
-            # =========================
-            # THRIFT VALIDATION
-            # =========================
+            # Thrift Validation
             if product_type == "thrift":
-
                 if existing_item:
-                    return JsonResponse({
-                        "error": "This thrift item is already in your cart"
-                    }, status=400)
+                    return JsonResponse({"error": "This thrift item is already in your cart"}, status=400)
 
                 CartItem.objects.create(
                     cart=cart,
@@ -64,29 +52,19 @@ class AddToCartView(LoginRequiredMixin, View):
                     product_id=product_id,
                     quantity=1
                 )
-
                 return JsonResponse({
                     "message": "Added thrift item",
                     "cart_count": cart.items.count()
                 }, status=200)
 
-            # =========================
-            # STOCK VALIDATION
-            # =========================
-
+            # Stock Validation
             existing_qty = existing_item.quantity if existing_item else 0
             new_total = existing_qty + qty
 
-            # Assumes product has stock field
             if new_total > product.stock:
-                return JsonResponse({
-                    "error": "This much quantity is out of stock"
-                }, status=400)
+                return JsonResponse({"error": "This much quantity is out of stock"}, status=400)
 
-            # =========================
-            # UPDATE / CREATE CART ITEM
-            # =========================
-
+            # Update / Create Item
             if existing_item:
                 existing_item.quantity = new_total
                 existing_item.save()
@@ -103,7 +81,6 @@ class AddToCartView(LoginRequiredMixin, View):
                 product_id=product_id,
                 quantity=qty
             )
-
             return JsonResponse({
                 "message": "Added to cart",
                 "already_in_cart": False,
@@ -111,111 +88,102 @@ class AddToCartView(LoginRequiredMixin, View):
             }, status=200)
 
         except Exception as e:
-            return JsonResponse({
-                "error": str(e)
-            }, status=400)
-        
+            return JsonResponse({"error": str(e)}, status=400)
 
-@method_decorator(csrf_protect, name = "dispatch")
-class CartUpdateView(LoginRequiredMixin,View):
-    def patch(self,request):
+
+@method_decorator(csrf_protect, name="dispatch")
+class CartUpdateView(LoginRequiredMixin, View):
+    def patch(self, request):
         try: 
             data = json.loads(request.body)
-        except Exception as e:
-            return JsonResponse({'detail': 'invalid format'},status = 400)
+        except Exception:
+            return JsonResponse({'detail': 'invalid format'}, status=400)
         
         try:
-            serializer = updateCartItemSerialiser(data = data)
-
-
+            serializer = updateCartItemSerialiser(data=data)
             if not serializer.is_valid():
-                return JsonResponse(serializer.errors,status= 400)
-            
+                return JsonResponse(serializer.errors, status=400)
             
             quantity = serializer.validated_data["quantity"]
             item_id = serializer.validated_data["item_id"]
 
             try:
-                item = CartItem.objects.get(id = item_id, cart__user = request.user)
+                item = CartItem.objects.get(id=item_id, cart__user=request.user)
             except CartItem.DoesNotExist:
-                return JsonResponse({'detail':"Item not found in your cart"},status = 400)
+                return JsonResponse({'detail': "Item not found in your cart"}, status=400)
             
             product = item.get_product()
             
             if item.product_type == "thrift":
-                return JsonResponse({'detail':"Cannot add more of thrift"},status = 400)
+                return JsonResponse({'detail': "Cannot add more of thrift"}, status=400)
             
             if product.stock < quantity:
-                return JsonResponse({'detail':'Not enough stock'},status =400)
-            
+                return JsonResponse({'detail': 'Not enough stock'}, status=400)
             
             item.quantity = quantity
-
             item.save()
 
+
             cart = item.cart
-            grand_total = sum(
-                float(i.total_price) for i in cart.items.all())
+            profile = request.user.profile
+            total_spend = float(profile.total_spend) if profile.total_spend else 0.0
+            discount_percent = get_discount_percent(total_spend)
+
+            total_price = sum(float(i.total_price) for i in cart.items.all())
+            discount_amount = total_price * discount_percent / 100
+            grand_total = total_price - discount_amount
             
             return JsonResponse({
-            'item_id': item.id,
-            'quantity': item.quantity,
-            'total_price': float(item.total_price),
-            'grand_total': grand_total
+                'item_id': item.id,
+                'quantity': item.quantity,
+                'total_price': float(item.total_price),
+                'grand_total': grand_total,
+                'discount_percent': discount_percent,
+                'discount_amount': discount_amount
             })
-
-
-        
         except Exception as e:
-            return JsonResponse(e,status =400)
-            
+            return JsonResponse({"error": str(e)}, status=400)
 
 
-
-
-@method_decorator(csrf_protect, name= 'dispatch')
-class CartDeleteView(LoginRequiredMixin,View):
-    def delete(self,request):
+@method_decorator(csrf_protect, name='dispatch')
+class CartDeleteView(LoginRequiredMixin, View):
+    def delete(self, request):
         try:
             data = json.loads(request.body)
-        except Exception as e:
-            return JsonResponse({"Error parsing the json, invalid format"})
+        except Exception:
+            return JsonResponse({"error": "Error parsing the json, invalid format"}, status=400)
         try:
             serializer = deleteCartItemSerializer(data=data)
             if not serializer.is_valid():
-                return JsonResponse({serializer.errors},status = 400)
+                return JsonResponse(serializer.errors, status=400)
             
             item_id = serializer.validated_data["item_id"]
 
             try:
-                item = CartItem.objects.get(
-                    id=item_id,
-                    cart__user=request.user  # security check
-                    )
+                item = CartItem.objects.get(id=item_id, cart__user=request.user)
             except CartItem.DoesNotExist:
-                return JsonResponse(
-                {'detail': 'Item not found in your cart'},
-                status=404
-            )
+                return JsonResponse({'detail': 'Item not found in your cart'}, status=404)
 
+            cart = item.cart
             item.delete()
 
+            # Recalculate discount breakdown after deletion
+            profile = request.user.profile
+            total_spend = float(profile.total_spend) if profile.total_spend else 0.0
+            discount_percent = get_discount_percent(total_spend)
 
-            cart = Cart.objects.get(user=request.user)
-
-            grand_total = sum(
-            float(i.total_price)
-            for i in cart.items.all())
+            total_price = sum(float(i.total_price) for i in cart.items.all())
+            discount_amount = total_price * discount_percent / 100
+            grand_total = total_price - discount_amount
             
             return JsonResponse({
-            'message': 'Item removed',
-            'grand_total': grand_total})
-        except Exception as e:
-            return JsonResponse({
-                "error":str(e)
+                'message': 'Item removed',
+                'grand_total': grand_total,
+                'discount_percent': discount_percent,
+                'discount_amount': discount_amount
             })
-    
-
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
 
 
 @method_decorator(csrf_protect, name='dispatch')
@@ -238,7 +206,6 @@ class CheckoutView(LoginRequiredMixin, View):
         if not cart.items.exists():
             return JsonResponse({'detail': 'Cart is empty'}, status=400)
 
-        # stock check before transaction
         for item in cart.items.all():
             product = item.get_product()
             if not product or product.stock < item.quantity:
@@ -247,25 +214,26 @@ class CheckoutView(LoginRequiredMixin, View):
                     status=400
                 )
         
-
         shipping_charge = 100 if serializer.validated_data['district'] in VALLEY_DISTRICTS else 150
-        # discount calculation
         
         profile = request.user.profile
         discount_percent = get_discount_percent(float(profile.total_spend))
-        discount_amount = cart.grand_total * discount_percent / 100
-        discounted_total = cart.grand_total - discount_amount
+        
+        # Calculate totals dynamically based on individual item models
+        cart_subtotal = sum(float(i.total_price) for i in cart.items.all())
+        discount_amount = cart_subtotal * discount_percent / 100
+        discounted_total = cart_subtotal - discount_amount
         total_amount = discounted_total + shipping_charge
 
         with transaction.atomic():
             order = Order.objects.create(
                 user=request.user,
-                district= serializer.validated_data['district'],
-                place = serializer.validated_data['place'],
+                district=serializer.validated_data['district'],
+                place=serializer.validated_data['place'],
                 phone_number=serializer.validated_data['phone_number'],
                 total_amount=total_amount,
-                status = 'pending',
-                payment_method = serializer.validated_data['payment_method'],
+                status='pending',
+                payment_method=serializer.validated_data['payment_method'],
             )
 
             for item in cart.items.all():
@@ -297,17 +265,20 @@ class CheckoutView(LoginRequiredMixin, View):
                 order.status = 'processing'
                 order.save()
                 cart.items.all().delete()
-                return JsonResponse({'purchase_order_id': str(order.id),
-                                     'message': 'Order placed successfully with Cash on Delivery. Please prepare the payment upon delivery.',
-                                     'amount': float(total_amount),})
+                return JsonResponse({
+                    'purchase_order_id': str(order.id),
+                    'message': 'Order placed successfully with Cash on Delivery. Please prepare the payment upon delivery.',
+                    'amount': float(total_amount),
+                })
 
         return JsonResponse({
             'purchase_order_id': str(order.id),
             'purchase_order_name': f"Order #{order.id} by {request.user.username}",
             'return_url': f"http://localhost:3000/payment/{str(order.id)}",
             'website': 'http://localhost:3000',
-            'amount': float(total_amount)*100
+            'amount': float(total_amount) * 100
         })
+
 
 @method_decorator(csrf_protect, name='dispatch') 
 class CartDetailView(LoginRequiredMixin, View):
@@ -315,14 +286,20 @@ class CartDetailView(LoginRequiredMixin, View):
         cart, _ = Cart.objects.get_or_create(user=request.user)
         items = []
 
+        profile = request.user.profile
+        total_spend = float(profile.total_spend) if profile.total_spend else 0.0
+        discount_percent = get_discount_percent(total_spend) 
+
         for item in cart.items.all():
             product = item.get_product()
-
             img_url = ""
+            quantity = item.quantity if item.quantity > 0 else 1
+            unit_price = float(item.total_price / quantity)
+
             if product:
                 if item.product_type == "atomizer":
                     img_url = product.image.url if product.image else ""
-                elif item.product_type in ["perfume", "decant", "thrift"] and product:
+                elif item.product_type in ["perfume", "decant", "thrift"]:
                     perfume = product.perfume if hasattr(product, "perfume") else product
                     img = perfume.images.filter(is_primary=True).first()
                     img_url = img.image.url if img else ""
@@ -330,18 +307,23 @@ class CartDetailView(LoginRequiredMixin, View):
             items.append({  
                 "id": item.id,
                 "variant_name": item.get_item_name(),
-                "variant_type":item.product_type,
-                "unit_price": float(item.total_price / item.quantity),
+                "variant_type": item.product_type,
+                "unit_price": unit_price,
                 "total_price": float(item.total_price),
                 "quantity": item.quantity,
                 "images": img_url,
-                "in_stock":product.stock >= item.quantity if product else False
+                "in_stock": product.stock >= item.quantity if product else False
             })
 
+        total_price = sum(i['total_price'] for i in items)
+        discount_amount = total_price * discount_percent / 100
+        grand_total = total_price - discount_amount
 
         return JsonResponse({
             "items": items,
-            "grand_total": sum(i['total_price'] for i in items)
+            "grand_total": grand_total,
+            "discount_percent": discount_percent,
+            "discount_amount": discount_amount
         })
     
 
@@ -355,7 +337,7 @@ class KhaltiInitiateView(LoginRequiredMixin, View):
             json={
                 'return_url': f"http://localhost:3000/payment/{data['purchase_order_id']}",
                 'website_url': 'http://localhost:3000',
-                'amount': data['amount'],  # in paisa, so Rs. 100 = 10000
+                'amount': data['amount'],  
                 'purchase_order_id': data['purchase_order_id'],
                 'purchase_order_name': data['purchase_order_name'],
             },
@@ -363,12 +345,10 @@ class KhaltiInitiateView(LoginRequiredMixin, View):
                 'Authorization': f'Key {config("KHALTI_SECRET_KEY")}' 
             }
         )
-        
         khalti_data = response.json()
-        
-        return JsonResponse(
-            khalti_data
-        )
+        return JsonResponse(khalti_data)
+
+
 @method_decorator(csrf_protect, name='dispatch') 
 class KhaltiConfirmView(LoginRequiredMixin, View):
     def post(self, request):
@@ -381,13 +361,11 @@ class KhaltiConfirmView(LoginRequiredMixin, View):
         except Order.DoesNotExist:
             return JsonResponse({'detail': 'Order not found'}, status=404)
 
-        # idempotency check
         if order.payment_status == 'paid':
             return JsonResponse({'status': 'Completed'})
         if order.status == 'cancelled':
             return JsonResponse({'status': 'User canceled'})
 
-        # verify with khalti
         response = requests.post(
             'https://dev.khalti.com/api/v2/epayment/lookup/',
             json={'pidx': pidx},
@@ -412,6 +390,6 @@ class KhaltiConfirmView(LoginRequiredMixin, View):
                 order.status = 'cancelled'
                 order.save()
 
+        # Targeting specific items instead of breaking whole cart reference mapping
         Cart.objects.filter(user=request.user).delete()
-
         return JsonResponse({'status': status})

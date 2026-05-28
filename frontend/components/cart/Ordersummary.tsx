@@ -1,13 +1,21 @@
 import { useRouter } from 'next/navigation'
 
 interface OrderSummaryProps {
+    subtotal: number;
+    discountPercent: number;
+    discountAmount: number;
     grandTotal: number;
-    hasoutofstock: boolean
+    hasoutofstock: boolean;
 }
 
-export default function OrderSummary({ grandTotal, hasoutofstock }: OrderSummaryProps) {
+export default function OrderSummary({
+    subtotal,
+    discountPercent,
+    discountAmount,
+    grandTotal,
+    hasoutofstock
+}: OrderSummaryProps) {
     const router = useRouter()
-
 
     return (
         <aside className="lg:col-span-4">
@@ -17,20 +25,33 @@ export default function OrderSummary({ grandTotal, hasoutofstock }: OrderSummary
                 </h3>
 
                 <div className="space-y-4">
+                    {/* Subtotal Before Discount */}
                     <div className="flex justify-between font-body text-sm">
                         <span className="text-outline">Subtotal</span>
                         <span className="font-semibold text-primary">
-                            NRS {Math.round(grandTotal).toLocaleString()}
+                            NRS {Math.round(subtotal).toLocaleString()}
                         </span>
                     </div>
+
+                    {/* Conditional Discount Display */}
+                    {discountPercent > 0 && (
+                        <div className="flex justify-between font-body text-sm text-green-600 dark:text-green-400">
+                            <span>Discount ({discountPercent}%)</span>
+                            <span className="font-semibold">
+                                - NRS {Math.round(discountAmount).toLocaleString()}
+                            </span>
+                        </div>
+                    )}
+
                     <div className="flex justify-between font-body text-sm">
                         <span className="text-outline">Estimated Delivery</span>
-                        <span className="text-secondary text-[10px] uppercase tracking-tighter font-bold">
+                        <span className="text-secondary text-[10px] uppercase tracking-tighter font-bold text-right">
                             Out of Valley: NRS 150<br />
                             Inside Valley: NRS 100
                         </span>
                     </div>
 
+                    {/* Grand Total after Discount */}
                     <div className="pt-6 flex justify-between items-baseline font-headline text-3xl border-t border-outline-variant">
                         <span className="text-lg font-body uppercase tracking-widest text-outline">Total</span>
                         <span className="text-primary">NRS {Math.round(grandTotal).toLocaleString()}</span>
@@ -41,7 +62,7 @@ export default function OrderSummary({ grandTotal, hasoutofstock }: OrderSummary
                     onClick={() => !hasoutofstock && router.push('/checkout')}
                     disabled={hasoutofstock}
                     className={`group flex items-center justify-between px-8 py-5 w-full bg-primary text-surface-container-lowest rounded-xl transition-all duration-300 shadow-lg
-    ${hasoutofstock
+                        ${hasoutofstock
                             ? 'opacity-50 cursor-not-allowed'
                             : 'hover:opacity-90'
                         }`}

@@ -7,6 +7,7 @@ import ProfileEditForm from "@/components/profile/ProfileEditForm"
 import OrderHistory from "@/components/profile/OrderHistory"
 import LoyaltyMilestones from "@/components/profile/LoyaltyMilestones"
 import PasswordChangeForm from "@/components/profile/PasswordChangeForm"
+import DeleteAccount from "@/components/profile/DeleteAccount"
 
 export default function ProfilePage() {
     const [profile, setProfile] = useState<any>(null)
@@ -52,6 +53,7 @@ export default function ProfilePage() {
                 <LoyaltyMilestones totalSpend={profile.total_spend} />
 
                 <OrderHistory orders={profile.orders || []} />
+                <DeleteAccount />
             </div>
         </main>
     )

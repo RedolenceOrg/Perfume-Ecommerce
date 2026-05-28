@@ -66,24 +66,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
-    total_spend = serializers.SerializerMethodField()
     orders = serializers.SerializerMethodField()
     class Meta:
         model = Profile 
         fields =["user","phone_number","place","district","total_spend",'orders']
 
-
-
-    def get_total_spend(self, obj):
-        return obj.user.orders.filter(
-            payment_status="paid",
-            status="delivered"
-        ).aggregate(
-            total=Sum("total_amount")
-        )["total"] or 0
-    
-
-    
     def get_orders(self, obj):
         orders = obj.user.orders.all().order_by("-created_at")
         return OrderSerializer(orders, many=True).data

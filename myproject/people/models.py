@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 
 from django.contrib.auth.models import AbstractUser
 
@@ -13,7 +14,6 @@ class Profile(models.Model):
     phone_number = models.CharField(max_length=20, blank=True)
     district = models.CharField(blank=True)
     place = models.CharField(blank = True)  
-    total_spend = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
@@ -21,3 +21,11 @@ class Profile(models.Model):
     @property
     def address(self):
         return f"{self.place},{self.district}"
+    @property
+    def total_spend(self):
+        return self.user.orders.filter(
+            payment_status="paid",
+            status="delivered"
+        ).aggregate(
+            total=Sum("total_amount")
+        )["total"] or 0

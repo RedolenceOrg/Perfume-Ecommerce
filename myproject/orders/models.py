@@ -23,7 +23,7 @@ class Order(models.Model):
         default= uuid.uuid4,
         editable= False
     )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='orders')
 
     total_amount = models.DecimalField(max_digits=12, decimal_places=2,default= 0)
 
@@ -40,7 +40,12 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Order #{self.id} - {self.user.username} - status:{self.status}"
+        if self.user:
+            user_part = self.user.username
+        else:
+            user_part = "Deleted User"
+
+        return f"Order #{self.id} - {user_part} - status: {self.status}"
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)

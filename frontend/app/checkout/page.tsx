@@ -11,6 +11,8 @@ import { toast } from 'react-toastify'
 interface CartData {
     items: CartItem[]
     grand_total: number
+    discount_percent: number
+    discount_amount: number
 }
 
 const VALLEY_DISTRICTS = ["Kathmandu", "Bhaktapur", "Lalitpur"]
@@ -47,10 +49,15 @@ export default function CheckoutPage() {
     const [phoneNumber, setPhoneNumber] = useState('')
     const [paymentMethod, setPaymentMethod] = useState('cod')
 
-    // dynamically calculate shipping charge based on district
+    // Dynamically calculate shipping charge based on district
     const shippingCharge = district
         ? VALLEY_DISTRICTS.includes(district) ? 100 : 150
         : 0
+
+    // Item subtotal prior to backend discount subtractions
+    const subtotal = cartData ? cartData.items.reduce((acc, item) => acc + item.total_price, 0) : 0
+
+    // grand_total comes from backend with discount applied. Add shipping on top.
     const total = cartData ? cartData.grand_total + shippingCharge : 0
 
     useEffect(() => {
@@ -93,8 +100,12 @@ export default function CheckoutPage() {
             setError('Phone number is required.')
             return
         }
-        if (phoneNumber.trim().length < 10) {
+        if (phoneNumber.trim().length !== 10) {
             setError('Please enter a valid phone number.')
+            return
+        }
+        if (paymentMethod === 'esewa') {
+            toast.error('eSewa payment gateway is currently unavailable. Please choose another payment method.')
             return
         }
 
@@ -112,19 +123,17 @@ export default function CheckoutPage() {
         if (res.ok) {
             try {
                 if (paymentMethod === 'cod') {
-                    router.push(`/payment/${data.purchase_order_id}?method=cod&amount=${data.amount}`)
-
-
-
-                } else if (paymentMethod === 'khalti') {
+                    router.push(`/payment/${data.purchase_order_id}?method=cod`)
+                }
+                else if (paymentMethod === 'khalti') {
                     const res = await authapiPost('/cart/payment/khalti/initiate/', data)
                     const khaltiData = await res.json()
                     if (res.ok) {
                         window.location.href = khaltiData.payment_url
                     }
-                } else if (paymentMethod === 'esewa') {
-
-
+                }
+                else if (paymentMethod === 'esewa') {
+                    // Placeholder for eSewa
                 }
             } catch {
                 setError('Something went wrong. Please try again.')
@@ -175,7 +184,7 @@ export default function CheckoutPage() {
                             <div className="w-24 h-24 rounded-lg bg-surface-container-low flex-shrink-0 overflow-hidden border border-outline-variant/10">
                                 <img
                                     src={`${BASE_URL}${item.images}`}
-                                    alt={item.perfume_name}
+                                    alt={item.variant_name}
                                     className="w-full h-full object-contain p-2"
                                 />
                             </div>
@@ -190,12 +199,21 @@ export default function CheckoutPage() {
                     ))}
                 </div>
 
-                {/* Totals */}
+                {/* Totals Breakdown */}
                 <div className="flex flex-col gap-4 pt-6 border-t border-outline-variant/20">
                     <div className="flex justify-between text-base text-outline">
                         <span>Subtotal</span>
-                        <span>NPR {Math.round(cartData.grand_total).toLocaleString()}</span>
+                        <span>NPR {Math.round(subtotal).toLocaleString()}</span>
                     </div>
+
+                    {/* Conditional Discount Block */}
+                    {cartData.discount_percent > 0 && (
+                        <div className="flex justify-between text-base text-green-600 dark:text-green-400">
+                            <span>Discount ({cartData.discount_percent}%)</span>
+                            <span className="font-medium">- NPR {Math.round(cartData.discount_amount).toLocaleString()}</span>
+                        </div>
+                    )}
+
                     <div className="flex justify-between text-base text-outline">
                         <span>Delivery</span>
                         {district ? (
