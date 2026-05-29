@@ -10,6 +10,7 @@ ORDER_STATUS_CHOICES = [
     ('delivered', 'Delivered'),
     ('cancelled', 'Cancelled'),
     ('returned', 'Returned'),
+    ('expired', 'Expired'),
 ]
 PAYMENT_METHODS = [('esewa','Esewa'),('khalti','Khalti'),('cod','COD')]
 PAYMENT_STATUS_CHOICES = [
@@ -31,7 +32,7 @@ class Order(models.Model):
     payment_method = models.CharField(max_length=20,choices=PAYMENT_METHODS,default='cod')
     payment_status = models.CharField(max_length=20,choices=PAYMENT_STATUS_CHOICES,default='pending')
 
-
+    reservation_expires_at = models.DateTimeField(null=True, blank=True)
 
     district = models.CharField(max_length=30,null=False)
     place = models.CharField(max_length=50,null=False)
@@ -65,16 +66,21 @@ class OrderItem(models.Model):
         blank=True
     )
 
-    def get_product(self):
+    def get_product(self, lock=False):
         from product.models import Perfume, Decant, Thrift, AtomizerVariant
+        
         if self.product_type == "perfume":
-            return Perfume.objects.filter(id=self.product_id).first()
+            qs = Perfume.objects.select_for_update() if lock else Perfume.objects
+            return qs.filter(id=self.product_id).first()
         if self.product_type == "decant":
-            return Decant.objects.filter(id=self.product_id).first()
+            qs = Decant.objects.select_for_update() if lock else Decant.objects
+            return qs.filter(id=self.product_id).first()
         if self.product_type == "thrift":
-            return Thrift.objects.filter(id=self.product_id).first()
+            qs = Thrift.objects.select_for_update() if lock else Thrift.objects
+            return qs.filter(id=self.product_id).first()
         if self.product_type == "atomizer":
-            return AtomizerVariant.objects.filter(id=self.product_id).first()
+            qs = AtomizerVariant.objects.select_for_update() if lock else AtomizerVariant.objects
+            return qs.filter(id=self.product_id).first()
         return None
 
     def __str__(self):
@@ -132,17 +138,21 @@ class CartItem(models.Model):
     def __str__(self):
         return f"{self.quantity} x {self.get_item_name()}"
 
-    def get_product(self):
+    def get_product(self, lock=False):
         from product.models import Perfume, Decant, Thrift, AtomizerVariant
 
         if self.product_type == "perfume":
-            return Perfume.objects.filter(id=self.product_id).first()
+            qs = Perfume.objects.select_for_update() if lock else Perfume.objects
+            return qs.filter(id=self.product_id).first()
         if self.product_type == "decant":
-            return Decant.objects.filter(id=self.product_id).first()
+            qs = Decant.objects.select_for_update() if lock else Decant.objects
+            return qs.filter(id=self.product_id).first()
         if self.product_type == "thrift":
-            return Thrift.objects.filter(id=self.product_id).first()
+            qs = Thrift.objects.select_for_update() if lock else Thrift.objects
+            return qs.filter(id=self.product_id).first()
         if self.product_type == "atomizer":
-            return AtomizerVariant.objects.filter(id=self.product_id).first()
+            qs = AtomizerVariant.objects.select_for_update() if lock else AtomizerVariant.objects
+            return qs.filter(id=self.product_id).first()
         return None
     
     

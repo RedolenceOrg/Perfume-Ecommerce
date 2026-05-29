@@ -12,7 +12,7 @@ export interface Decant {
     id: number;
     size: number;
     price: number;
-    stock: number;
+    available_stock: number;
 }
 export interface PerformanceMetrics {
     longevity: number;
@@ -31,7 +31,7 @@ export interface Perfume {
     family: string[];
     slug: string;
     decant: Decant[];
-    stock: number;
+    available_stock: number;
     performance: PerformanceMetrics[]
 }
 
@@ -45,7 +45,7 @@ export interface PerfumeSummary {
 }
 export interface AtomizerVariant {
     id: number;
-    stock: number;
+    available_stock: number;
     size: number;
     price: number;
     colors: string;
@@ -66,6 +66,7 @@ export interface Thrift {
     remaining_juice: number;
     thrift_price: number;
     image: PerfumeImage[];
+    available_stock: number;
 }
 export interface CartItem {
     id: number;

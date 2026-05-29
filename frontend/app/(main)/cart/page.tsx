@@ -10,7 +10,7 @@ import CartHeader from '@/components/cart/Cartheader'
 import CartList from '@/components/cart/Cartlist'
 import OrderSummary from '@/components/cart/Ordersummary'
 
-// Updated type definition to include discount data from your Django backend
+
 interface CartDataType {
     items: CartItem[];
     grand_total: number;

@@ -1,3 +1,5 @@
+from datetime import timedelta 
+from django.utils import timezone
 import json
 import requests
 from decouple import config
@@ -8,11 +10,12 @@ from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from .models import Cart, CartItem, Order, OrderItem
-from .utils.helper import get_product, get_discount_percent
+from .utils.helper import get_product, get_discount_percent,release_expired_reservations
 from .serializers import deleteCartItemSerializer, updateCartItemSerialiser, addCartItemSerializer, PlaceOrderSerializer
 
 VALLEY_DISTRICTS = ["Kathmandu", "Bhaktapur", "Lalitpur"]
 
+RESERVATION_TIME = 30
 
 @method_decorator(csrf_protect, name='dispatch')
 class AddToCartView(LoginRequiredMixin, View):
@@ -45,13 +48,16 @@ class AddToCartView(LoginRequiredMixin, View):
             if product_type == "thrift":
                 if existing_item:
                     return JsonResponse({"error": "This thrift item is already in your cart"}, status=400)
+                if product.available_stock <= 0:
+                    return JsonResponse({"error": "This thrift item is out of stock"}, status=400)
+                
 
                 CartItem.objects.create(
                     cart=cart,
                     product_type=product_type,
                     product_id=product_id,
                     quantity=1
-                )
+                    )
                 return JsonResponse({
                     "message": "Added thrift item",
                     "cart_count": cart.items.count()
@@ -61,7 +67,7 @@ class AddToCartView(LoginRequiredMixin, View):
             existing_qty = existing_item.quantity if existing_item else 0
             new_total = existing_qty + qty
 
-            if new_total > product.stock:
+            if new_total > product.available_stock:
                 return JsonResponse({"error": "This much quantity is out of stock"}, status=400)
 
             # Update / Create Item
@@ -117,7 +123,7 @@ class CartUpdateView(LoginRequiredMixin, View):
             if item.product_type == "thrift":
                 return JsonResponse({'detail': "Cannot add more of thrift"}, status=400)
             
-            if product.stock < quantity:
+            if product.available_stock < quantity:
                 return JsonResponse({'detail': 'Not enough stock'}, status=400)
             
             item.quantity = quantity
@@ -189,6 +195,7 @@ class CartDeleteView(LoginRequiredMixin, View):
 @method_decorator(csrf_protect, name='dispatch')
 class CheckoutView(LoginRequiredMixin, View):
     def post(self, request):
+        release_expired_reservations()
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -206,13 +213,13 @@ class CheckoutView(LoginRequiredMixin, View):
         if not cart.items.exists():
             return JsonResponse({'detail': 'Cart is empty'}, status=400)
 
-        for item in cart.items.all():
-            product = item.get_product()
-            if not product or product.stock < item.quantity:
-                return JsonResponse(
-                    {'detail': f'{item.get_item_name()} is out of stock'},
-                    status=400
-                )
+        # for item in cart.items.all():
+        #     product = item.get_product()
+        #     if not product or product.available_stock < item.quantity:
+        #         return JsonResponse(
+        #             {'detail': f'{item.get_item_name()} is out of stock'},
+        #             status=400
+        #         )
         
         shipping_charge = 100 if serializer.validated_data['district'] in VALLEY_DISTRICTS else 150
         
@@ -226,6 +233,17 @@ class CheckoutView(LoginRequiredMixin, View):
         total_amount = discounted_total + shipping_charge
 
         with transaction.atomic():
+
+
+            for item in cart.items.all():
+                product = item.get_product()
+                if not product or product.available_stock < item.quantity:
+                    return JsonResponse(
+                        {'detail': f'{item.get_item_name()} is out of stock'},
+                        status=400
+                        )
+
+
             order = Order.objects.create(
                 user=request.user,
                 district=serializer.validated_data['district'],
@@ -233,11 +251,14 @@ class CheckoutView(LoginRequiredMixin, View):
                 phone_number=serializer.validated_data['phone_number'],
                 total_amount=total_amount,
                 status='pending',
+                reservation_expires_at=timezone.now() + timedelta(seconds=RESERVATION_TIME),
                 payment_method=serializer.validated_data['payment_method'],
             )
 
             for item in cart.items.all():
-                product = item.get_product()
+                product = item.get_product(lock = True)
+                product.reserved += item.quantity # CHANGE
+                product.save()
 
                 perfume = None
                 if item.product_type == 'perfume':
@@ -249,7 +270,7 @@ class CheckoutView(LoginRequiredMixin, View):
                     order=order,
                     product_name=item.get_item_name(),
                     price_at_purchase=item.unit_price,
-                    quantity=item.quantity,
+                    quantity=item.quantity,   
                     subtotal=item.total_price,
                     perfume=perfume,
                     product_type=item.product_type,  
@@ -260,6 +281,7 @@ class CheckoutView(LoginRequiredMixin, View):
                     product = item.get_product()
                     if product:
                         product.stock -= item.quantity
+                        product.reserved -= item.quantity
                         product.save()
                 order.payment_status = 'pending'
                 order.status = 'processing'
@@ -283,6 +305,7 @@ class CheckoutView(LoginRequiredMixin, View):
 @method_decorator(csrf_protect, name='dispatch') 
 class CartDetailView(LoginRequiredMixin, View):
     def get(self, request):
+        release_expired_reservations()
         cart, _ = Cart.objects.get_or_create(user=request.user)
         items = []
 
@@ -312,7 +335,7 @@ class CartDetailView(LoginRequiredMixin, View):
                 "total_price": float(item.total_price),
                 "quantity": item.quantity,
                 "images": img_url,
-                "in_stock": product.stock >= item.quantity if product else False
+                "in_stock": product.available_stock >= item.quantity if product else False
             })
 
         total_price = sum(i['total_price'] for i in items)
@@ -377,19 +400,24 @@ class KhaltiConfirmView(LoginRequiredMixin, View):
         if status == 'Completed':
             with transaction.atomic():
                 for item in order.items.all():
-                    product = item.get_product()
+                    product = item.get_product(lock=True)
                     if product:
                         product.stock -= item.quantity
+                        product.reserved -= item.quantity
                         product.save()
                 order.payment_status = 'paid'
                 order.status = 'processing'
                 order.save()
+            Cart.objects.filter(user=request.user).delete()
 
         elif status == 'User canceled':
             with transaction.atomic():
-                order.status = 'cancelled'
-                order.save()
-
-        # Targeting specific items instead of breaking whole cart reference mapping
-        Cart.objects.filter(user=request.user).delete()
+                for item in order.items.all():
+                    product = item.get_product(lock=True)
+                    if product:
+                        product.reserved = max(0, product.reserved - item.quantity)
+                        product.save()
+                    order.payment_status = 'failed'
+                    order.status = 'cancelled'
+                    order.save()
         return JsonResponse({'status': status})

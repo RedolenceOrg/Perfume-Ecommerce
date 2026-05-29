@@ -136,10 +136,14 @@ export default function CheckoutPage() {
                     // Placeholder for eSewa
                 }
             } catch {
-                setError('Something went wrong. Please try again.')
+                toast.error('Something went wrong. Please try again.')
             } finally {
                 setPlacing(false)
             }
+        }
+        else {
+            toast.error(data.detail || 'Failed to place order. Please try again.')
+            setPlacing(false)
         }
     }
 

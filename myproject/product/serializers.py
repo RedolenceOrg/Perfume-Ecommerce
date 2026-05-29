@@ -38,9 +38,10 @@ class PerfumeListSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'brand', 'price', 'images', 'slug']
 
 class DecantSerializer(serializers.ModelSerializer):
+    available_stock = serializers.ReadOnlyField()
     class Meta:
         model = Decant
-        fields = ['id','size', 'price','stock']
+        fields = ['id','size', 'price','available_stock']
 
 class SillageSerializer(serializers.Serializer):
     level = serializers.CharField()
@@ -57,10 +58,15 @@ class PerfumeSerializer(serializers.ModelSerializer):
     decant = DecantSerializer(source='decant_set', many=True, read_only=True)
     longevity = LongevitySerializer(read_only=True)
     sillage = SillageSerializer(read_only=True)
+    available_stock = serializers.ReadOnlyField()
 
     class Meta:
         model = Perfume
-        exclude = ['note','date_added','is_restocked','is_seasonal_pick']  
+        fields = [
+            'id', 'type', 'name', 'brand', 'price', 'description',
+            'family', 'notes', 'gender', 'slug', 'images',
+            'decant', 'longevity', 'sillage', 'available_stock'
+        ]
     
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -81,9 +87,10 @@ class PerfumeSerializer(serializers.ModelSerializer):
         return data
 
 class AtomizerVariantSerializer(serializers.ModelSerializer):
+    available_stock = serializers.ReadOnlyField()
     class Meta:
         model = AtomizerVariant
-        fields = ['id','size', 'price','colors','stock','image']
+        fields = ['id','size', 'price','colors','available_stock','image']
 
 
 class AtomizerSerializer(serializers.ModelSerializer):
@@ -97,8 +104,9 @@ class ThriftSerializer(serializers.ModelSerializer):
     perfume_name = serializers.CharField(source='perfume.name', read_only=True)
     brand = serializers.CharField(source='perfume.brand.name', read_only=True)
     perfume_id = serializers.IntegerField(source='perfume.id',read_only= True)
+    available_stock = serializers.ReadOnlyField()
     class Meta:
         model = Thrift
-        fields = ['id','perfume_id','perfume_name','brand','remaining_juice', 'thrift_price','image','stock']
+        fields = ['id','perfume_id','perfume_name','brand','remaining_juice', 'thrift_price','image','available_stock']
 
 

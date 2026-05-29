@@ -25,3 +25,21 @@ def get_discount_percent(total_spend):
         return 5
     else:
         return 0
+    
+def release_expired_reservations():
+    from django.utils import timezone
+    from ..models import Order
+
+    expired_orders = Order.objects.filter(
+        status='pending',
+        reservation_expires_at__lt=timezone.now()
+    )
+
+    for order in expired_orders:
+        for item in order.items.all():
+            product = item.get_product()
+            if product:
+                product.reserved = max(0, product.reserved - item.quantity)
+                product.save()
+        order.status = 'expired'
+        order.save()

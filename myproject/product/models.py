@@ -51,6 +51,7 @@ class Perfume(models.Model):
     is_seasonal_pick = models.BooleanField(default=False)
     is_restocked = models.BooleanField(default=False)
     stock = models.PositiveIntegerField(default=0)
+    reserved = models.PositiveIntegerField(default=0)
 
     
     GENDER_CHOICES = [
@@ -61,6 +62,10 @@ class Perfume(models.Model):
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='unisex')
     slug = models.SlugField(unique=True, blank=True)
 
+    @property
+    def available_stock(self):
+        return self.stock - self.reserved
+
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
@@ -68,6 +73,9 @@ class Perfume(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+
     
 class PerfumeNote(models.Model):
     NOTE_TYPES = [
@@ -88,9 +96,13 @@ class Decant(models.Model):
     size = models.DecimalField(max_digits=5, decimal_places=2)  # Size in ml
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default = 0)
+    reserved = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.perfume.name} - {self.size}ml Decant"
+    @property
+    def available_stock(self):
+        return self.stock - self.reserved
     
 
 class Atomizer(models.Model):
@@ -107,16 +119,25 @@ class AtomizerVariant(models.Model):
     price = models.DecimalField(max_digits=6, decimal_places=2)
     colors = models.CharField(max_length=50,blank=True)
     stock = models.PositiveIntegerField(default=0)
+    reserved = models.PositiveIntegerField(default=0)
     image = models.ImageField(upload_to='atomizer_images/',null=True,blank=True)
 
     def __str__(self):
         return f"{self.atomizer.description} - {self.size}ml Atomizer"
+    @property
+    def available_stock(self):
+        return self.stock - self.reserved
     
 class Thrift(models.Model):
     perfume = models.ForeignKey(Perfume, on_delete=models.CASCADE, related_name='thrifts')
     remaining_juice = models.DecimalField(max_digits=5, decimal_places=2)  # Remaining juice in ml
     thrift_price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=1)
+    reserved = models.PositiveIntegerField(default=0)
+
+    @property
+    def available_stock(self):
+        return self.stock - self.reserved
 
     def __str__(self):
-        return f"{self.perfume.name} - Thrift Condition: {self.remaining_juice}"
+        return f"{self.perfume.name} - Thrift Condition: {self.remaining_juice} Status - {'Available' if self.available_stock > 0 else 'Sold'}"

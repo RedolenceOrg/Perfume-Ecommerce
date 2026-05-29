@@ -21,8 +21,8 @@ export default function HeroSection({ perfume }: HeroProps) {
 
 
     const currentMaxStock = selectedSize === 'full'
-        ? perfume.stock
-        : selectedSize?.stock || 0
+        ? perfume.available_stock
+        : selectedSize?.available_stock || 0
 
     const selectedPrice = selectedSize === 'full'
         ? fullPrice
@@ -47,7 +47,6 @@ export default function HeroSection({ perfume }: HeroProps) {
             product_id: product_id,
             quantity: quantity,
         }
-        console.log(payload)
 
         try {
             const res = await authapiPost('/cart/add-to-cart/', payload)
@@ -71,7 +70,7 @@ export default function HeroSection({ perfume }: HeroProps) {
 
     const handleSelect = (variant: Decant | 'full') => {
         // Prevent selection if out of stock
-        const stock = variant === 'full' ? perfume.stock : variant.stock
+        const stock = variant === 'full' ? perfume.available_stock : variant.available_stock
         if (stock <= 0) return
 
         if (selectedSize === variant) {
@@ -143,7 +142,7 @@ export default function HeroSection({ perfume }: HeroProps) {
                 {/* Size Selection */}
                 <div className="grid grid-cols-3 gap-3">
                     {perfume.decant.map((decant) => {
-                        const isOutOfStock = decant.stock <= 0;
+                        const isOutOfStock = decant.available_stock <= 0;
                         return (
                             <div
                                 key={decant.size}
@@ -169,17 +168,17 @@ export default function HeroSection({ perfume }: HeroProps) {
                     <div
                         onClick={() => handleSelect('full')}
                         className={`col-span-3 border p-4 text-center transition-all duration-300 rounded-xl
-                        ${perfume.stock <= 0 ? 'opacity-50 cursor-not-allowed bg-surface-container-low' : 'cursor-pointer'}
+                        ${perfume.available_stock <= 0 ? 'opacity-50 cursor-not-allowed bg-surface-container-low' : 'cursor-pointer'}
                         ${isSelected('full')
                                 ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
-                                : perfume.stock > 0 ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10'
+                                : perfume.available_stock > 0 ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10'
                             }`}
                     >
                         <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
                             Full Bottle
                         </p>
                         <p className="font-headline text-sm font-semibold text-primary">
-                            {perfume.stock <= 0 ? 'OUT OF STOCK' : `NRS ${Math.round(Number(fullPrice)).toLocaleString()}`}
+                            {perfume.available_stock <= 0 ? 'OUT OF STOCK' : `NRS ${Math.round(Number(fullPrice)).toLocaleString()}`}
                         </p>
                     </div>
                 </div>
