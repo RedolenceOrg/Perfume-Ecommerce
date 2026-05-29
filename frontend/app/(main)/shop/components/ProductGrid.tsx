@@ -91,7 +91,7 @@ export default function ProductGrid() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {perfumes.map((perfume, index) => (
                         <PerfumeCard
-                            key={`${perfume.id}-${perfume.slug || index}`}
+                            key={`grid-${perfume.id}-${index}`}
                             {...perfume}
                         />
                     ))}

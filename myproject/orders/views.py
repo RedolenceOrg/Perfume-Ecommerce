@@ -212,14 +212,6 @@ class CheckoutView(LoginRequiredMixin, View):
 
         if not cart.items.exists():
             return JsonResponse({'detail': 'Cart is empty'}, status=400)
-
-        # for item in cart.items.all():
-        #     product = item.get_product()
-        #     if not product or product.available_stock < item.quantity:
-        #         return JsonResponse(
-        #             {'detail': f'{item.get_item_name()} is out of stock'},
-        #             status=400
-        #         )
         
         shipping_charge = 100 if serializer.validated_data['district'] in VALLEY_DISTRICTS else 150
         

@@ -66,7 +66,6 @@ export default function ThriftSection() {
                         {[
                             "Every bottle independently verified before listing",
                             "Discontinued and rare finds, sourced globally",
-                            "Free returns if not as described",
                         ].map((text, i) => (
                             <div key={i} className="flex items-center gap-3">
                                 <div className="w-3.5 h-3.5 rounded-full border border-[#6b4c24]/40 flex items-center justify-center flex-shrink-0">

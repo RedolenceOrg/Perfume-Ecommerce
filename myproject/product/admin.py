@@ -23,11 +23,13 @@ class LongevityInline(admin.StackedInline):
     extra = 1
 
 class AtomizerVariantInline(admin.TabularInline):
+    exclude = ['reserved']
     model = AtomizerVariant
 
 
 class PerfumeAdmin(admin.ModelAdmin):
     search_fields = ['name', 'brand__name'] 
+    exclude = ['slug','reserved']
     inlines = [DecantInline,SillageInline, LongevityInline, PerfumeNoteInline, PerfumeImageInline]
 
 class AtomizerAdmin(admin.ModelAdmin):
