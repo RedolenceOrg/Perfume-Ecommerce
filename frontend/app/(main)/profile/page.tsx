@@ -41,7 +41,7 @@ export default function ProfilePage() {
 
     return (
         <main className="bg-surface-container-high">
-            <div className="pt-[88px] pb-24 px-8 max-w-7xl mx-auto min-h-screen bg-background">
+            <div className="pt-[44px] pb-24 px-8 max-w-7xl mx-auto min-h-screen bg-background">
                 <ProfileHeader profile={profile} />
 
                 <ProfileEditForm

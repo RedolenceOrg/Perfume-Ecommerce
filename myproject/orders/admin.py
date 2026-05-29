@@ -10,6 +10,7 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    exclude = ('reservation_expires_at',)
     ordering = ['-created_at']
     inlines = [OrderItemInline]
     list_display = ('id', 'user', 'colored_status', 'colored_payment_status', 'payment_method', 'total_amount', 'created_at')

@@ -14,10 +14,11 @@ const navLinks = [
     { label: 'About Us', href: '/about' },
 ];
 
-function NavLink({ link, pathname, currentType }: {
+function NavLink({ link, pathname, currentType, onClick }: {
     link: { label: string; href: string };
     pathname: string;
     currentType: string | null;
+    onClick?: () => void;
 }) {
     const isActive = () => {
         if (link.href.includes('?')) {
@@ -31,8 +32,9 @@ function NavLink({ link, pathname, currentType }: {
     return (
         <Link
             href={link.href}
-            className={`transition-all duration-300 ease-out border-b-2 pb-1
-        ${isActive()
+            onClick={onClick}
+            className={`transition-all duration-300 ease-out border-b-2 pb-1 block md:inline-block
+                ${isActive()
                     ? 'text-secondary border-secondary'
                     : 'text-primary/70 border-transparent hover:text-primary hover:border-primary/30'
                 }`}
@@ -47,14 +49,30 @@ export default function Navbar() {
     const pathname = usePathname();
     const currentType = searchParams.get('type');
     const { user, loading, logout, refreshUser } = useAuth();
-    const router = useRouter()
+    const router = useRouter();
 
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+    // Prevent scrolling when mobile menu is open
+    useEffect(() => {
+        if (isMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => { document.body.style.overflow = ''; };
+    }, [isMenuOpen]);
+
+    // Handle scroll physics to show/hide header
     useEffect(() => {
         const controlNavbar = () => {
             const currentScrollY = window.scrollY;
+
+            // Don't hide navbar if mobile drawer is currently open
+            if (isMenuOpen) return;
+
             if (currentScrollY < lastScrollY || currentScrollY < 50) {
                 setIsVisible(true);
             } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
@@ -65,87 +83,126 @@ export default function Navbar() {
 
         window.addEventListener('scroll', controlNavbar, { passive: true });
         return () => window.removeEventListener('scroll', controlNavbar);
-    }, [lastScrollY]);
+    }, [lastScrollY, isMenuOpen]);
 
     return (
-        <header
-            className={`sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-outline-variant/10 transition-transform duration-500 ease-in-out
-        ${isVisible ? 'translate-y-0' : '-translate-y-full'}
-      `}
-        >
-            <nav className="flex justify-between items-center px-6 md:px-12 py-6 max-w-screen-2xl mx-auto">
+        <>
+            <header
+                className={`sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-outline-variant/10 transition-transform duration-500 ease-in-out
+                    ${isVisible ? 'translate-y-0' : '-translate-y-full'}
+                `}
+            >
+                <nav className="flex justify-between items-center px-4 sm:px-6 md:px-12 py-3.5 max-w-screen-2xl mx-auto">
 
-                {/* Logo */}
-                <Link href="/" className="text-2xl font-headline tracking-widest uppercase text-primary hover:opacity-90 transition-opacity">
-                    Redolence Nepal
-                </Link>
+                    {/* Logo */}
+                    <Link href="/" className="text-xl sm:text-2xl font-headline tracking-widest uppercase text-primary hover:opacity-90 transition-opacity whitespace-nowrap">
+                        Redolence Nepal
+                    </Link>
 
-                {/* Desktop Navigation */}
-                <div className="hidden md:flex items-center gap-10 font-headline text-lg tracking-tight">
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center gap-10 font-headline text-lg tracking-tight">
+                        {navLinks.map((link) => (
+                            <NavLink
+                                key={link.label}
+                                link={link}
+                                pathname={pathname}
+                                currentType={currentType}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Action Icons */}
+                    <div className="flex items-center gap-1 sm:gap-2 md:gap-6">
+
+                        {/* Cart */}
+                        <Link
+                            href={user ? '/cart' : '/login'}
+                            aria-label="Cart"
+                            className="p-2 transition-all duration-300 ease-out hover:opacity-80 group"
+                        >
+                            <span className="material-symbols-outlined text-primary group-hover:text-secondary">
+                                shopping_bag
+                            </span>
+                        </Link>
+
+                        {/* Account */}
+                        {loading ? (
+                            <div className="w-6 h-6" />
+                        ) : user ? (
+                            <Link href="/profile" className="p-2 group">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-primary group-hover:text-secondary">
+                                        person
+                                    </span>
+                                    <span className="text-xs sm:text-sm font-medium text-primary hidden sm:inline-block">
+                                        {user.first_name}
+                                    </span>
+                                </div>
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="flex items-center gap-1 p-2 transition-all duration-300 ease-out hover:opacity-80 group"
+                            >
+                                <span className="material-symbols-outlined text-primary group-hover:text-secondary">
+                                    person
+                                </span>
+                                <span className="text-[10px] sm:text-xs uppercase tracking-widest text-primary/70 hidden sm:inline-block">
+                                    Login
+                                </span>
+                            </Link>
+                        )}
+
+                        {/* Mobile Menu Toggle Button */}
+                        <button
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            aria-label="Toggle Menu"
+                            className="md:hidden p-2 text-primary hover:text-secondary transition-colors duration-200"
+                        >
+                            <span className="material-symbols-outlined">
+                                {isMenuOpen ? 'close' : 'menu'}
+                            </span>
+                        </button>
+
+                    </div>
+                </nav>
+            </header>
+
+            {/* Mobile Sidebar Navigation */}
+            {/* Backdrop Layer */}
+            <div
+                className={`fixed inset-0 z-40 bg-[#271310]/20 backdrop-blur-sm transition-opacity duration-500 md:hidden
+                    ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
+                `}
+                onClick={() => setIsMenuOpen(false)}
+            />
+
+            {/* Side Drawer Component */}
+            <div
+                className={`fixed top-0 right-0 bottom-0 z-40 w-full max-w-[280px] bg-background border-l border-outline-variant/20 p-8 pt-24 shadow-2xl transition-transform duration-500 ease-out md:hidden
+                    ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
+                `}
+            >
+                <div className="flex flex-col gap-6 font-headline text-xl tracking-wide">
                     {navLinks.map((link) => (
                         <NavLink
                             key={link.label}
                             link={link}
                             pathname={pathname}
                             currentType={currentType}
+                            onClick={() => setIsMenuOpen(false)}
                         />
                     ))}
-                </div>
 
-                {/* Action Icons */}
-                <div className="flex items-center gap-2 md:gap-6">
-
-                    {/* Cart */}
-                    <Link
-                        href={user ? '/cart' : '/login'}
-                        aria-label="Cart"
-                        className="p-2 transition-all duration-300 ease-out hover:opacity-80 group"
-                    >
-                        <span className="material-symbols-outlined text-primary group-hover:text-secondary">
-                            shopping_bag
-                        </span>
-                    </Link>
-
-                    {/* Account */}
-                    {loading ? (
-                        <div className="w-6 h-6" />
-                    ) : user ? (
-                        <Link href={"/profile"}>
-                            <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-primary group-hover:text-secondary">
-                                    person
-                                </span>
-                                <span className="text-sm font-medium text-primary">
-                                    {user.first_name}
-                                </span>
-                                <button onClick={async () => {
-                                    await logout()
-                                    router.push('/')
-                                }}>Logout</button>
-
-                            </div>
-                        </Link>
-                    ) : (
-                        <Link
-                            href="/login"
-                            className="flex items-center gap-1 transition-all duration-300 ease-out hover:opacity-80 group"
-                        >
-                            <span className="material-symbols-outlined text-primary group-hover:text-secondary">
-                                person
-                            </span>
-                            <span className="text-xs uppercase tracking-widest text-primary/70">
-                                Login
-                            </span>
-                        </Link>
+                    {/* Tiny responsive detail for mobile user greeting inside menu drawer */}
+                    {user && (
+                        <div className="mt-4 pt-6 border-t border-outline-variant/20 sm:hidden">
+                            <p className="font-body text-xs text-primary/50 uppercase tracking-widest">Signed In As</p>
+                            <p className="text-secondary font-medium text-base mt-1">{user.first_name}</p>
+                        </div>
                     )}
-
-                    {/* Mobile Menu Toggle */}
-                    <button aria-label="Menu" className="md:hidden p-2 text-primary">
-                        <span className="material-symbols-outlined">menu</span>
-                    </button>
-
                 </div>
-            </nav>
-        </header>
+            </div>
+        </>
     );
 }

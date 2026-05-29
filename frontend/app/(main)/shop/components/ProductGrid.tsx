@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -11,13 +10,24 @@ export default function ProductGrid() {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
-    const observerRef = useRef<HTMLDivElement>(null);
     const searchParams = useSearchParams();
-    const BASEURL = process.env.NEXT_PUBLIC_API_URL
+
+    // Use refs to always read the freshest state values inside the observer without triggering re-renders
+    const loadingRef = useRef(loading);
+    const hasMoreRef = useRef(hasMore);
+
+    useEffect(() => {
+        loadingRef.current = loading;
+    }, [loading]);
+
+    useEffect(() => {
+        hasMoreRef.current = hasMore;
+    }, [hasMore]);
 
     // Combined fetch logic
     const fetchPerfumes = useCallback(async (currentPage: number, isReset: boolean) => {
-        if (loading && !isReset) return; // Prevent double fetching on scroll
+        // Guard against double fetching
+        if (loadingRef.current && !isReset) return;
 
         setLoading(true);
         try {
@@ -37,7 +47,7 @@ export default function ProductGrid() {
         } finally {
             setLoading(false);
         }
-    }, [searchParams]); // removed loading from deps to avoid infinite loops
+    }, [searchParams]);
 
     // Reset when URL parameters change (e.g., clicking Perfume vs Attar)
     useEffect(() => {
@@ -53,50 +63,49 @@ export default function ProductGrid() {
         }
     }, [page, fetchPerfumes]);
 
-    // IntersectionObserver
-    useEffect(() => {
-        const currentObserver = observerRef.current;
-        const observer = new IntersectionObserver(
-            (entries) => {
-                // Only trigger if we aren't already loading and there's more to fetch
-                if (entries[0].isIntersecting && hasMore && !loading) {
-                    setPage(prev => prev + 1);
-                }
-            },
-            { threshold: 0.1 }
-        );
+    // Clean, dynamic Callback Ref for IntersectionObserver
+    const observer = useRef<IntersectionObserver | null>(null);
+    const lastElementRef = useCallback((node: HTMLDivElement | null) => {
+        if (loadingRef.current) return;
 
-        if (currentObserver) observer.observe(currentObserver);
+        // Disconnect previous observer instance
+        if (observer.current) observer.current.disconnect();
 
-        return () => {
-            if (currentObserver) observer.unobserve(currentObserver);
-        };
-    }, [hasMore, loading]);
+        // Connect new observer instance to the target element node
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMoreRef.current) {
+                setPage(prev => prev + 1);
+            }
+        });
+
+        if (node) observer.current.observe(node);
+    }, []);
 
     return (
         <div className="flex-1">
-            {/* Show a skeleton or message if initial load is empty */}
             {loading && perfumes.length === 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 opacity-50">
-                    {/* You can map actual skeletons here */}
                     <p className="col-span-full text-center py-20">Searching the vault...</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {perfumes.map((perfume) => (
-                        <PerfumeCard key={`${perfume.id}-${searchParams.get('type')}`} {...perfume} />
+                    {perfumes.map((perfume, index) => (
+                        <PerfumeCard
+                            key={`${perfume.id}-${perfume.slug || index}`}
+                            {...perfume}
+                        />
                     ))}
                 </div>
             )}
 
-            {/* If not loading and no perfumes found after a fetch */}
             {!loading && perfumes.length === 0 && (
                 <div className="text-center py-20">
                     <p className="text-secondary uppercase tracking-tighter">No items found in this collection.</p>
                 </div>
             )}
 
-            <div ref={observerRef} className="h-20 flex items-center justify-center mt-8">
+            {/* Attach your cleaner callback ref directly here */}
+            <div ref={lastElementRef} className="h-20 flex items-center justify-center mt-8">
                 {loading && (
                     <span className="text-sm text-secondary uppercase tracking-widest animate-pulse">
                         Loading...

@@ -2,20 +2,19 @@
 import { useSearchParams, useRouter } from "next/navigation"
 
 export default function FilterTag() {
-
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    const filterProps = Array.from(searchParams.entries()).map(([key, value]) => `${key}: ${value}`);
+    // Ignore configuration states like tracking infinite scroll pagination pages inside your active tags layout
+    const filterProps = Array.from(searchParams.entries())
+        .filter(([key]) => key !== 'page')
+        .map(([key, value]) => `${key}: ${value}`);
 
     const removeFilter = (filter: string) => {
         const [key, value] = filter.split(': ').map(s => s.trim());
         const params = new URLSearchParams(searchParams.toString());
 
-        // Get all values for this key
         const allValues = params.getAll(key);
-
-        // Remove just this specific valued
         params.delete(key);
         allValues.filter(v => v !== value).forEach(v => params.append(key, v));
 
@@ -26,25 +25,31 @@ export default function FilterTag() {
         router.push('/shop')
     }
 
+    if (filterProps.length === 0) return null;
+
     return (
-        <div className="flex flex-wrap items-center gap-4 mb-12 py-4 border-b border-outline-variant/10">
-            <span className="text-[10px] uppercase tracking-[0.3em] font-bold text-secondary">Active Selection</span>
-            <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-8 py-3 border-b border-outline-variant/10">
+            <span className="text-[9px] uppercase tracking-[0.3em] font-bold text-secondary whitespace-nowrap pt-1">
+                Active Selection
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
                 {filterProps.map((filter) => (
                     <button
                         key={filter}
                         onClick={() => removeFilter(filter)}
-                        className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-sm transition-all"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-background transition-opacity hover:opacity-90"
                     >
-                        <span className="text-[10px] font-bold uppercase tracking-widest">{filter}</span>
-                        <span className="material-symbols-outlined text-xs">close</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest font-label">{filter}</span>
+                        <span className="material-symbols-outlined text-[10px]">close</span>
                     </button>
                 ))}
-                {filterProps.length > 0 && (
-                    <button onClick={clearAll} className="px-4 py-2 text-[10px] uppercase tracking-widest font-bold text-primary hover:bg-surface-container-highest transition-all">
-                        Clear All
-                    </button>
-                )}
+
+                <button
+                    onClick={clearAll}
+                    className="px-3 py-1.5 text-[9px] uppercase tracking-widest font-bold text-primary hover:bg-surface-container-highest transition-colors font-label"
+                >
+                    Clear All
+                </button>
             </div>
         </div>
     )

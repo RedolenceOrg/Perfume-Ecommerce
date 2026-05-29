@@ -10,6 +10,7 @@ const LoginForm = () => {
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -18,6 +19,7 @@ const LoginForm = () => {
     useEffect(() => {
         authapiGet('/authenticate/csrf/')
     }, [])
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
@@ -48,12 +50,9 @@ const LoginForm = () => {
 
         } catch (err) {
             setError("Something went wrong. Please try again.");
-        }
-        finally {
+        } finally {
             setLoading(false);
         }
-
-
     };
 
     return (
@@ -87,16 +86,29 @@ const LoginForm = () => {
                         Password
                     </label>
                 </div>
-                <input
-                    id="password"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-transparent border-b border-gray-200 py-3 px-1 text-sm transition-all focus:border-black focus:outline-none placeholder:text-gray-300"
-                />
+                <div className="relative">
+                    <input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full bg-transparent border-b border-gray-200 py-3 px-1 pr-8 text-sm transition-all focus:border-black focus:outline-none placeholder:text-gray-300"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        className="absolute right-1 bottom-3 text-gray-400 hover:text-black transition-colors"
+                    >
+                        <span className="material-symbols-outlined text-sm select-none">
+                            {showPassword ? "visibility_off" : "visibility"}
+                        </span>
+                    </button>
+                </div>
             </div>
+
             {error && (
                 <div className="flex items-center gap-2 text-red-500 text-[11px] uppercase tracking-widest font-bold">
                     <span className="material-symbols-outlined text-sm">error</span>

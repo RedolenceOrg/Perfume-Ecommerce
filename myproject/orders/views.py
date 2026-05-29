@@ -15,7 +15,7 @@ from .serializers import deleteCartItemSerializer, updateCartItemSerialiser, add
 
 VALLEY_DISTRICTS = ["Kathmandu", "Bhaktapur", "Lalitpur"]
 
-RESERVATION_TIME = 30
+RESERVATION_TIME = 60
 
 @method_decorator(csrf_protect, name='dispatch')
 class AddToCartView(LoginRequiredMixin, View):

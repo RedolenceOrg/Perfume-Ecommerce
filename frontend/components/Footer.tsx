@@ -22,6 +22,9 @@ export default function Footer() {
             <div className="font-['Inter'] text-[11px] font-light tracking-[0.15em] uppercase text-black/50 dark:text-[#faf9f5]/50">
                 © 2026 Redolence Nepal. ALL RIGHTS RESERVED.
             </div>
+            <div className="text-sm text-black/50 dark:text-[#faf9f5]/50 mt-4">
+                WEBSITE BUILT BY: <span className="font-bold">Anwesh Atreya</span>
+            </div>
 
         </footer>
     );

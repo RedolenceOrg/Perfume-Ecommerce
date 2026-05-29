@@ -4,7 +4,7 @@ import { MemberHero, } from "./components/MemberHero";
 import { TiersSection } from "./components/Tiers";
 export default function MembersPage() {
     return (
-        <div>
+        <div className="">
             <MemberHero />
             <TiersSection />
             <AscensionSection />

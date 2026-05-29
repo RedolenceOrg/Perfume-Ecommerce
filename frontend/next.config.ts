@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
         hostname: '127.0.0.1',
         port: '8000',
       },
+
       {
         protocol: 'https',
         hostname: 'perfume-ecommerce-production.up.railway.app',
@@ -23,7 +24,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'https://lelabo.ips.photos'
+        hostname: 'lelabo.ips.photos'
       },
     ],
   },

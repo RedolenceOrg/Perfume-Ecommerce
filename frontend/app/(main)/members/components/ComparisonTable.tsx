@@ -1,60 +1,126 @@
 export const ComparisonTable = () => {
+    const tiers = [
+        { name: "The Top Note", subtitle: "Entry", className: "text-outline" },
+        { name: "The Heart Note", subtitle: "Silver", className: "text-outline" },
+        { name: "The Base Note", subtitle: "Gold", className: "text-secondary" },
+        { name: "The Sillage", subtitle: "Elite", className: "text-primary" },
+    ];
+
+    const Check = () => (
+        <span
+            className="material-symbols-outlined text-secondary text-base"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+        >
+            check_circle
+        </span>
+    );
+
+    const Dash = () => <span className="text-outline-variant/60 text-lg">—</span>;
+
+    const rows: { privilege: string; cells: React.ReactNode[] }[] = [
+        {
+            privilege: "Flat Discount",
+            cells: [
+                <span className="font-semibold text-outline">5%</span>,
+                <span className="font-semibold text-outline">10%</span>,
+                <span className="font-semibold text-secondary">12%</span>,
+                <span className="font-bold text-primary">15%</span>,
+            ],
+        },
+        {
+            privilege: "Early Access — New Drops",
+            cells: [<Check />, <Check />, <Check />, <Check />],
+        },
+        {
+            privilege: "Free Shipping",
+            cells: [<Dash />, <Check />, <Check />, <Check />],
+        },
+        {
+            privilege: "Birthday Gift (3ml Decant)",
+            cells: [<Dash />, <Check />, <Check />, <Check />],
+        },
+        {
+            privilege: "Personal Fragrance Consultation",
+            cells: [<Dash />, <Dash />, <Check />, <Check />],
+        },
+        {
+            privilege: "Exclusive Thrift Batch Access",
+            cells: [<Dash />, <Dash />, <Check />, <Check />],
+        },
+        {
+            privilege: "Vault Access — Rare Perfumes",
+            cells: [<Dash />, <Dash />, <Dash />, <Check />],
+        },
+        {
+            privilege: "Complimentary 5ml Decant Gift",
+            cells: [<Dash />, <Dash />, <Dash />, <Check />],
+        },
+        {
+            privilege: "Premium Atomizer Gift",
+            cells: [<Dash />, <Dash />, <Dash />, <Check />],
+        },
+        {
+            privilege: "Spend Threshold",
+            cells: [
+                <span className="font-headline italic text-outline text-lg">NPR 5,500</span>,
+                <span className="font-headline italic text-outline text-lg">NPR 12,000</span>,
+                <span className="font-headline italic text-secondary text-lg">NPR 24,000</span>,
+                <span className="font-headline italic text-primary text-lg">NPR 40,000</span>,
+            ],
+        },
+    ];
+
     return (
-        <section className="bg-surface px-8 py-32 md:px-20">
+        <section className="bg-surface-container-low px-8 py-32 md:px-20">
             <div className="mx-auto max-w-5xl">
-                <div className="mb-16 text-center">
+                <div className="mb-16 text-center space-y-3">
+                    <span className="font-label text-secondary text-xs uppercase tracking-[0.25em]">Side by Side</span>
                     <h2 className="font-headline text-primary text-4xl">Benefits Comparison</h2>
                 </div>
+
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse text-left">
                         <thead>
-                            <tr className="border-b border-outline-variant/30">
-                                <th className="font-headline text-primary py-8 text-xl font-normal italic">Privilege</th>
-                                <th className="font-label text-outline py-8 text-center text-sm uppercase tracking-widest">Enthusiast</th>
-                                <th className="font-label text-secondary py-8 text-center text-sm uppercase tracking-widest">Connoisseur</th>
-                                <th className="font-label text-primary py-8 text-center text-sm uppercase tracking-widest">Patron</th>
+                            <tr className="border-b-2 border-outline-variant/30">
+                                <th className="font-headline text-primary py-8 pr-8 text-xl font-normal italic w-[36%]">
+                                    Privilege
+                                </th>
+                                {tiers.map((tier) => (
+                                    <th key={tier.name} className="py-8 text-center align-top">
+                                        <span className={`font-label text-[10px] uppercase tracking-[0.2em] block mb-1 ${tier.className}`}>
+                                            {tier.subtitle}
+                                        </span>
+                                        <span className={`font-headline text-sm font-normal block leading-tight ${tier.className}`}>
+                                            {tier.name}
+                                        </span>
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody className="font-body text-outline">
-                            <tr className="border-b border-outline-variant/10">
-                                <td className="py-6 font-medium">Decant Discount</td>
-                                <td className="py-6 text-center">5%</td>
-                                <td className="text-secondary py-6 text-center font-semibold">10%</td>
-                                <td className="text-primary py-6 text-center font-bold">15%</td>
-                            </tr>
-                            <tr className="border-b border-outline-variant/10">
-                                <td className="py-6 font-medium">Discovery Sets</td>
-                                <td className="py-6 text-center">Quarterly</td>
-                                <td className="py-6 text-center">Quarterly</td>
-                                <td className="text-primary py-6 text-center font-medium">Monthly</td>
-                            </tr>
-                            <tr className="border-b border-outline-variant/10">
-                                <td className="py-6 font-medium">Curator Access</td>
-                                <td className="py-6 text-center">—</td>
-                                <td className="py-6 text-center">Semi-Annual</td>
-                                <td className="text-primary py-6 text-center font-medium">Unlimited</td>
-                            </tr>
-                            <tr className="border-b border-outline-variant/10">
-                                <td className="py-6 font-medium">Event Access</td>
-                                <td className="py-6 text-center text-sm">Digital Only</td>
-                                <td className="py-6 text-center text-sm">In-Store</td>
-                                <td className="text-primary py-6 text-center text-sm font-medium">VIP Front Row</td>
-                            </tr>
-                            <tr className="border-b border-outline-variant/10">
-                                <td className="py-6 font-medium">Complimentary 5ml</td>
-                                <td className="py-6 text-center">—</td>
-                                <td className="py-6 text-center">—</td>
-                                <td className="text-primary py-6 text-center font-medium">Unlimited</td>
-                            </tr>
-                            <tr className="border-b border-outline-variant/10">
-                                <td className="py-6 font-medium">Rare Attar Waitlist</td>
-                                <td className="py-6 text-center">Standard</td>
-                                <td className="text-secondary py-6 text-center font-medium">Priority</td>
-                                <td className="text-primary py-6 text-center font-bold">First Call</td>
-                            </tr>
+                            {rows.map((row, i) => (
+                                <tr
+                                    key={i}
+                                    className={`border-b border-outline-variant/10 transition-colors hover:bg-surface-container-low/60 ${i === rows.length - 1 ? "border-b-0 bg-surface-container-low/40" : ""
+                                        }`}
+                                >
+                                    <td className={`py-5 pr-8 text-sm font-medium ${i === rows.length - 1 ? "font-label text-[10px] uppercase tracking-widest text-outline" : ""}`}>
+                                        {row.privilege}
+                                    </td>
+                                    {row.cells.map((cell, j) => (
+                                        <td key={j} className="py-5 text-center">
+                                            {cell}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>
+
+                <p className="font-body text-outline text-center text-xs mt-10 tracking-wide">
+                    All benefits are cumulative — higher tiers include every privilege from tiers below.
+                </p>
             </div>
         </section>
     );
