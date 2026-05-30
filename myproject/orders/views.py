@@ -1,4 +1,9 @@
-from datetime import timedelta 
+import base64
+from datetime import timedelta
+from django.shortcuts import redirect
+from email import message
+import hashlib
+import hmac 
 from django.utils import timezone
 import json
 import requests
@@ -16,6 +21,33 @@ from .serializers import deleteCartItemSerializer, updateCartItemSerialiser, add
 VALLEY_DISTRICTS = ["Kathmandu", "Bhaktapur", "Lalitpur"]
 
 RESERVATION_TIME = 60
+
+
+def generate_esewa_signature(total_amount, transaction_uuid):
+    secret = config("ESEWA_SECRET_KEY")
+    message = f"total_amount={total_amount},transaction_uuid={transaction_uuid},product_code={config('ESEWA_PRODUCT_CODE')}"
+    
+    hmac_sha256 = hmac.new(secret.encode(), message.encode(), hashlib.sha256)
+    return base64.b64encode(hmac_sha256.digest()).decode('utf-8')
+
+def decode_esewa_response(encoded_data: str) -> dict:
+    decoded_bytes = base64.b64decode(encoded_data)
+    decoded_str = decoded_bytes.decode('utf-8')
+    return json.loads(decoded_str)
+
+
+def verify_esewa_signature(data: dict) -> bool:
+    secret = config("ESEWA_SECRET_KEY")
+    signed_fields = data.get("signed_field_names", "").split(",")
+    message = ",".join(f"{field}={data.get(field, '')}" for field in signed_fields)
+
+    expected = base64.b64encode(
+        hmac.new(secret.encode(), message.encode(), hashlib.sha256).digest()
+    ).decode()
+
+    return expected == data.get("signature")
+
+    
 
 @method_decorator(csrf_protect, name='dispatch')
 class AddToCartView(LoginRequiredMixin, View):
@@ -284,14 +316,34 @@ class CheckoutView(LoginRequiredMixin, View):
                     'message': 'Order placed successfully with Cash on Delivery. Please prepare the payment upon delivery.',
                     'amount': float(total_amount),
                 })
+        if serializer.validated_data['payment_method'] == 'khalti':
+            return JsonResponse({
+                'purchase_order_id': str(order.id),
+                'purchase_order_name': f"Order #{order.id} by {request.user.username}",
+                'return_url': f"http://localhost:3000/payment/{str(order.id)}?method=khalti",
+                'website': 'http://localhost:3000',
+                'amount': float(total_amount) * 100
+            })
+        
+        
+        if serializer.validated_data['payment_method'] == 'esewa':
+            base_amount = f"{float(total_amount) - float(shipping_charge):.2f}"  
+            formatted_total = f"{float(total_amount):.2f}"                        
+            
+            signature = generate_esewa_signature(formatted_total, str(order.id)) 
+            product_code = config("ESEWA_PRODUCT_CODE")
 
-        return JsonResponse({
-            'purchase_order_id': str(order.id),
-            'purchase_order_name': f"Order #{order.id} by {request.user.username}",
-            'return_url': f"http://localhost:3000/payment/{str(order.id)}",
-            'website': 'http://localhost:3000',
-            'amount': float(total_amount) * 100
-        })
+            return JsonResponse({
+                'transaction_uuid':         str(order.id),
+                'amount':                   base_amount,
+                'tax_amount':               '0',
+                'total_amount':             formatted_total,
+                'product_delivery_charge':  str(shipping_charge),
+                'product_service_charge':   '0',
+                'signed_field_names':       'total_amount,transaction_uuid,product_code',
+                'product_code':             product_code,
+                'signature':                signature,
+            })
 
 
 @method_decorator(csrf_protect, name='dispatch') 
@@ -350,7 +402,7 @@ class KhaltiInitiateView(LoginRequiredMixin, View):
         response = requests.post(
             'https://dev.khalti.com/api/v2/epayment/initiate/',
             json={
-                'return_url': f"http://localhost:3000/payment/{data['purchase_order_id']}",
+                'return_url': f"http://localhost:3000/payment/{data['purchase_order_id']}?method=khalti",
                 'website_url': 'http://localhost:3000',
                 'amount': data['amount'],  
                 'purchase_order_id': data['purchase_order_id'],
@@ -409,7 +461,88 @@ class KhaltiConfirmView(LoginRequiredMixin, View):
                     if product:
                         product.reserved = max(0, product.reserved - item.quantity)
                         product.save()
-                    order.payment_status = 'failed'
-                    order.status = 'cancelled'
-                    order.save()
+                order.payment_status = 'failed'
+                order.status = 'cancelled'
+                order.save()
         return JsonResponse({'status': status})
+
+class EsewaInitiateView(LoginRequiredMixin, View):
+    def get(self, request, order_id):
+        encoded = request.GET.get('data')
+        if not encoded:
+            return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=failed")
+
+        try:
+            data = decode_esewa_response(encoded)
+        except Exception:
+            return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=failed")
+
+        if not verify_esewa_signature(data):
+            return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=failed")
+
+        if data.get('status') == 'COMPLETE':
+            return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=COMPLETE")
+        elif data.get('status') == 'CANCELED':
+            return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=CANCELED")
+
+        return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=failed")
+    
+class EsewaVerifyView(LoginRequiredMixin, View):
+    def get(self, request, order_id):
+        esewa_status = request.GET.get('status')
+
+        try:
+            order = Order.objects.get(id=order_id, user=request.user)
+        except Order.DoesNotExist:
+            return JsonResponse({'status': 'failed'}, status=404)
+
+        if order.payment_status == 'paid':
+            return JsonResponse({'status': 'success'})
+        if order.status == 'cancelled':
+            return JsonResponse({'status': 'cancelled'})
+
+        if esewa_status == 'COMPLETE':
+            verification = requests.get(
+                'https://rc-epay.esewa.com.np/api/epay/transaction/status/',
+                params={
+                    'product_code': config('ESEWA_PRODUCT_CODE'),
+                    'total_amount': f"{float(order.total_amount):.2f}",
+                    'transaction_uuid': str(order.id),
+                }
+            )
+            try:
+                esewa_data = verification.json()
+            except Exception:
+                return JsonResponse({'status': 'failed'}, status=400)
+
+            if esewa_data.get('status') != 'COMPLETE':
+                return JsonResponse({'status': 'failed'}, status=400)
+
+            with transaction.atomic():
+                order = Order.objects.select_for_update().get(id=order_id, user=request.user)
+                if order.payment_status == 'paid':
+                    return JsonResponse({'status': 'success'})
+                for item in order.items.all():
+                    product = item.get_product(lock=True)
+                    if product:
+                        product.stock -= item.quantity
+                        product.reserved -= item.quantity
+                        product.save()
+                order.payment_status = 'paid'
+                order.status = 'processing'
+                order.save()
+                Cart.objects.filter(user=request.user).delete()
+            return JsonResponse({'status': 'success'})
+
+        # anything other than COMPLETE → cancel and release
+        with transaction.atomic():
+            order = Order.objects.select_for_update().get(id=order_id, user=request.user)
+            for item in order.items.all():
+                product = item.get_product(lock=True)
+                if product:
+                    product.reserved = max(0, product.reserved - item.quantity)
+                    product.save()
+            order.payment_status = 'failed'
+            order.status = 'cancelled'
+            order.save()
+        return JsonResponse({'status': 'cancelled'})

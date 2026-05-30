@@ -2,12 +2,12 @@ import { useState } from "react";
 
 // Updated to map beautifully to your existing design system palette
 const statusStyles: Record<string, string> = {
-    pending: "bg-secondary-container/30 text-secondary border border-secondary/20",
-    processing: "bg-surface-container-highest text-primary border border-outline-variant/30",
-    shipped: "bg-tertiary-container/30 text-outline border border-outline/20",
-    delivered: "bg-green-100 text-green-800", // Fallback color standard pairs
-    cancelled: "bg-error-container/40 text-error border border-error/20",
-    returned: "bg-orange-100 text-orange-800",
+    pending: "bg-amber-50 text-amber-700 border border-amber-200",
+    processing: "bg-blue-50 text-blue-700 border border-blue-200",
+    shipped: "bg-purple-50 text-purple-700 border border-purple-200",
+    delivered: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+    cancelled: "bg-red-50 text-red-600 border border-red-200",
+    returned: "bg-orange-50 text-orange-600 border border-orange-200",
 };
 
 export default function OrderHistory({ orders }: { orders: any[] }) {

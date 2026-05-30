@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { authapiPost } from '@/context/api'
+import { authapiPost, authapiGet } from '@/context/api'
 
 export default function PaymentPage() {
     const { orderId } = useParams()
     const searchParams = useSearchParams()
     const pidx = searchParams.get('pidx')
     const method = searchParams.get('method')
+    const esewaStatus = searchParams.get('status')
 
     const [status, setStatus] = useState<'loading' | 'Completed' | 'User canceled' | 'failed'>('loading')
 
@@ -19,19 +20,37 @@ export default function PaymentPage() {
                 setStatus('Completed')
                 return
             }
-            try {
-                const res = await authapiPost('/cart/payments/khalti/confirm/', {
-                    pidx,
-                    order_id: orderId,
-                })
+
+            if (method === 'esewa') {
+                const res = await authapiGet(
+                    `/cart/payment/esewa/verify/${orderId}/?status=${esewaStatus}`
+                )
                 const data = await res.json()
-                setStatus(data.status)
-            } catch {
-                setStatus('failed')
+                if (data.status === 'success') setStatus('Completed')
+                else if (data.status === 'cancelled') setStatus('User canceled')
+                else setStatus('failed')
+                return
             }
+
+            if (method === 'khalti') {
+                try {
+                    const res = await authapiPost('/cart/payments/khalti/confirm/', {
+                        pidx,
+                        order_id: orderId,
+                    })
+                    const data = await res.json()
+                    setStatus(data.status)
+                } catch {
+                    setStatus('failed')
+                }
+                return
+            }
+
+            setStatus('failed')
         }
+
         confirm()
-    }, [method, pidx, orderId])
+    }, [method, pidx, orderId, esewaStatus])
 
     // --- STATE 1: LOADING / VERIFYING ---
     if (status === 'loading') {

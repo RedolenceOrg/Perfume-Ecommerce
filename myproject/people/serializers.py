@@ -72,7 +72,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields =["user","phone_number","place","district","total_spend",'orders']
 
     def get_orders(self, obj):
-        orders = obj.user.orders.all().order_by("-created_at")
+        orders = obj.user.orders.all().order_by("-created_at").exclude(status="expired")
         return OrderSerializer(orders, many=True).data
 
 class updateProfileSerializer(serializers.Serializer):

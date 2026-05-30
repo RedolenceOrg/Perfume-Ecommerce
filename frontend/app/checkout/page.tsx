@@ -7,6 +7,7 @@ import { authapiGet, authapiPost } from '@/context/api'
 import { useAuth } from '@/context/AuthContext'
 import { CartItem } from '@/types/perfumes'
 import { toast } from 'react-toastify'
+import { initiateEsewaPayment } from '@/lib/gateway'
 
 interface CartData {
     items: CartItem[]
@@ -104,10 +105,6 @@ export default function CheckoutPage() {
             setError('Please enter a valid phone number.')
             return
         }
-        if (paymentMethod === 'esewa') {
-            toast.error('eSewa payment gateway is currently unavailable. Please choose another payment method.')
-            return
-        }
 
         const payload = {
             place: place.trim(),
@@ -119,7 +116,6 @@ export default function CheckoutPage() {
         setPlacing(true)
         const res = await authapiPost('/cart/checkout/', payload)
         const data = await res.json()
-        console.log('Checkout response:', data)
         if (res.ok) {
             try {
                 if (paymentMethod === 'cod') {
@@ -133,7 +129,8 @@ export default function CheckoutPage() {
                     }
                 }
                 else if (paymentMethod === 'esewa') {
-                    // Placeholder for eSewa
+                    initiateEsewaPayment(data)
+
                 }
             } catch {
                 toast.error('Something went wrong. Please try again.')

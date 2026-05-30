@@ -29,7 +29,7 @@ class AtomizerVariantInline(admin.TabularInline):
 
 class PerfumeAdmin(admin.ModelAdmin):
     search_fields = ['name', 'brand__name'] 
-    exclude = ['slug','reserved']
+    exclude = ['slug']
     inlines = [DecantInline,SillageInline, LongevityInline, PerfumeNoteInline, PerfumeImageInline]
 
 class AtomizerAdmin(admin.ModelAdmin):
