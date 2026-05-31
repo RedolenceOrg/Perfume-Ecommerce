@@ -53,63 +53,63 @@ export default function SignupForm() {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
 
-            {/* First Name + Last Name */}
+            {/* Row 1: First + Last */}
             <div className="grid grid-cols-2 gap-4">
                 <div className="relative group">
-                    <label className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-bold mb-2 block group-focus-within:text-[#775a19]">
+                    <label className="text-[9px] uppercase tracking-[0.3em] text-gray-400 font-bold mb-1 block group-focus-within:text-[#775a19]">
                         First Name
                     </label>
                     <input
                         name="first_name"
                         type="text"
                         required
-                        className="w-full bg-transparent border-b border-gray-200 py-3 focus:outline-none focus:border-black transition-all"
+                        className="w-full bg-transparent border-b border-gray-200 py-2 focus:outline-none focus:border-black transition-all text-sm"
                     />
                 </div>
                 <div className="relative group">
-                    <label className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-bold mb-2 block group-focus-within:text-[#775a19]">
+                    <label className="text-[9px] uppercase tracking-[0.3em] text-gray-400 font-bold mb-1 block group-focus-within:text-[#775a19]">
                         Last Name
                     </label>
                     <input
                         name="last_name"
                         type="text"
                         required
-                        className="w-full bg-transparent border-b border-gray-200 py-3 focus:outline-none focus:border-black transition-all"
+                        className="w-full bg-transparent border-b border-gray-200 py-2 focus:outline-none focus:border-black transition-all text-sm"
                     />
                 </div>
             </div>
 
-            {/* Username */}
-            <div className="relative group">
-                <label className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-bold mb-2 block group-focus-within:text-[#775a19]">
-                    Username
-                </label>
-                <input
-                    name="username"
-                    type="text"
-                    required
-                    className="w-full bg-transparent border-b border-gray-200 py-3 focus:outline-none focus:border-black transition-all"
-                />
+            {/* Row 2: Username + Email */}
+            <div className="grid grid-cols-2 gap-4">
+                <div className="relative group">
+                    <label className="text-[9px] uppercase tracking-[0.3em] text-gray-400 font-bold mb-1 block group-focus-within:text-[#775a19]">
+                        Username
+                    </label>
+                    <input
+                        name="username"
+                        type="text"
+                        required
+                        className="w-full bg-transparent border-b border-gray-200 py-2 focus:outline-none focus:border-black transition-all text-sm"
+                    />
+                </div>
+                <div className="relative group">
+                    <label className="text-[9px] uppercase tracking-[0.3em] text-gray-400 font-bold mb-1 block group-focus-within:text-[#775a19]">
+                        Email Address
+                    </label>
+                    <input
+                        name="email"
+                        type="email"
+                        required
+                        className="w-full bg-transparent border-b border-gray-200 py-2 focus:outline-none focus:border-black transition-all text-sm"
+                    />
+                </div>
             </div>
 
-            {/* Email */}
+            {/* Row 3: Password (full width) */}
             <div className="relative group">
-                <label className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-bold mb-2 block group-focus-within:text-[#775a19]">
-                    Email Address
-                </label>
-                <input
-                    name="email"
-                    type="email"
-                    required
-                    className="w-full bg-transparent border-b border-gray-200 py-3 focus:outline-none focus:border-black transition-all"
-                />
-            </div>
-
-            {/* Password */}
-            <div className="relative group">
-                <label className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-bold mb-2 block group-focus-within:text-[#775a19]">
+                <label className="text-[9px] uppercase tracking-[0.3em] text-gray-400 font-bold mb-1 block group-focus-within:text-[#775a19]">
                     Choose Password
                 </label>
                 <div className="relative">
@@ -118,35 +118,35 @@ export default function SignupForm() {
                         type={showPassword ? "text" : "password"}
                         required
                         minLength={8}
-                        className="w-full bg-transparent border-b border-gray-200 py-3 pr-10 focus:outline-none focus:border-black transition-all"
+                        className="w-full bg-transparent border-b border-gray-200 py-2 pr-10 focus:outline-none focus:border-black transition-all text-sm"
                     />
                     <button
                         type="button"
                         onClick={() => setShowPassword(prev => !prev)}
-                        className="absolute right-0 bottom-3 text-gray-400 hover:text-black transition-colors"
+                        className="absolute right-0 bottom-2 text-gray-400 hover:text-black transition-colors"
                         aria-label={showPassword ? "Hide password" : "Show password"}
                     >
-                        <span className="material-symbols-outlined text-lg">
+                        <span className="material-symbols-outlined text-base">
                             {showPassword ? "visibility_off" : "visibility"}
                         </span>
                     </button>
                 </div>
             </div>
 
-            {/* Error */}
             {error && (
-                <p className="text-red-500 text-sm">{error}</p>
+                <div className="flex items-center gap-2 text-red-500 text-[10px] uppercase tracking-widest font-bold">
+                    <span className="material-symbols-outlined text-sm">error</span>
+                    {error}
+                </div>
             )}
 
-            {/* Button */}
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-black text-white py-5 text-[11px] font-bold uppercase tracking-[0.4em] mt-4 hover:bg-[#1a1a1a] transition-all active:scale-[0.98]"
+                className="w-full bg-black text-white py-3 text-[10>px] uppercase tracking-[0.2em] font-bold hover:bg-[#333] transition-all active:scale-[0.98]"
             >
                 {loading ? "Creating Account..." : "Create Account"}
             </button>
-
         </form>
     );
 }

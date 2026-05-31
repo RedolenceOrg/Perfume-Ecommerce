@@ -119,7 +119,7 @@ export default function CheckoutPage() {
         if (res.ok) {
             try {
                 if (paymentMethod === 'cod') {
-                    router.push(`/payment/${data.purchase_order_id}?method=cod`)
+                    router.push(`/payment/${data.purchase_order_id}`)
                 }
                 else if (paymentMethod === 'khalti') {
                     const res = await authapiPost('/cart/payment/khalti/initiate/', data)

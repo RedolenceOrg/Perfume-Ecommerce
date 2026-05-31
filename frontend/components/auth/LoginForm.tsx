@@ -131,13 +131,11 @@ const LoginForm = () => {
                     <span className="text-[10px] uppercase tracking-widest text-gray-300">Or</span>
                     <div className="h-[1px] flex-1 bg-gray-100"></div>
                 </div>
-                <Link href="/">
-                    <button
-                        type="button"
-                        className="w-full bg-[#f6f3ee] border border-gray-100 text-black py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-[#ebe8e3] transition-all active:scale-[0.98]"
-                    >
-                        Continue as Guest
-                    </button>
+                <Link
+                    href="/"
+                    className="block w-full bg-[#f6f3ee] border border-gray-100 text-black py-4 text-xs font-bold uppercase tracking-[0.2em] text-center hover:bg-[#ebe8e3] transition-all active:scale-[0.98]"
+                >
+                    Continue as Guest
                 </Link>
             </div>
         </form>

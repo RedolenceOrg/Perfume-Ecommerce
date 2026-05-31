@@ -10,7 +10,7 @@ interface AuthWrapperProps {
 
 const AuthWrapper = ({ children, title, subtitle, type }: AuthWrapperProps) => {
     return (
-        <div className="relative min-h-screen w-full font-manrope overflow-hidden">
+        <div className="relative min-h-screen w-full font-manrope">
 
             {/* 1. Immersive Background Layer */}
             <div className="fixed inset-0 z-0 bg-[#f8f6f2]">
@@ -20,7 +20,7 @@ const AuthWrapper = ({ children, title, subtitle, type }: AuthWrapperProps) => {
 
             {/* 2. The Horizontal Gallery Card */}
             <div className="relative z-10 min-h-screen w-full flex items-center justify-center">
-                <div className="w-full max-w-[1000px] flex flex-col md:flex-row bg-white shadow-[0_40px_100px_rgba(0,0,0,0.07)] rounded-sm overflow-hidden border border-white">
+                <div className="w-full max-w-[1000px] flex flex-col md:flex-row bg-white shadow-[0_40px_100px_rgba(0,0,0,0.07)] rounded-sm overflow-x-hidden border border-white">
 
                     {/* Left Side: Editorial Image Section (Visible on MD and up) */}
                     <section className="relative w-full md:w-1/2 h-64 md:h-auto overflow-hidden bg-neutral-100">

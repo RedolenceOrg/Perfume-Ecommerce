@@ -9,8 +9,8 @@ export default function PaymentPage() {
     const { orderId } = useParams()
     const searchParams = useSearchParams()
     const pidx = searchParams.get('pidx')
-    const method = searchParams.get('method')
     const esewaStatus = searchParams.get('status')
+    const method = pidx ? 'khalti' : esewaStatus ? 'esewa' : 'cod'
 
     const [status, setStatus] = useState<'loading' | 'Completed' | 'User canceled' | 'failed'>('loading')
 
@@ -36,7 +36,7 @@ export default function PaymentPage() {
                 try {
                     const res = await authapiPost('/cart/payments/khalti/confirm/', {
                         pidx,
-                        order_id: orderId,
+                        purchase_order_id: orderId,
                     })
                     const data = await res.json()
                     setStatus(data.status)

@@ -36,12 +36,12 @@ class ShopView(APIView):
         
         # Get filters from query params
         brand = request.query_params.get('brand')
-        family = request.query_params.get('family')
+        family = request.query_params.getlist('family')
         notes = request.query_params.getlist('note')
         price_max = request.query_params.get('price_max')
         gender = request.query_params.get('gender')
         perfume_type = request.query_params.get('type')
-        perfumes = Perfume.objects.all()
+        perfumes = Perfume.objects.all().distinct()
 
         # Apply filters
         if perfume_type:
@@ -49,7 +49,8 @@ class ShopView(APIView):
         if brand:
             perfumes = perfumes.filter(brand__name=brand)
         if family:
-            perfumes = perfumes.filter(family__name=family)
+            for fam in family:
+                perfumes = perfumes.filter(family__name=fam)
         if notes:
             for note in notes:
                 perfumes = perfumes.filter(note__name=note)

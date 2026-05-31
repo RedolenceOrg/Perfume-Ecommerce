@@ -260,7 +260,7 @@ class CheckoutView(LoginRequiredMixin, View):
 
 
             for item in cart.items.all():
-                product = item.get_product()
+                product = item.get_product(lock=True)
                 if not product or product.available_stock < item.quantity:
                     return JsonResponse(
                         {'detail': f'{item.get_item_name()} is out of stock'},
@@ -302,7 +302,7 @@ class CheckoutView(LoginRequiredMixin, View):
                 )
             if serializer.validated_data['payment_method'] == 'cod':
                 for item in order.items.all():
-                    product = item.get_product()
+                    product = item.get_product(lock=True)
                     if product:
                         product.stock -= item.quantity
                         product.reserved -= item.quantity
@@ -316,24 +316,25 @@ class CheckoutView(LoginRequiredMixin, View):
                     'message': 'Order placed successfully with Cash on Delivery. Please prepare the payment upon delivery.',
                     'amount': float(total_amount),
                 })
-        if serializer.validated_data['payment_method'] == 'khalti':
-            return JsonResponse({
+            
+            if serializer.validated_data['payment_method'] == 'khalti':
+                return JsonResponse({
                 'purchase_order_id': str(order.id),
                 'purchase_order_name': f"Order #{order.id} by {request.user.username}",
-                'return_url': f"http://localhost:3000/payment/{str(order.id)}?method=khalti",
+                'return_url': f"http://localhost:3000/payment/{str(order.id)}",
                 'website': 'http://localhost:3000',
                 'amount': float(total_amount) * 100
             })
         
         
-        if serializer.validated_data['payment_method'] == 'esewa':
-            base_amount = f"{float(total_amount) - float(shipping_charge):.2f}"  
-            formatted_total = f"{float(total_amount):.2f}"                        
+            if serializer.validated_data['payment_method'] == 'esewa':
+                base_amount = f"{float(total_amount) - float(shipping_charge):.2f}"  
+                formatted_total = f"{float(total_amount):.2f}"                        
             
-            signature = generate_esewa_signature(formatted_total, str(order.id)) 
-            product_code = config("ESEWA_PRODUCT_CODE")
+                signature = generate_esewa_signature(formatted_total, str(order.id)) 
+                product_code = config("ESEWA_PRODUCT_CODE")
 
-            return JsonResponse({
+                return JsonResponse({
                 'transaction_uuid':         str(order.id),
                 'amount':                   base_amount,
                 'tax_amount':               '0',
@@ -402,7 +403,7 @@ class KhaltiInitiateView(LoginRequiredMixin, View):
         response = requests.post(
             'https://dev.khalti.com/api/v2/epayment/initiate/',
             json={
-                'return_url': f"http://localhost:3000/payment/{data['purchase_order_id']}?method=khalti",
+                'return_url': f"http://localhost:3000/payment/{data['purchase_order_id']}",
                 'website_url': 'http://localhost:3000',
                 'amount': data['amount'],  
                 'purchase_order_id': data['purchase_order_id'],
@@ -421,7 +422,7 @@ class KhaltiConfirmView(LoginRequiredMixin, View):
     def post(self, request):
         data = json.loads(request.body)
         pidx = data.get('pidx')
-        order_id = data.get('order_id')
+        order_id = data.get('purchase_order_id')
 
         try:
             order = Order.objects.get(id=order_id, user=request.user)
