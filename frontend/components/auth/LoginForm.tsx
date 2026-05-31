@@ -75,7 +75,6 @@ const LoginForm = () => {
                     className="w-full bg-transparent border-b border-gray-200 py-3 px-1 text-sm transition-all focus:border-black focus:outline-none placeholder:text-gray-300"
                 />
             </div>
-
             {/* Password Field */}
             <div className="relative group">
                 <div className="flex justify-between items-end mb-1 ml-1">
@@ -107,6 +106,14 @@ const LoginForm = () => {
                         </span>
                     </button>
                 </div>
+                <div className="mt-2 ml-1">
+                    <Link
+                        href="/resetpassword"
+                        className="text-[10px] uppercase tracking-widest text-gray-400 font-bold hover:text-black transition-colors pb-[1px] border-b border-transparent hover:border-black"
+                    >
+                        Forgot Password?
+                    </Link>
+                </div>
             </div>
 
             {error && (
@@ -117,27 +124,29 @@ const LoginForm = () => {
             )}
 
             {/* Actions */}
-            <div className="space-y-4 pt-4">
+            <div className="space-y-2 pt-2">
                 <button
                     type="submit"
-                    className="w-full bg-black text-white py-4 text-xs font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                    className="w-full bg-black text-white py-3 text-xs font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                     Access The Gallery
                     <span className="material-symbols-outlined text-sm">arrow_forward</span>
                 </button>
 
-                <div className="flex items-center gap-4 py-2">
+                <div className="flex items-center gap-4 py-1">
                     <div className="h-[1px] flex-1 bg-gray-100"></div>
                     <span className="text-[10px] uppercase tracking-widest text-gray-300">Or</span>
                     <div className="h-[1px] flex-1 bg-gray-100"></div>
                 </div>
                 <Link
                     href="/"
-                    className="block w-full bg-[#f6f3ee] border border-gray-100 text-black py-4 text-xs font-bold uppercase tracking-[0.2em] text-center hover:bg-[#ebe8e3] transition-all active:scale-[0.98]"
+                    className="block w-full bg-[#f6f3ee] border border-gray-100 text-black py-3 text-xs font-bold uppercase tracking-[0.2em] text-center hover:bg-[#ebe8e3] transition-all active:scale-[0.98]"
                 >
                     Continue as Guest
                 </Link>
             </div>
+
+
         </form>
     );
 };

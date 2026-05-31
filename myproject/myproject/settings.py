@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'product',
     'rest_framework',
     'corsheaders',
+    'anymail'
 ]
 
 MIDDLEWARE = [
@@ -74,6 +75,11 @@ if COOKIE_DOMAIN == 'None':
 SESSION_COOKIE_DOMAIN = COOKIE_DOMAIN
 CSRF_COOKIE_DOMAIN = COOKIE_DOMAIN
 
+EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+ANYMAIL = {
+    "RESEND_API_KEY": config("RESEND_API_KEY"),
+}
+DEFAULT_FROM_EMAIL = "noreply@contact.redolencenepal.com"
 
 ROOT_URLCONF = 'myproject.urls'
 

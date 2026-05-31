@@ -7,8 +7,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
-from .serializers import RegistrationSerializer,LoginSerializer,ProfileSerializer,updateProfileSerializer,ChangePasswordSerializer
+from .serializers import RegistrationSerializer,LoginSerializer,ProfileSerializer, ResetPasswordSerializer,updateProfileSerializer,ChangePasswordSerializer
 from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import PasswordResetOTP
+import random
+from .utils import send_otp_email
 
 
 User = get_user_model()
@@ -201,6 +204,54 @@ class DeleteAccount(LoginRequiredMixin,View):
         auth_logout(request)
         user.delete()
         return JsonResponse({'detail':"Account successfully deleted"},status = 200)
+
+
+class RequestResetPasswordView(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'detail': 'Invalid JSON'}, status=400)
         
+        email = data.get('email')
+        if not email:
+            return JsonResponse({'detail': 'Email is required'}, status=400)
         
+        try:
+            user = User.objects.get(email__iexact=email)
+            otp = f"{random.randint(100000, 999999)}"
+            PasswordResetOTP.objects.filter(email=email).delete()
+            PasswordResetOTP.objects.create(email=email, otp=otp)
+            send_otp_email(email, otp)
+        except User.DoesNotExist:
+            pass
+        
+        return JsonResponse({'detail': 'If the email exists, an OTP has been sent'}, status=200)
+
+class ResetPasswordView(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'detail': 'Invalid JSON'}, status=400)
+        
+        serializer = ResetPasswordSerializer(data=data)
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors, status=400)
+
+        try:
+            otp_entry = PasswordResetOTP.objects.get(email=serializer.validated_data['email'], otp=serializer.validated_data['otp'])
+            if otp_entry.is_expired():
+                otp_entry.delete()
+                return JsonResponse({'detail': 'OTP has expired'}, status=400)
+            
+            user = User.objects.get(email__iexact=serializer.validated_data['email'])
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            otp_entry.delete()
+            return JsonResponse({'detail': 'Password has been reset successfully'}, status=200)
+        except PasswordResetOTP.DoesNotExist:
+            return JsonResponse({'detail': 'Invalid OTP'}, status=400)
+        except User.DoesNotExist:
+            return JsonResponse({'detail': 'User does not exist'}, status=400)
 

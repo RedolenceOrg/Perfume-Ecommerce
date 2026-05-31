@@ -13,9 +13,11 @@ export default function ProfileHeader({ profile }: { profile: any }) {
     }
 
     const getLoyaltyClass = (spend: number) => {
-        if (spend > 100000) return "The Aficionado";
-        if (spend > 50000) return "The Connoisseur";
-        return "The Enthusiast";
+        if (spend > 5500) return "Top";
+        if (spend > 12000) return "Heart";
+        if (spend > 24000) return "Base";
+        if (spend > 40000) return "Sillage";
+        return "New";
     };
 
     return (

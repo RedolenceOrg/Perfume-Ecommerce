@@ -14,6 +14,7 @@ export async function authapiPost(endpoint: string, body?: object) {
     })
 }
 
+
 export async function authapiGet(endpoint: string) {
     return fetch(`${BASEURL}${endpoint}`, {
         credentials: 'include',

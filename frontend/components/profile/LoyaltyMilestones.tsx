@@ -2,10 +2,10 @@
 export default function LoyaltyMilestones({ totalSpend }: { totalSpend: number }) {
     // Define your tiers
     const tiers = [
-        { name: "Enthusiast", threshold: 0 },
-        { name: "Connoisseur", threshold: 50000 },
-        { name: "Aficionado", threshold: 100000 },
-        { name: "The Collector", threshold: 250000 },
+        { name: "Top", threshold: 5500 },
+        { name: "Heart", threshold: 12000 },
+        { name: "Base", threshold: 24000 },
+        { name: "Sillage", threshold: 40000 },
     ];
 
     // Find current and next tier

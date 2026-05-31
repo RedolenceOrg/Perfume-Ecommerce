@@ -29,3 +29,12 @@ class Profile(models.Model):
         ).aggregate(
             total=Sum("total_amount")
         )["total"] or 0
+
+class PasswordResetOTP(models.Model):
+    email = models.EmailField()
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def is_expired(self):
+        from django.utils import timezone
+        return (timezone.now() - self.created_at).seconds > 600

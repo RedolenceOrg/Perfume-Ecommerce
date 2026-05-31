@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-from .models import Profile
+from .models import PasswordResetOTP, Profile
 from orders.serializers import OrderSerializer
 from django.db.models import Sum
 
@@ -91,6 +91,11 @@ class ChangePasswordSerializer(serializers.Serializer):
                 'confirm_new_password': 'New passwords do not match'
             })
         return data
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(write_only=True, min_length=8)
     
 
     
