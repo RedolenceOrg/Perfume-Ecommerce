@@ -11,11 +11,11 @@ const navLinks = [
     { label: 'Attars', href: '/shop?type=Attar' },
     { label: 'Atomizer', href: '/atomizer' },
     { label: 'Thrift', href: '/thrift' },
-    { label: 'About Us', href: '/about' },
+    { label: 'Members', href: '/members', highlight: true },
 ];
 
 function NavLink({ link, pathname, currentType, onClick }: {
-    link: { label: string; href: string };
+    link: { label: string; href: string; highlight?: boolean };
     pathname: string;
     currentType: string | null;
     onClick?: () => void;
@@ -29,15 +29,20 @@ function NavLink({ link, pathname, currentType, onClick }: {
         return pathname === link.href;
     };
 
+    const active = isActive();
+
     return (
         <Link
             href={link.href}
             onClick={onClick}
             className={`transition-all duration-300 ease-out border-b-2 pb-1 block md:inline-block
-                ${isActive()
+                ${active
                     ? 'text-secondary border-secondary'
-                    : 'text-primary/70 border-transparent hover:text-primary hover:border-primary/30'
-                }`}
+                    : link.highlight
+                        ? 'text-secondary/70 border-secondary/30 hover:text-secondary hover:border-secondary/60'
+                        : 'text-primary/70 border-transparent hover:text-primary hover:border-primary/30'
+                }
+            `}
         >
             {link.label}
         </Link>
@@ -55,7 +60,6 @@ export default function Navbar() {
     const [lastScrollY, setLastScrollY] = useState(0);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // Prevent scrolling when mobile menu is open
     useEffect(() => {
         if (isMenuOpen) {
             document.body.style.overflow = 'hidden';
@@ -65,12 +69,10 @@ export default function Navbar() {
         return () => { document.body.style.overflow = ''; };
     }, [isMenuOpen]);
 
-    // Handle scroll physics to show/hide header
     useEffect(() => {
         const controlNavbar = () => {
             const currentScrollY = window.scrollY;
 
-            // Don't hide navbar if mobile drawer is currently open
             if (isMenuOpen) return;
 
             if (currentScrollY < lastScrollY || currentScrollY < 50) {
@@ -153,7 +155,7 @@ export default function Navbar() {
                             </Link>
                         )}
 
-                        {/* Mobile Menu Toggle Button */}
+                        {/* Mobile Menu Toggle */}
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             aria-label="Toggle Menu"
@@ -168,8 +170,7 @@ export default function Navbar() {
                 </nav>
             </header>
 
-            {/* Mobile Sidebar Navigation */}
-            {/* Backdrop Layer */}
+            {/* Backdrop */}
             <div
                 className={`fixed inset-0 z-40 bg-[#271310]/20 backdrop-blur-sm transition-opacity duration-500 md:hidden
                     ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
@@ -177,7 +178,7 @@ export default function Navbar() {
                 onClick={() => setIsMenuOpen(false)}
             />
 
-            {/* Side Drawer Component */}
+            {/* Side Drawer */}
             <div
                 className={`fixed top-0 right-0 bottom-0 z-40 w-full max-w-[280px] bg-background border-l border-outline-variant/20 p-8 pt-24 shadow-2xl transition-transform duration-500 ease-out md:hidden
                     ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
@@ -194,7 +195,6 @@ export default function Navbar() {
                         />
                     ))}
 
-                    {/* Tiny responsive detail for mobile user greeting inside menu drawer */}
                     {user && (
                         <div className="mt-4 pt-6 border-t border-outline-variant/20 sm:hidden">
                             <p className="font-body text-xs text-primary/50 uppercase tracking-widest">Signed In As</p>
