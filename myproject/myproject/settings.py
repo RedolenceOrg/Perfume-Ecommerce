@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'product',
     'rest_framework',
     'corsheaders',
-    'anymail'
+    'anymail',
+    
 ]
 
 MIDDLEWARE = [
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_ratelimit.middleware.RatelimitMiddleware'
 ]
 
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000').split(',')
@@ -76,10 +78,12 @@ SESSION_COOKIE_DOMAIN = COOKIE_DOMAIN
 CSRF_COOKIE_DOMAIN = COOKIE_DOMAIN
 
 EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+
 ANYMAIL = {
     "RESEND_API_KEY": config("RESEND_API_KEY"),
 }
 DEFAULT_FROM_EMAIL = "noreply@contact.redolencenepal.com"
+RATELIMIT_VIEW = 'myproject.utils.ratelimit_exceeded'
 
 ROOT_URLCONF = 'myproject.urls'
 
@@ -99,6 +103,12 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
 
 
 # Database

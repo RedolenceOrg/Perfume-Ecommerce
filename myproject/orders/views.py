@@ -1,7 +1,6 @@
 import base64
 from datetime import timedelta
 from django.shortcuts import redirect
-from email import message
 import hashlib
 import hmac 
 from django.utils import timezone
@@ -14,6 +13,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+
+from myproject.utils import conditional_ratelimit
 from .models import Cart, CartItem, Order, OrderItem
 from .utils.helper import get_product, get_discount_percent,release_expired_reservations
 from .serializers import deleteCartItemSerializer, updateCartItemSerialiser, addCartItemSerializer, PlaceOrderSerializer
@@ -50,6 +51,7 @@ def verify_esewa_signature(data: dict) -> bool:
     
 
 @method_decorator(csrf_protect, name='dispatch')
+@method_decorator(conditional_ratelimit(key='ip', rate='20/m'),name='post')
 class AddToCartView(LoginRequiredMixin, View):
     def post(self, request):
         try:
@@ -129,6 +131,7 @@ class AddToCartView(LoginRequiredMixin, View):
             return JsonResponse({"error": str(e)}, status=400)
 
 
+@method_decorator(conditional_ratelimit(key='ip', rate='20/m'), name='patch')
 @method_decorator(csrf_protect, name="dispatch")
 class CartUpdateView(LoginRequiredMixin, View):
     def patch(self, request):
@@ -183,6 +186,7 @@ class CartUpdateView(LoginRequiredMixin, View):
             return JsonResponse({"error": str(e)}, status=400)
 
 
+@method_decorator(conditional_ratelimit(key='ip', rate='20/m'), name='delete')
 @method_decorator(csrf_protect, name='dispatch')
 class CartDeleteView(LoginRequiredMixin, View):
     def delete(self, request):
@@ -224,6 +228,7 @@ class CartDeleteView(LoginRequiredMixin, View):
             return JsonResponse({"error": str(e)}, status=400)
 
 
+@method_decorator(conditional_ratelimit(key='ip', rate='10/m'), name='post')
 @method_decorator(csrf_protect, name='dispatch')
 class CheckoutView(LoginRequiredMixin, View):
     def post(self, request):
@@ -321,8 +326,8 @@ class CheckoutView(LoginRequiredMixin, View):
                 return JsonResponse({
                 'purchase_order_id': str(order.id),
                 'purchase_order_name': f"Order #{order.id} by {request.user.username}",
-                'return_url': f"http://localhost:3000/payment/{str(order.id)}",
-                'website': 'http://localhost:3000',
+                'return_url': f"{config('FRONTEND_URL')}/payment/{str(order.id)}",
+                'website': config("FRONTEND_URL"),
                 'amount': float(total_amount) * 100
             })
         
@@ -346,7 +351,7 @@ class CheckoutView(LoginRequiredMixin, View):
                 'signature':                signature,
             })
 
-
+@method_decorator(conditional_ratelimit(key='ip', rate='40/m'), name='get')
 @method_decorator(csrf_protect, name='dispatch') 
 class CartDetailView(LoginRequiredMixin, View):
     def get(self, request):
@@ -403,8 +408,8 @@ class KhaltiInitiateView(LoginRequiredMixin, View):
         response = requests.post(
             'https://dev.khalti.com/api/v2/epayment/initiate/',
             json={
-                'return_url': f"http://localhost:3000/payment/{data['purchase_order_id']}",
-                'website_url': 'http://localhost:3000',
+                'return_url': f"{config('FRONTEND_URL')}/payment/{data['purchase_order_id']}",
+                'website_url': config('FRONTEND_URL'),
                 'amount': data['amount'],  
                 'purchase_order_id': data['purchase_order_id'],
                 'purchase_order_name': data['purchase_order_name'],
@@ -471,22 +476,22 @@ class EsewaInitiateView(LoginRequiredMixin, View):
     def get(self, request, order_id):
         encoded = request.GET.get('data')
         if not encoded:
-            return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=failed")
+            return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=failed")
 
         try:
             data = decode_esewa_response(encoded)
         except Exception:
-            return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=failed")
+            return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=failed")
 
         if not verify_esewa_signature(data):
-            return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=failed")
+            return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=failed")
 
         if data.get('status') == 'COMPLETE':
-            return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=COMPLETE")
+            return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=COMPLETE")
         elif data.get('status') == 'CANCELED':
-            return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=CANCELED")
+            return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=CANCELED")
 
-        return redirect(f"http://localhost:3000/payment/{order_id}?method=esewa&status=failed")
+        return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=failed")
     
 class EsewaVerifyView(LoginRequiredMixin, View):
     def get(self, request, order_id):

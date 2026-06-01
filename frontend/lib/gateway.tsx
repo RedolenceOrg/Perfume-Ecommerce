@@ -11,8 +11,8 @@ export const initiateEsewaPayment = (data: any) => {
         product_code: data.product_code,
         product_service_charge: String(data.product_service_charge),
         product_delivery_charge: String(data.product_delivery_charge),
-        success_url: `http://localhost:8000/cart/payment/esewa/confirm/${data.transaction_uuid}/`,
-        failure_url: `http://localhost:8000/cart/payment/esewa/confirm/${data.transaction_uuid}/`,
+        success_url: `${process.env.NEXT_PUBLIC_API_URL}/cart/payment/esewa/confirm/${data.transaction_uuid}/`,
+        failure_url: `${process.env.NEXT_PUBLIC_API_URL}/cart/payment/esewa/confirm/${data.transaction_uuid}/`,
         signed_field_names: data.signed_field_names,
         signature: data.signature,
     };

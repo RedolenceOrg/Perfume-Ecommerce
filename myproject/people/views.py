@@ -12,6 +12,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import PasswordResetOTP
 import random
 from .utils import send_otp_email
+from myproject.utils import conditional_ratelimit
 
 
 User = get_user_model()
@@ -23,7 +24,7 @@ class CSRFView(View):
         
         return JsonResponse({'csrfToken': 'set'})
 
-
+@method_decorator(conditional_ratelimit(key='ip', rate='5/m'), name='dispatch')
 @method_decorator(csrf_protect, name='dispatch')
 class SignupView(View):
     def post(self, request):
@@ -45,7 +46,7 @@ class SignupView(View):
             }, status=201)
         return JsonResponse(serializer.errors, status=400)
 
-
+@method_decorator(conditional_ratelimit(key='ip', rate='5/m'),name='post')
 @method_decorator(csrf_protect, name='dispatch')
 class LoginView(View):
     def post(self, request):
@@ -94,7 +95,9 @@ class LoginView(View):
 
 
 @method_decorator(csrf_protect, name='dispatch')
+@method_decorator(conditional_ratelimit(key='ip', rate='5/m'), name='post')
 class LogoutView(View):
+
     def post(self, request):
         auth_logout(request)
         return JsonResponse({'message': 'Logged out successfully'})
@@ -125,8 +128,9 @@ class ProfileView(LoginRequiredMixin, View):
         return JsonResponse(serializer.data, status=200)
     
 
+@method_decorator(conditional_ratelimit(key='ip', rate='5/m'), name='dispatch')
 @method_decorator(csrf_protect,name = 'dispatch')
-class UpdateProfile(View):
+class UpdateProfile(LoginRequiredMixin,View):
     def patch(self, request):
         try:
             data = json.loads(request.body)
@@ -136,12 +140,6 @@ class UpdateProfile(View):
         serializer = updateProfileSerializer(data = data)
         if not serializer.is_valid():
             return JsonResponse(serializer.errors,status= 400)
-        
-        if not request.user.is_authenticated:
-            return JsonResponse(
-                {'detail': 'Not logged in'},
-                status=403
-            )
         
         profile = request.user.profile
 
@@ -166,6 +164,7 @@ class UpdateProfile(View):
         )
         
 @method_decorator(csrf_protect,name = 'dispatch')
+@method_decorator(conditional_ratelimit(key='ip', rate='5/m'), name='patch')
 class UpdatePasword(LoginRequiredMixin,View):
     def patch(self,request):
         try:
@@ -205,7 +204,8 @@ class DeleteAccount(LoginRequiredMixin,View):
         user.delete()
         return JsonResponse({'detail':"Account successfully deleted"},status = 200)
 
-
+@method_decorator(csrf_protect,name = 'dispatch')
+@method_decorator(conditional_ratelimit(key='ip', rate='5/m'), name='post')
 class RequestResetPasswordView(View):
     def post(self, request):
         try:
@@ -228,6 +228,8 @@ class RequestResetPasswordView(View):
         
         return JsonResponse({'detail': 'If the email exists, an OTP has been sent'}, status=200)
 
+@method_decorator(csrf_protect,name = 'dispatch')
+@method_decorator(conditional_ratelimit(key='ip', rate='3/h'), name='post')
 class ResetPasswordView(View):
     def post(self, request):
         try:
