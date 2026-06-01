@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'anymail',
+    'cloudinary_storage',
+    'cloudinary',
     
 ]
 
@@ -86,6 +88,15 @@ DEFAULT_FROM_EMAIL = "noreply@contact.redolencenepal.com"
 RATELIMIT_VIEW = 'myproject.utils.ratelimit_exceeded'
 
 ROOT_URLCONF = 'myproject.urls'
+
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': config('CLOUDINARY_API_KEY'),
+    'API_SECRET': config('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 TEMPLATES = [
     {

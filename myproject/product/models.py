@@ -35,7 +35,7 @@ class Longevity(models.Model):
 
 class PerfumeImage(models.Model):
     perfume = models.ForeignKey('Perfume', on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='perfume_images/')
+    image = models.ImageField(upload_to='Perfumes/')
     is_primary = models.BooleanField(default=False)
 
 

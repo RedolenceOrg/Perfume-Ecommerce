@@ -23,6 +23,11 @@ VALLEY_DISTRICTS = ["Kathmandu", "Bhaktapur", "Lalitpur"]
 
 RESERVATION_TIME = 60
 
+KhaltiEnabled = config('KHALTI_ENABLED', default=False, cast=bool)
+EsewaEnabled = config('ESEWA_ENABLED', default=False, cast=bool)
+
+FrontendUrl  =config('FRONTEND_URL', default='http://localhost:3000')
+
 
 def generate_esewa_signature(total_amount, transaction_uuid):
     secret = config("ESEWA_SECRET_KEY")
@@ -241,6 +246,13 @@ class CheckoutView(LoginRequiredMixin, View):
         serializer = PlaceOrderSerializer(data=data)
         if not serializer.is_valid():
             return JsonResponse(serializer.errors, status=400)
+        
+        payment_method = serializer.validated_data['payment_method']
+        if payment_method == 'khalti' and not KhaltiEnabled:
+            return JsonResponse({'detail': 'Khalti payments are not available yet'}, status=400)
+
+        if payment_method == 'esewa' and not EsewaEnabled:
+            return JsonResponse({'detail': 'eSewa payments are not available yet'}, status=400)
 
         try:
             cart = Cart.objects.get(user=request.user)
@@ -305,6 +317,9 @@ class CheckoutView(LoginRequiredMixin, View):
                     product_type=item.product_type,  
                     product_id=item.product_id,       
                 )
+
+
+
             if serializer.validated_data['payment_method'] == 'cod':
                 for item in order.items.all():
                     product = item.get_product(lock=True)
@@ -326,8 +341,8 @@ class CheckoutView(LoginRequiredMixin, View):
                 return JsonResponse({
                 'purchase_order_id': str(order.id),
                 'purchase_order_name': f"Order #{order.id} by {request.user.username}",
-                'return_url': f"{config('FRONTEND_URL')}/payment/{str(order.id)}",
-                'website': config("FRONTEND_URL"),
+                'return_url': f"{FrontendUrl}/payment/{str(order.id)}",
+                'website': FrontendUrl,
                 'amount': float(total_amount) * 100
             })
         
@@ -476,22 +491,22 @@ class EsewaInitiateView(LoginRequiredMixin, View):
     def get(self, request, order_id):
         encoded = request.GET.get('data')
         if not encoded:
-            return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=failed")
+            return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=failed")
 
         try:
             data = decode_esewa_response(encoded)
         except Exception:
-            return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=failed")
+            return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=failed")
 
         if not verify_esewa_signature(data):
-            return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=failed")
+            return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=failed")
 
         if data.get('status') == 'COMPLETE':
-            return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=COMPLETE")
+            return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=COMPLETE")
         elif data.get('status') == 'CANCELED':
-            return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=CANCELED")
+            return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=CANCELED")
 
-        return redirect(f"{config('FRONTEND_URL')}/payment/{order_id}?method=esewa&status=failed")
+        return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=failed")
     
 class EsewaVerifyView(LoginRequiredMixin, View):
     def get(self, request, order_id):
@@ -539,8 +554,6 @@ class EsewaVerifyView(LoginRequiredMixin, View):
                 order.save()
                 Cart.objects.filter(user=request.user).delete()
             return JsonResponse({'status': 'success'})
-
-        # anything other than COMPLETE → cancel and release
         with transaction.atomic():
             order = Order.objects.select_for_update().get(id=order_id, user=request.user)
             for item in order.items.all():

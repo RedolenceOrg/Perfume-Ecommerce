@@ -35,6 +35,9 @@ const NEPAL_DISTRICTS = [
     "Udayapur", "Western Rukum"
 ]
 
+const EsewaEnabled = process.env.NEXT_PUBLIC_ESEWA_ENABLED === 'true'
+const KhaltiEnabled = process.env.NEXT_PUBLIC_KHALTI_ENABLED === 'true'
+
 export default function CheckoutPage() {
     const router = useRouter()
     const { user } = useAuth()
@@ -304,24 +307,28 @@ export default function CheckoutPage() {
                 {/* Payment Method */}
                 <div className="mb-8">
                     <label className="text-[10px] uppercase tracking-[0.2em] text-outline block mb-4">
-                        Payment Method
+                        Payment Method (other payment methods are being added soon, stay tuned!) <span className="text-red-500">*</span>
                     </label>
                     <div className="flex flex-col gap-3">
-                        <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === 'esewa' ? 'border-secondary' : 'border-outline-variant/30 bg-background'}`}>
-                            <input type="radio" name="payment" value="esewa" checked={paymentMethod === 'esewa'} onChange={() => setPaymentMethod('esewa')} className="accent-secondary" />
-                            <div className="w-7 h-7 rounded bg-[#60BB46] flex items-center justify-center flex-shrink-0">
-                                <span className="text-[10px] font-bold text-white">eS</span>
-                            </div>
-                            <span className="text-sm text-primary">eSewa</span>
-                        </label>
+                        {EsewaEnabled && (
+                            <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === 'esewa' ? 'border-secondary' : 'border-outline-variant/30 bg-background'}`}>
+                                <input type="radio" name="payment" value="esewa" checked={paymentMethod === 'esewa'} onChange={() => setPaymentMethod('esewa')} className="accent-secondary" />
+                                <div className="w-7 h-7 rounded bg-[#60BB46] flex items-center justify-center flex-shrink-0">
+                                    <span className="text-[10px] font-bold text-white">eS</span>
+                                </div>
+                                <span className="text-sm text-primary">eSewa</span>
+                            </label>
+                        )}
 
-                        <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === 'khalti' ? 'border-secondary' : 'border-outline-variant/30 bg-background'}`}>
-                            <input type="radio" name="payment" value="khalti" checked={paymentMethod === 'khalti'} onChange={() => setPaymentMethod('khalti')} className="accent-secondary" />
-                            <div className="w-7 h-7 rounded bg-[#5C2D91] flex items-center justify-center flex-shrink-0">
-                                <span className="text-[10px] font-bold text-white">Kh</span>
-                            </div>
-                            <span className="text-sm text-primary">Khalti</span>
-                        </label>
+                        {KhaltiEnabled && (
+                            <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === 'khalti' ? 'border-secondary' : 'border-outline-variant/30 bg-background'}`}>
+                                <input type="radio" name="payment" value="khalti" checked={paymentMethod === 'khalti'} onChange={() => setPaymentMethod('khalti')} className="accent-secondary" />
+                                <div className="w-7 h-7 rounded bg-[#5C2D91] flex items-center justify-center flex-shrink-0">
+                                    <span className="text-[10px] font-bold text-white">Kh</span>
+                                </div>
+                                <span className="text-sm text-primary">Khalti</span>
+                            </label>
+                        )}
 
                         <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-secondary' : 'border-outline-variant/30 bg-background'}`}>
                             <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="accent-secondary" />
