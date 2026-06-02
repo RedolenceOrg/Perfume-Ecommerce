@@ -78,5 +78,23 @@ export interface CartItem {
     images: string;
     in_stock: boolean;
 }
+export const VALLEY_DISTRICTS = ["Kathmandu", "Bhaktapur", "Lalitpur"]
+
+export const NEPAL_DISTRICTS = [
+    "Kathmandu", "Bhaktapur", "Lalitpur", "Achham", "Arghakhanchi",
+    "Baglung", "Baitadi", "Bajhang", "Bajura", "Banke", "Bara",
+    "Bardiya", "Bhojpur", "Chitwan", "Dadeldhura", "Dailekh", "Dang",
+    "Darchula", "Dhading", "Dhankuta", "Dhanusa", "Dolakha", "Dolpa",
+    "Doti", "Eastern Rukum", "Gorkha", "Gulmi", "Humla", "Ilam",
+    "Jajarkot", "Jhapa", "Jumla", "Kailali", "Kalikot", "Kanchanpur",
+    "Kapilvastu", "Kaski", "Kavrepalanchok", "Khotang",
+    "Lamjung", "Mahottari", "Makwanpur", "Manang", "Morang", "Mugu",
+    "Mustang", "Myagdi", "Nawalpur", "Nuwakot", "Okhaldhunga", "Palpa",
+    "Panchthar", "Parbat", "Parsa", "Pyuthan", "Ramechhap", "Rasuwa",
+    "Rautahat", "Rolpa", "Rupandehi", "Salyan", "Sankhuwasabha", "Saptari",
+    "Sarlahi", "Sindhuli", "Sindhupalchok", "Siraha", "Solukhumbu",
+    "Sunsari", "Surkhet", "Syangja", "Taplejung", "Tehrathum",
+    "Udayapur", "Western Rukum"
+]
 
 

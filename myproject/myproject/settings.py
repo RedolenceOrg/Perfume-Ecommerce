@@ -33,6 +33,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost').split(',')
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -181,3 +182,98 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 STATIC_URL = 'static/'
+
+
+
+JAZZMIN_SETTINGS = {
+    # Title and branding
+    "site_title": "Redolence Nepal",
+    "site_header": "Redolence Nepal",
+    "site_brand": "Redolence Nepal",
+    "welcome_sign": "Welcome to Redolence Nepal Admin",
+    "copyright": "Redolence Nepal",
+    "changeform_format": "single",
+    # Top menu links
+    "topmenu_links": [
+        {"name": "View Site", "url": "/", "new_window": True},
+        {"model": "orders.Order"},
+        {"model": "product.Perfume"},
+    ],
+
+    # Sidebar navigation order
+    "order_with_respect_to": [
+        "orders",
+        "orders.Order",
+        "orders.Cart",
+        "product",
+        "product.Perfume",
+        "product.Decant",
+        "product.Thrift",
+        "product.Atomizer",
+        "product.AtomizerVariant",
+        "product.Brand",
+        "product.Family",
+        "product.Notes",
+        "people",
+    ],
+
+    # Icons for sidebar models (uses Font Awesome)
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "orders.Order": "fas fa-shopping-bag",
+        "orders.Cart": "fas fa-shopping-cart",
+        "product.Perfume": "fas fa-spray-can",
+        "product.Decant": "fas fa-flask",
+        "product.Thrift": "fas fa-recycle",
+        "product.Atomizer": "fas fa-wind",
+        "product.Brand": "fas fa-tag",
+        "product.Family": "fas fa-leaf",
+        "product.Notes": "fas fa-music",
+    },
+
+    # UI tweaks
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+
+    # Theme
+    "theme": "flatly",          # clean light theme
+    "dark_mode_theme": "darkly", # dark mode equivalent
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success",
+    },
+
+    # Related modal instead of new page
+    "related_modal_active": False,
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": False,
+    "accent": "accent-primary",
+    "navbar": "navbar-white navbar-light",
+    "no_navbar_border": False,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "flatly",
+    "actions_sticky_top": False,
+}

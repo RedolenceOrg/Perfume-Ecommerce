@@ -1,21 +1,36 @@
 from django.contrib import admin
-from .models import Order,Cart,CartItem,OrderItem
+from .models import Order, Cart, CartItem, OrderItem
 from django.utils.html import format_html
+
+
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
-    fields = ('product_name', 'price_at_purchase', 'quantity', 'subtotal', 'product_type')
-    readonly_fields = ('product_name', 'price_at_purchase', 'quantity', 'subtotal', 'product_type')
+    fields = ('product_name', 'product_type', 'price_at_purchase', 'quantity', 'subtotal')
+    readonly_fields = ('product_name', 'product_type', 'price_at_purchase', 'quantity', 'subtotal')
+    can_delete = False
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    exclude = ('reservation_expires_at',)
     ordering = ['-created_at']
     inlines = [OrderItemInline]
-    list_display = ('id', 'user', 'colored_status', 'colored_payment_status', 'payment_method', 'total_amount', 'created_at')
-    list_filter = ('status', 'payment_status', 'payment_method')
-    readonly_fields = ('id', 'created_at')
+    list_display = ('short_id', 'user', 'colored_status', 'colored_payment_status', 'payment_method', 'total_amount', 'district', 'phone_number', 'created_at')
+    list_filter = ('status', 'payment_status', 'payment_method', 'district')
+    search_fields = ('user__email', 'user__username', 'phone_number', 'place')
+    readonly_fields = ('id', 'user', 'total_amount', 'payment_method', 'district', 'place', 'phone_number', 'created_at', 'reservation_expires_at')
+
+    fields = (
+        'id', 'user',
+        'status', 'payment_status', 'payment_method',
+        'total_amount', 'district', 'place', 'phone_number',
+        'created_at',
+    )
+
+    def short_id(self, obj):
+        return str(obj.id)[:8] + '...'
+    short_id.short_description = 'Order ID'
 
     def colored_status(self, obj):
         colors = {
@@ -25,6 +40,7 @@ class OrderAdmin(admin.ModelAdmin):
             'delivered': '#15803d',
             'cancelled': '#b91c1c',
             'returned': '#c2410c',
+            'expired': '#6b7280',
         }
         color = colors.get(obj.status, '#6b7280')
         return format_html(
@@ -47,5 +63,27 @@ class OrderAdmin(admin.ModelAdmin):
     colored_payment_status.short_description = 'Payment'
 
 
-admin.site.register(Cart)
-admin.site.register(CartItem)
+class CartItemInline(admin.TabularInline):
+    model = CartItem
+    extra = 0
+    readonly_fields = ['product_type', 'product_id', 'quantity']
+    can_delete = False
+
+
+@admin.register(Cart)
+class CartAdmin(admin.ModelAdmin):
+    list_display = ['user', 'item_count', 'updated_at']
+    readonly_fields = ['user', 'created_at', 'updated_at']
+    search_fields = ['user__email', 'user__username']
+    ordering = ['-updated_at']
+    inlines = [CartItemInline]
+
+    def item_count(self, obj):
+        return obj.items.count()
+    item_count.short_description = 'Items in Cart'
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
