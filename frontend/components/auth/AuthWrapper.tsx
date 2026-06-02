@@ -27,7 +27,7 @@ const AuthWrapper = ({ children, title, subtitle, type }: AuthWrapperProps) => {
                         <img
                             alt="Editorial Fragrance"
                             className="w-full h-full object-cover grayscale-[10%] hover:scale-105 transition-transform duration-1000"
-                            src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=2000&auto=format&fit=crop"
+                            src="https://images.unsplash.com/photo-1580445206726-c6eace8e02e3?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fGZyYWdyYW50fGVufDB8fDB8fHww"
                         />
                         {/* Tonal Overlay */}
                         <div className="absolute inset-0 bg-black/10 mix-blend-multiply"></div>

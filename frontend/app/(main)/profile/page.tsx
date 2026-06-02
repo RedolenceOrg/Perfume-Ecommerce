@@ -23,9 +23,6 @@ export default function ProfilePage() {
                     return
                 }
                 const data = await res.json()
-
-                console.log(data)
-
                 setProfile(data)
             } catch (err) {
                 setError("Failed to fetch profile")
