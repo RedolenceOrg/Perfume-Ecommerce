@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 const navLinks = [
@@ -49,12 +49,11 @@ function NavLink({ link, pathname, currentType, onClick }: {
     );
 }
 
-export default function Navbar() {
+export default function NavbarInner() {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const currentType = searchParams.get('type');
-    const { user, loading, logout, refreshUser } = useAuth();
-    const router = useRouter();
+    const { user, loading } = useAuth();
 
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
