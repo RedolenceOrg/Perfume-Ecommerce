@@ -1,4 +1,6 @@
 
+export const dynamic = "force-dynamic";
+
 import Arrivals from "@/components/Arrivals";
 import Hero from "@/components/Hero";
 import SeasonalPick from "@/components/SeasonalPick";
