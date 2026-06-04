@@ -22,7 +22,6 @@ export default function CartPage() {
     const [cartData, setCartData] = useState<CartDataType | null>(null)
     const [loading, setLoading] = useState(true)
     const router = useRouter()
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL
     const hasOutOfStock = cartData?.items.some(item => !item.in_stock) ?? false
 
     // Calculate subtotal dynamically from the current items in state
@@ -96,7 +95,6 @@ export default function CartPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
                 <CartList
                     items={cartData.items}
-                    baseUrl={BASE_URL ?? ''}
                     onRemove={handleRemoveItem}
                     onUpdateQuantity={handleUpdateQuantity}
                 />

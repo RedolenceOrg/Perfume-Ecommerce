@@ -9,7 +9,6 @@ interface HeroProps {
     perfume: Perfume
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
 export default function HeroSection({ perfume }: HeroProps) {
     const primaryImage = perfume.images.find(img => img.is_primary) || perfume.images[0]
@@ -104,7 +103,7 @@ export default function HeroSection({ perfume }: HeroProps) {
                                 }`}
                         >
                             <img
-                                src={`${BASE_URL}${img.image}`}
+                                src={`${img.image}`}
                                 alt={perfume.name}
                                 className="w-full h-full object-contain bg-surface-container-high"
                             />
@@ -114,7 +113,7 @@ export default function HeroSection({ perfume }: HeroProps) {
 
                 <div className="flex-1 aspect-square overflow-hidden bg-surface-container-high shadow-sm">
                     <img
-                        src={`${BASE_URL}${selectedImage?.image || primaryImage.image}`}
+                        src={`${selectedImage?.image || primaryImage.image}`}
                         alt={perfume.name}
                         className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
                     />

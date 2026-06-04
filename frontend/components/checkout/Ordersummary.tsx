@@ -16,7 +16,6 @@ interface OrderSummaryProps {
 }
 
 export default function OrderSummary({ cartData, subtotal, total, shippingCharge, district }: OrderSummaryProps) {
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL
     const totalItemsCount = cartData.items.reduce((acc, item) => acc + item.quantity, 0)
 
     return (
@@ -44,7 +43,7 @@ export default function OrderSummary({ cartData, subtotal, total, shippingCharge
                     <div key={item.id} className="flex items-center gap-6 py-6">
                         <div className="w-24 h-24 rounded-lg bg-surface-container-low flex-shrink-0 overflow-hidden border border-outline-variant/10">
                             <img
-                                src={`${BASE_URL}${item.images}`}
+                                src={`${item.images}`}
                                 alt={item.variant_name}
                                 className="w-full h-full object-contain p-2"
                             />

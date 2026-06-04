@@ -66,7 +66,7 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
             {/* Image Section - Fixed aspect ratio for mobile */}
             <div className="relative w-full aspect-square md:aspect-auto">
                 <img
-                    src={`${process.env.NEXT_PUBLIC_API_URL}${selectedVariant.image}`}
+                    src={`${selectedVariant.image}`}
                     alt={atomizer.name}
                     className="w-full h-full object-cover rounded-xl"
                 />

@@ -4,7 +4,6 @@ import { PerfumeSummary } from "@/types/perfumes";
 export default function PerfumeCard({ id, name, brand, price, images, slug }: PerfumeSummary) {
     const imageObj = images?.find(img => img.is_primary) || images?.[0];
     const imagePath = imageObj?.image || '';
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
     return (
         <Link href={`/perfume/${slug}`} className="w-full group cursor-pointer block">
@@ -12,7 +11,7 @@ export default function PerfumeCard({ id, name, brand, price, images, slug }: Pe
             <div className="aspect-[3/4] bg-surface-container mb-4 overflow-hidden relative">
                 {imagePath ? (
                     <img
-                        src={`${BASE_URL}${imagePath}`}
+                        src={`${imagePath}`}
                         alt={name}
                         className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-out"
                     />

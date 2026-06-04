@@ -1,5 +1,4 @@
 export default function Hero() {
-    const BASEURL = process.env.NEXT_PUBLIC_API_URL
     return (
         <section className="relative h-[calc(100vh-88px)] w-full overflow-hidden">
 
@@ -7,7 +6,7 @@ export default function Hero() {
             <div className="absolute inset-0 w-full h-full">
                 <img
                     className="w-full h-full object-cover transition-transform duration-[3s] hover:scale-105"
-                    src={`${BASEURL}/media/perfume_images/herosomething.jpg`}
+                    src='https://res.cloudinary.com/drcy1j8v9/image/upload/v1780587145/herosomething_qzvlbp.jpg'
                     alt="Redolence Nepal"
                 />
                 <div className="absolute inset-0" />

@@ -4,14 +4,13 @@ import { PerfumeSummary } from "@/types/perfumes";
 import Link from "next/link";
 
 export default function BestSellers({ perfumes }: { perfumes: PerfumeSummary[] }) {
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
     const getImg = (perfume: PerfumeSummary) => {
         const secondary =
             perfume.images?.find(img => !img.is_primary)?.image ||
             perfume.images?.[0]?.image;
 
-        return secondary ? `${BASE_URL}${secondary}` : '';
+        return secondary ? `${secondary}` : '';
     };
 
     const mainFeature = perfumes[0];

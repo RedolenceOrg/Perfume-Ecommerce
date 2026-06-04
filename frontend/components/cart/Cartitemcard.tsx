@@ -2,12 +2,11 @@ import { CartItem } from '@/types/perfumes'
 
 interface CartItemCardProps {
     item: CartItem
-    baseUrl: string
     onRemove: (id: number) => void
     onUpdateQuantity: (id: number, quantity: number) => void
 }
 
-export default function CartItemCard({ item, baseUrl, onRemove, onUpdateQuantity }: CartItemCardProps) {
+export default function CartItemCard({ item, onRemove, onUpdateQuantity }: CartItemCardProps) {
     return (
         <div className="py-8 flex flex-col sm:flex-row gap-6 sm:gap-8 group transition-all duration-500 relative">
 
@@ -30,7 +29,7 @@ export default function CartItemCard({ item, baseUrl, onRemove, onUpdateQuantity
             <div className="w-full sm:w-44 h-48 sm:h-46 bg-surface-container-low rounded-lg overflow-hidden flex-shrink-0 border border-outline-variant/20 flex items-center justify-center">
                 <img
                     className="w-full h-full object-contain p-4 sm:p-2"
-                    src={`${baseUrl}${item.images}`}
+                    src={`${item.images}`}
                     alt={item.perfume_name}
                 />
             </div>
