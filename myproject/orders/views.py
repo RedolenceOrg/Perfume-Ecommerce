@@ -13,10 +13,10 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-
-from myproject.utils import conditional_ratelimit
+from myproject.utils import conditional_ratelimit,send_order_confirmation_email
 from .models import Cart, CartItem, Order, OrderItem
 from .utils.helper import get_product, get_discount_percent,release_expired_reservations
+
 from .serializers import deleteCartItemSerializer, updateCartItemSerialiser, addCartItemSerializer, PlaceOrderSerializer
 
 VALLEY_DISTRICTS = ["Kathmandu", "Bhaktapur", "Lalitpur"]
@@ -56,7 +56,7 @@ def verify_esewa_signature(data: dict) -> bool:
     
 
 @method_decorator(csrf_protect, name='dispatch')
-@method_decorator(conditional_ratelimit(key='ip', rate='20/m'),name='post')
+@method_decorator(conditional_ratelimit(rate='20/m'),name='post')
 class AddToCartView(LoginRequiredMixin, View):
     def post(self, request):
         try:
@@ -136,7 +136,7 @@ class AddToCartView(LoginRequiredMixin, View):
             return JsonResponse({"error": str(e)}, status=400)
 
 
-@method_decorator(conditional_ratelimit(key='ip', rate='20/m'), name='patch')
+@method_decorator(conditional_ratelimit(rate='20/m'), name='patch')
 @method_decorator(csrf_protect, name="dispatch")
 class CartUpdateView(LoginRequiredMixin, View):
     def patch(self, request):
@@ -191,7 +191,7 @@ class CartUpdateView(LoginRequiredMixin, View):
             return JsonResponse({"error": str(e)}, status=400)
 
 
-@method_decorator(conditional_ratelimit(key='ip', rate='20/m'), name='delete')
+@method_decorator(conditional_ratelimit(rate='20/m'), name='delete')
 @method_decorator(csrf_protect, name='dispatch')
 class CartDeleteView(LoginRequiredMixin, View):
     def delete(self, request):
@@ -233,7 +233,7 @@ class CartDeleteView(LoginRequiredMixin, View):
             return JsonResponse({"error": str(e)}, status=400)
 
 
-@method_decorator(conditional_ratelimit(key='ip', rate='10/m'), name='post')
+@method_decorator(conditional_ratelimit(rate='10/m'), name='post')
 @method_decorator(csrf_protect, name='dispatch')
 class CheckoutView(LoginRequiredMixin, View):
     def post(self, request):
@@ -330,6 +330,7 @@ class CheckoutView(LoginRequiredMixin, View):
                 order.payment_status = 'pending'
                 order.status = 'processing'
                 order.save()
+                send_order_confirmation_email(request.user.email, order.id,order.total_amount)
                 cart.items.all().delete()
                 return JsonResponse({
                     'purchase_order_id': str(order.id),
@@ -366,7 +367,7 @@ class CheckoutView(LoginRequiredMixin, View):
                 'signature':                signature,
             })
 
-@method_decorator(conditional_ratelimit(key='ip', rate='40/m'), name='get')
+@method_decorator(conditional_ratelimit(rate='40/m'), name='get')
 @method_decorator(csrf_protect, name='dispatch') 
 class CartDetailView(LoginRequiredMixin, View):
     def get(self, request):
