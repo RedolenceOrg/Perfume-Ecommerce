@@ -611,9 +611,12 @@ class GetPayVerifyView(LoginRequiredMixin,View):
         )
         try:
             getpay_data = verification.json()
+            if getpay_data.get('status') == 'success':
+                getpay_data.append({'test':'this status is a success'})
+            return JsonResponse(getpay_data)
         except Exception:
             return JsonResponse({'status': 'failed'}, status=400)
-        if getpay_data.get('status') != 'SUCCESS':
+        if getpay_data.get('status') != 'success':
             with transaction.atomic():
                 order = Order.objects.get(id=order_id, user=request.user)
                 for item in order.items.all():
@@ -624,7 +627,7 @@ class GetPayVerifyView(LoginRequiredMixin,View):
                 order.payment_status = 'failed'
                 order.status = 'cancelled'
                 order.save()
-            return JsonResponse({'status': 'failed because payment verification failed'}, status=400)
+            return JsonResponse({'status': 'failed'}, status=400)
 
         with transaction.atomic():
             order = Order.objects.get(id=order_id, user=request.user)
