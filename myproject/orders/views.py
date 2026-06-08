@@ -589,7 +589,7 @@ class EsewaVerifyView(LoginRequiredMixin, View):
 class GetPayVerifyView(LoginRequiredMixin,View):
     def post(self,request):
         data = json.loads(request.body)
-        order_id = data.get('order_id')
+        order_id = data.get('orderId')
         token = data.get('token')
         if not token:
             return JsonResponse({'status': 'failed'}, status=400)

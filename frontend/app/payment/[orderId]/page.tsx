@@ -50,6 +50,7 @@ export default function PaymentPage() {
                 try {
                     const res = await authapiPost('/cart/payment/getpay/verify/', {
                         token,
+                        orderId,
                     })
                     const data = await res.json()
                     console.log(data)
