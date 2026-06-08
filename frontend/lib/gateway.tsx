@@ -1,4 +1,4 @@
-declare const GetPay: any
+
 export const initiateEsewaPayment = (data: any) => {
     const form = document.createElement('form');
     form.method = 'POST';
@@ -60,6 +60,6 @@ export const initiateGetPayPayment = (data: any) => {
             data.onError?.(error)
         },
     }
-    const getPay = new window.GetPay(options)
+    const getPay = new (window as any).GetPay(options)
     getPay.initialize()
 }
