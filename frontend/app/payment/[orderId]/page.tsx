@@ -10,7 +10,8 @@ export default function PaymentPage() {
     const searchParams = useSearchParams()
     const pidx = searchParams.get('pidx')
     const esewaStatus = searchParams.get('status')
-    const method = pidx ? 'khalti' : esewaStatus ? 'esewa' : 'cod'
+    const token = searchParams.get('token')
+    const method = pidx ? 'khalti' : esewaStatus ? 'esewa' : token ? 'getpay' : 'cod'
 
     const [status, setStatus] = useState<'loading' | 'Completed' | 'User canceled' | 'failed'>('loading')
 
@@ -45,12 +46,26 @@ export default function PaymentPage() {
                 }
                 return
             }
+            if (method === 'getpay') {
+                try {
+                    const res = await authapiPost('/cart/payment/getpay/verify/', {
+                        token,
+                    })
+                    const data = await res.json()
+                    console.log(data)
+                    // if (data.verified) setStatus('Completed')
+                    // else setStatus('failed')
+                } catch {
+                    setStatus('failed')
+                }
+                return
+            }
 
             setStatus('failed')
         }
 
         confirm()
-    }, [method, pidx, orderId, esewaStatus])
+    }, [method, pidx, orderId, esewaStatus, token])
 
     // --- STATE 1: LOADING / VERIFYING ---
     if (status === 'loading') {

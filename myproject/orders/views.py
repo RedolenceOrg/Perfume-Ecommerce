@@ -21,7 +21,7 @@ from .serializers import deleteCartItemSerializer, updateCartItemSerialiser, add
 
 VALLEY_DISTRICTS = ["Kathmandu", "Bhaktapur", "Lalitpur"]
 
-RESERVATION_TIME = 60
+RESERVATION_TIME = 600
 
 KhaltiEnabled = config('KHALTI_ENABLED', default=False, cast=bool)
 EsewaEnabled = config('ESEWA_ENABLED', default=False, cast=bool)
@@ -381,8 +381,8 @@ class CheckoutView(LoginRequiredMixin, View):
                     'businessName':'Redolence Nepal',
                     'imageUrl':'https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.facebook.com%2Fredolencenepal2022%2F&ved=0CBYQjRxqFwoTCOjjgZPy8pQDFQAAAAAdAAAAABAF&opi=89978449',
                     'callbackUrl': {
-                            'successUrl': f"{testFrontendUrl}/payment/{str(order.id)}?method=getpay&status=success",
-                            'failUrl': f"{testFrontendUrl}/payment/{str(order.id)}?method=getpay&status=failed",
+                            'successUrl': f"{testFrontendUrl}/payment/{str(order.id)}",
+                            'failUrl': f"{testFrontendUrl}/payment/{str(order.id)}",
                             }
                 })
 
@@ -585,3 +585,62 @@ class EsewaVerifyView(LoginRequiredMixin, View):
             order.status = 'cancelled'
             order.save()
         return JsonResponse({'status': 'cancelled'})
+    
+class GetPayVerifyView:
+    def post(self,request):
+        data = json.loads(request.body)
+        order_id = data.get('order_id')
+        token = data.get('token')
+        if not token:
+            return JsonResponse({'status': 'failed'}, status=400)
+
+        try:
+            id = json.loads(base64.b64decode(token).decode()).get('id')
+            order = Order.objects.get(id=order_id, user=request.user)
+        except Exception:
+            return JsonResponse({'status': 'failed'}, status=404)
+
+        if order.payment_status == 'paid':
+            return JsonResponse({'status': 'success'})
+        if order.status == 'cancelled':
+            return JsonResponse({'status': 'cancelled'})
+
+        verification = requests.post(
+            'https://uat-bank-getpay.nchl.com.np/ecom-web-checkout/v1/secure-merchant/transactions/merchant-status',
+            json={'id': id}
+        )
+        try:
+            getpay_data = verification.json()
+        except Exception:
+            return JsonResponse({'status': 'failed'}, status=400)
+        return JsonResponse(getpay_data)
+        # if getpay_data.get('status') != 'success':
+        #     with transaction.atomic():
+        #         order = Order.objects.select_for_update().get(id=order_id, user=request.user)
+        #         for item in order.items.all():
+        #             product = item.get_product(lock=True)
+        #             if product:
+        #                 product.reserved = max(0, product.reserved - item.quantity)
+        #                 product.save()
+        #         order.payment_status = 'failed'
+        #         order.status = 'cancelled'
+        #         order.save()
+        #     return JsonResponse({'status': 'failed'}, status=400)
+
+        # with transaction.atomic():
+        #     order = Order.objects.select_for_update().get(id=order_id, user=request.user)
+        #     if order.payment_status == 'paid':
+        #         return JsonResponse({'status': 'success'})
+        #     for item in order.items.all():
+        #         product = item.get_product(lock=True)
+        #         if product:
+        #             product.stock -= item.quantity
+        #             product.reserved -= item.quantity
+        #             product.save()
+        #     order.payment_status = 'paid'
+        #     order.status = 'processing'
+        #     order.save()
+        #     Cart.objects.filter(user=request.user).delete()
+        # return JsonResponse({'status': 'success'})
+        
+        
