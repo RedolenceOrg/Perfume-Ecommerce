@@ -53,9 +53,8 @@ export default function PaymentPage() {
                         orderId,
                     })
                     const data = await res.json()
-                    console.log(data)
-                    // if (data.verified) setStatus('Completed')
-                    // else setStatus('failed')
+                    if (data.status === 'success') setStatus('Completed')
+                    else setStatus('failed')
                 } catch {
                     setStatus('failed')
                 }

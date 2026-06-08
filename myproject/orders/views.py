@@ -613,34 +613,33 @@ class GetPayVerifyView(LoginRequiredMixin,View):
             getpay_data = verification.json()
         except Exception:
             return JsonResponse({'status': 'failed'}, status=400)
-        return JsonResponse(getpay_data)
-        # if getpay_data.get('status') != 'success':
-        #     with transaction.atomic():
-        #         order = Order.objects.select_for_update().get(id=order_id, user=request.user)
-        #         for item in order.items.all():
-        #             product = item.get_product(lock=True)
-        #             if product:
-        #                 product.reserved = max(0, product.reserved - item.quantity)
-        #                 product.save()
-        #         order.payment_status = 'failed'
-        #         order.status = 'cancelled'
-        #         order.save()
-        #     return JsonResponse({'status': 'failed'}, status=400)
+        if getpay_data.get('status') != 'SUCCESS':
+            with transaction.atomic():
+                order = Order.objects.get(id=order_id, user=request.user)
+                for item in order.items.all():
+                    product = item.get_product(lock=True)
+                    if product:
+                        product.reserved = max(0, product.reserved - item.quantity)
+                        product.save()
+                order.payment_status = 'failed'
+                order.status = 'cancelled'
+                order.save()
+            return JsonResponse({'status': 'failed'}, status=400)
 
-        # with transaction.atomic():
-        #     order = Order.objects.select_for_update().get(id=order_id, user=request.user)
-        #     if order.payment_status == 'paid':
-        #         return JsonResponse({'status': 'success'})
-        #     for item in order.items.all():
-        #         product = item.get_product(lock=True)
-        #         if product:
-        #             product.stock -= item.quantity
-        #             product.reserved -= item.quantity
-        #             product.save()
-        #     order.payment_status = 'paid'
-        #     order.status = 'processing'
-        #     order.save()
-        #     Cart.objects.filter(user=request.user).delete()
-        # return JsonResponse({'status': 'success'})
+        with transaction.atomic():
+            order = Order.objects.get(id=order_id, user=request.user)
+            if order.payment_status == 'paid':
+                return JsonResponse({'status': 'success'})
+            for item in order.items.all():
+                product = item.get_product(lock=True)
+                if product:
+                    product.stock -= item.quantity
+                    product.reserved -= item.quantity
+                    product.save()
+            order.payment_status = 'paid'
+            order.status = 'processing'
+            order.save()
+            Cart.objects.filter(user=request.user).delete()
+        return JsonResponse({'status': 'success'})
         
         
