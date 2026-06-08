@@ -592,13 +592,13 @@ class GetPayVerifyView(LoginRequiredMixin,View):
         order_id = data.get('orderId')
         token = data.get('token')
         if not token:
-            return JsonResponse({'status': 'failed'}, status=400)
+            return JsonResponse({'status': 'failed because token is missing'}, status=400)
 
         try:
             id = json.loads(base64.b64decode(token).decode()).get('id')
             order = Order.objects.get(id=order_id, user=request.user)
         except Exception:
-            return JsonResponse({'status': 'failed'}, status=404)
+            return JsonResponse({'status': 'failed because order not found'}, status=404)
 
         if order.payment_status == 'paid':
             return JsonResponse({'status': 'success'})
@@ -624,7 +624,7 @@ class GetPayVerifyView(LoginRequiredMixin,View):
                 order.payment_status = 'failed'
                 order.status = 'cancelled'
                 order.save()
-            return JsonResponse({'status': 'failed'}, status=400)
+            return JsonResponse({'status': 'failed because payment verification failed'}, status=400)
 
         with transaction.atomic():
             order = Order.objects.get(id=order_id, user=request.user)
