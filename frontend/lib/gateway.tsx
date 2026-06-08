@@ -1,3 +1,4 @@
+declare const GetPay: any
 export const initiateEsewaPayment = (data: any) => {
     const form = document.createElement('form');
     form.method = 'POST';
@@ -28,3 +29,37 @@ export const initiateEsewaPayment = (data: any) => {
     document.body.appendChild(form);
     form.submit();
 };
+
+
+export const initiateGetPayPayment = (data: any) => {
+    const options = {
+        papInfo: process.env.NEXT_PUBLIC_PAP_INFO,
+        oprKey: process.env.NEXT_PUBLIC_OPR_KEY,
+        insKey: process.env.NEXT_PUBLIC_INS_KEY || '',
+        clientRequestId: data.clientRequestId,
+        price: data.price,
+        currency: data.currency,
+        allowBillingAddressFields: true,
+        websiteDomain: data.websiteDomain,
+        businessName: data.businessName,
+        imageUrl: data.imageUrl,
+        themeColor: '#5662FF',
+        userInfo: data.userInfo,
+        prefill: data.prefill,
+        baseUrl: process.env.NEXT_PUBLIC_GETPAY_BASE_URL,
+
+        callbackUrl: {
+            successUrl: data.callbackUrl.successUrl,
+            failUrl: data.callbackUrl.failUrl,
+        },
+
+        onSuccess: (response: any) => {
+            data.onSuccess?.(response)
+        },
+        onError: (error: any) => {
+            data.onError?.(error)
+        },
+    }
+    const getPay = new window.GetPay(options)
+    getPay.initialize()
+}

@@ -28,6 +28,8 @@ EsewaEnabled = config('ESEWA_ENABLED', default=False, cast=bool)
 
 FrontendUrl  =config('FRONTEND_URL', default='http://localhost:3000')
 
+testFrontendUrl = 'https://test.redolencenepal.com'
+
 
 def generate_esewa_signature(total_amount, transaction_uuid):
     secret = config("ESEWA_SECRET_KEY")
@@ -366,6 +368,23 @@ class CheckoutView(LoginRequiredMixin, View):
                 'product_code':             product_code,
                 'signature':                signature,
             })
+
+
+
+            if serializer.validated_data['payment_method'] == 'getpay':
+
+                return JsonResponse({
+                    'clientRequestId': str(order.id),
+                    'price': float(total_amount),
+                    'currency':'NPR',
+                    'websiteDomain': testFrontendUrl,
+                    'businessName':'Redolence Nepal',
+                    'imageUrl':'https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.facebook.com%2Fredolencenepal2022%2F&ved=0CBYQjRxqFwoTCOjjgZPy8pQDFQAAAAAdAAAAABAF&opi=89978449',
+                    'callbackUrl': {
+                            'successUrl': f"{testFrontendUrl}/payment/{str(order.id)}?method=getpay&status=success",
+                            'failUrl': f"{testFrontendUrl}/payment/{str(order.id)}?method=getpay&status=failed",
+                            }
+                })
 
 @method_decorator(conditional_ratelimit(rate='40/m'), name='get')
 @method_decorator(csrf_protect, name='dispatch') 

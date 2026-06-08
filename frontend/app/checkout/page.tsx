@@ -6,7 +6,8 @@ import { authapiGet, authapiPost } from '@/context/api'
 import { useAuth } from '@/context/AuthContext'
 import { CartItem } from '@/types/perfumes'
 import { toast } from 'react-toastify'
-import { initiateEsewaPayment } from '@/lib/gateway'
+import Script from 'next/script'
+import { initiateEsewaPayment, initiateGetPayPayment } from '@/lib/gateway'
 import { VALLEY_DISTRICTS } from '../../types/perfumes'
 import ShippingForm from '../../components/checkout/Shippingform'
 import OrderSummary from '../../components/checkout/Ordersummary'
@@ -68,6 +69,19 @@ export default function CheckoutPage() {
         fetchCart()
     }, [router])
 
+
+    // useEffect(() => {
+    //     const script = document.createElement('script')
+    //     script.src = 'https://minio.finpos.global/getpay-cdn/webcheckout/v5/bundle.js'
+    //     script.async = true
+    //     script.onload = () => console.log('GetPay loaded:', typeof (window as any).GetPay)
+    //     document.body.appendChild(script)
+
+    //     return () => {
+    //         document.body.removeChild(script)
+    //     }
+    // }, [])
+
     const handlePlaceOrder = async () => {
         setError(null)
 
@@ -104,19 +118,54 @@ export default function CheckoutPage() {
             if (res.ok) {
                 if (paymentMethod === 'cod') {
                     router.push(`/payment/${data.purchase_order_id}`)
-                } else if (paymentMethod === 'khalti') {
+                }
+
+                else if (paymentMethod === 'khalti') {
                     const khaltiRes = await authapiPost('/cart/payment/khalti/initiate/', data)
                     const khaltiData = await khaltiRes.json()
                     if (khaltiRes.ok) {
                         window.location.href = khaltiData.payment_url
                     }
-                } else if (paymentMethod === 'esewa') {
+                }
+
+                else if (paymentMethod === 'esewa') {
                     initiateEsewaPayment(data)
+                }
+
+
+                else if (paymentMethod === 'getpay') {
+                    initiateGetPayPayment({
+                        ...data,
+                        userInfo: {
+                            name: user?.first_name,
+                            email: user?.email,
+                            state: "",
+                            country: "Nepal",
+                            zipcode: "44600",
+                            city: district,
+                            address: place,
+                        },
+                        prefill: {
+                            name: false,
+                            email: true,
+                            state: false,
+                            city: true,
+                            address: true,
+                            zipcode: true,
+                            country: true
+                        },
+                        onSuccess: () => setLoading(false),
+                        onError: (error: any) => {
+                            setLoading(false)
+                            toast.error(error?.error)
+                        }
+                    })
                 }
             } else {
                 toast.error(data.detail || 'Failed to place order. Please try again.')
             }
-        } catch {
+        } catch (error) {
+            console.error(error)
             toast.error('Something went wrong. Please try again.')
         } finally {
             setPlacing(false)
@@ -134,48 +183,55 @@ export default function CheckoutPage() {
     if (!cartData) return null
 
     return (
-        <main className="min-h-screen grid grid-cols-1 md:grid-cols-2 font-body md:h-screen md:overflow-hidden">
-            <OrderSummary
-                cartData={cartData}
-                subtotal={subtotal}
-                total={total}
-                shippingCharge={shippingCharge}
-                district={district}
+        <>
+            <Script
+                src="https://minio.finpos.global/getpay-cdn/webcheckout/v5/bundle.js"
+                strategy="afterInteractive"
             />
-
-            <section className="bg-surface-container-low p-8 md:p-16 md:h-full md:overflow-y-auto">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-outline mb-1">Almost there</p>
-                <h2 className="font-headline text-4xl text-primary mb-10">Shipping & Payment</h2>
-
-                <ShippingForm
-                    place={place} setPlace={setPlace}
-                    district={district} setDistrict={setDistrict}
-                    phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber}
-                    firstName={user?.first_name}
+            <main className="min-h-screen grid grid-cols-1 md:grid-cols-2 font-body md:h-screen md:overflow-hidden">
+                <OrderSummary
+                    cartData={cartData}
+                    subtotal={subtotal}
+                    total={total}
+                    shippingCharge={shippingCharge}
+                    district={district}
                 />
+                <div id="checkout" hidden></div>
 
-                <PaymentMethod
-                    paymentMethod={paymentMethod}
-                    setPaymentMethod={setPaymentMethod}
-                />
+                <section className="bg-surface-container-low p-8 md:p-16 md:h-full md:overflow-y-auto">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-outline mb-1">Almost there</p>
+                    <h2 className="font-headline text-4xl text-primary mb-10">Shipping & Payment</h2>
 
-                {error && (
-                    <p className="text-red-500 text-sm mb-4">{error}</p>
-                )}
+                    <ShippingForm
+                        place={place} setPlace={setPlace}
+                        district={district} setDistrict={setDistrict}
+                        phoneNumber={phoneNumber} setPhoneNumber={setPhoneNumber}
+                        firstName={user?.first_name}
+                    />
 
-                <button
-                    onClick={handlePlaceOrder}
-                    disabled={placing}
-                    className="w-full py-5 bg-primary text-surface-container-lowest text-[11px] font-bold uppercase tracking-[0.25em] hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {placing ? 'Placing Order...' : `Place Order — NPR ${Math.round(total).toLocaleString()}`}
-                </button>
+                    <PaymentMethod
+                        paymentMethod={paymentMethod}
+                        setPaymentMethod={setPaymentMethod}
+                    />
 
-                <p className="text-center text-[10px] uppercase tracking-widest text-outline mt-4">
-                    <span className="material-symbols-outlined text-xs align-middle mr-1">lock</span>
-                    Secure checkout • Redolence Nepal
-                </p>
-            </section>
-        </main>
+                    {error && (
+                        <p className="text-red-500 text-sm mb-4">{error}</p>
+                    )}
+
+                    <button
+                        onClick={handlePlaceOrder}
+                        disabled={placing}
+                        className="w-full py-5 bg-primary text-surface-container-lowest text-[11px] font-bold uppercase tracking-[0.25em] hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {placing ? 'Placing Order...' : `Place Order — NPR ${Math.round(total).toLocaleString()}`}
+                    </button>
+
+                    <p className="text-center text-[10px] uppercase tracking-widest text-outline mt-4">
+                        <span className="material-symbols-outlined text-xs align-middle mr-1">lock</span>
+                        Secure checkout • Redolence Nepal
+                    </p>
+                </section>
+            </main>
+        </>
     )
 }

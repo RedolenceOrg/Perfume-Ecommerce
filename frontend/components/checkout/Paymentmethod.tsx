@@ -5,6 +5,7 @@ interface PaymentMethodProps {
 
 const KHALTI_ENABLED = process.env.NEXT_PUBLIC_KHALTI_ENABLED === 'true'
 const ESEWA_ENABLED = process.env.NEXT_PUBLIC_ESEWA_ENABLED === 'true'
+const GETPAY_ENABLED = process.env.NEXT_PUBLIC_GETPAY_ENABLED === 'true'
 
 export default function PaymentMethod({ paymentMethod, setPaymentMethod }: PaymentMethodProps) {
     return (
@@ -47,7 +48,22 @@ export default function PaymentMethod({ paymentMethod, setPaymentMethod }: Payme
                         <span className="text-sm text-primary">Khalti</span>
                     </label>
                 )}
-
+                {GETPAY_ENABLED && (
+                    <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === 'getpay' ? 'border-secondary' : 'border-outline-variant/30 bg-background'}`}>
+                        <input
+                            type="radio"
+                            name="payment"
+                            value="getpay"
+                            checked={paymentMethod === 'getpay'}
+                            onChange={() => setPaymentMethod('getpay')}
+                            className="accent-secondary"
+                        />
+                        <div className="w-7 h-7 rounded bg-[#5662FF] flex items-center justify-center flex-shrink-0">
+                            <span className="text-[10px] font-bold text-white">GP</span>
+                        </div>
+                        <span className="text-sm text-primary">GetPay</span>
+                    </label>
+                )}
                 <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-secondary' : 'border-outline-variant/30 bg-background'}`}>
                     <input
                         type="radio"
