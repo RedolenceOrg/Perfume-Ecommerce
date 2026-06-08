@@ -586,7 +586,7 @@ class EsewaVerifyView(LoginRequiredMixin, View):
             order.save()
         return JsonResponse({'status': 'cancelled'})
     
-class GetPayVerifyView:
+class GetPayVerifyView(LoginRequiredMixin,View):
     def post(self,request):
         data = json.loads(request.body)
         order_id = data.get('order_id')
