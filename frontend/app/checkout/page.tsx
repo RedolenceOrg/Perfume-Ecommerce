@@ -154,7 +154,7 @@ export default function CheckoutPage() {
                             zipcode: true,
                             country: true
                         },
-                        onSuccess: () => setLoading(false),
+                        onSuccess: () => { window.location.href = '/getpay' },
                         onError: (error: any) => {
                             setLoading(false)
                             toast.error(error?.error)
@@ -188,7 +188,7 @@ export default function CheckoutPage() {
                 src="https://minio.finpos.global/getpay-cdn/webcheckout/v5/bundle.js"
                 strategy="afterInteractive"
             />
-            <main className="min-h-screen grid grid-cols-1 md:grid-cols-2 font-body md:h-screen md:overflow-hidden">
+            <main className="min-h-screen grid grid-cols-1 md:grid-cols-2 font-body md:h-screen">
                 <OrderSummary
                     cartData={cartData}
                     subtotal={subtotal}
