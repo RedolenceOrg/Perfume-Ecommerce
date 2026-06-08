@@ -40,7 +40,8 @@ export default function PaymentPage() {
                         purchase_order_id: orderId,
                     })
                     const data = await res.json()
-                    setStatus(data.status)
+                    if (data.status === 'success') setStatus('Completed')
+                    else setStatus('failed')
                 } catch {
                     setStatus('failed')
                 }
