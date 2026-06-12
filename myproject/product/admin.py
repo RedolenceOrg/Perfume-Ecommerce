@@ -65,7 +65,7 @@ class PerfumeAdmin(admin.ModelAdmin):
     search_fields = ['name', 'brand__name']
     ordering = ['brand', 'name']
     readonly_fields = ['slug', 'reserved', 'available_stock', 'date_added']
-    inlines = [PerfumeImageInline, PerfumeNoteInline, DecantInline, ThriftInline, SillageInline, LongevityInline]
+    inlines = [PerfumeImageInline, PerfumeNoteInline, DecantInline, SillageInline, LongevityInline]
 
     fields = [
         'type', 'name', 'brand', 'gender', 'price',
@@ -92,14 +92,21 @@ class DecantAdmin(admin.ModelAdmin):
 # ──────────────────────────────────────────
 # Thrift standalone
 # ──────────────────────────────────────────
-
 @admin.register(Thrift)
 class ThriftAdmin(admin.ModelAdmin):
-    list_display = ['perfume', 'remaining_juice', 'thrift_price', 'stock', 'reserved', 'available_stock']
+    
+    list_display = ['perfume', 'remaining_juice', 'thrift_price', 'stock', 'reserved', 'colored_available_stock']
     search_fields = ['perfume__name']
-    ordering = ['perfume__name']
+    ordering = ['-stock', 'perfume__name']
     readonly_fields = ['reserved', 'available_stock']
     fields = ['perfume', 'remaining_juice', 'thrift_price', 'stock', 'reserved', 'available_stock']
+
+    @admin.display(description='Available Stock', ordering='stock')
+    def colored_available_stock(self, obj):
+        from django.utils.html import format_html
+        if obj.available_stock > 0:
+            return format_html('<span style="color: green; font-weight: bold;">✅ {}</span>', obj.available_stock)
+        return format_html('<span style="color: red;">❌ {}</span>', obj.available_stock)
 
 
 # ──────────────────────────────────────────

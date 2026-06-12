@@ -32,10 +32,10 @@ export default function PerfumeCard({ id, name, brand, price, images, slug }: Pe
 
             {/* Content Details */}
             <div className="space-y-1 px-1">
-                <p className="font-body text-[10px] text-secondary uppercase tracking-widest font-bold">
+                <p className="font-body text-[12px] text-secondary uppercase tracking-widest font-bold">
                     {brand}
                 </p>
-                <h4 className="font-body text-base font-normal tracking-tight text-primary group-hover:text-outline transition-colors duration-300">
+                <h4 className="font-body text-lg font-normal tracking-tight text-primary group-hover:text-outline transition-colors duration-300">
                     {name}
                 </h4>
                 <div className="font-body font-bold text-sm text-primary pt-1">
@@ -44,7 +44,7 @@ export default function PerfumeCard({ id, name, brand, price, images, slug }: Pe
                             Decants Available
                         </span>
                     ) : (
-                        <span className="text-sm font-semibold text-primary">
+                        <span className="text-base font-semibold text-primary">
                             NRS {Math.round(parseFloat(price)).toLocaleString()}
                         </span>
                     )}

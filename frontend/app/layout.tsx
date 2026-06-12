@@ -3,7 +3,7 @@ import { Geist, Geist_Mono, Noto_Serif, Manrope } from "next/font/google";
 import { AuthProvider } from '@/context/AuthContext'
 import { ToastContainer } from 'react-toastify'
 import "./globals.css";
-import Script from "next/dist/client/script";
+import SmoothScroll from '../smoothscroll/SmoothScroll';
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -23,14 +23,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="antialiased">
 
-
         <AuthProvider>
-
-          {children}
-          <ToastContainer
-            position="bottom-left"
-            autoClose={3000}
-          />
+          <SmoothScroll>
+            {children}
+            <ToastContainer
+              position="bottom-left"
+              autoClose={3000}
+            />
+          </SmoothScroll>
         </AuthProvider>
       </body>
     </html>

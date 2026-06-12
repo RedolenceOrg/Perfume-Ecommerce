@@ -22,7 +22,7 @@ export default function MembersSection() {
                     Redolence Nepal — The Inner Circle
                 </p>
 
-                <h2 className="font-serif text-7xl md:text-[10rem] lg:text-[13rem] text-white tracking-tighter leading-none mb-2 opacity-90 drop-shadow-2xl">
+                <h2 className="font-headline text-5xl md:text-[10rem] lg:text-[13rem] text-white tracking-tighter leading-none mb-2 opacity-90 drop-shadow-2xl">
                     Members
                 </h2>
 

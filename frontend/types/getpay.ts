@@ -1,27 +1,27 @@
 import { CartItem } from "./perfumes";
 const T = {
-    primary: "#271310",
-    secondary: "#775a19",
-    background: "#fbf9f5",
-    surface: "#fbf9f5",
-    surfaceLow: "#f5f3ef",
-    surfaceHigh: "#eae8e4",
-    outline: "#827472",
-    outlineVar: "#d3c3c0",
-    secContainer: "#fed488",
-    fontHeadline: "'Noto Serif', Georgia, serif",
-    fontBody: "'Manrope', Arial, sans-serif",
+  primary: "#271310",
+  secondary: "#775a19",
+  background: "#fbf9f5",
+  surface: "#fbf9f5",
+  surfaceLow: "#f5f3ef",
+  surfaceHigh: "#eae8e4",
+  outline: "#827472",
+  outlineVar: "#d3c3c0",
+  secContainer: "#fed488",
+  fontHeadline: "'Noto Serif', Georgia, serif",
+  fontBody: "'Manrope', Arial, sans-serif",
 };
 
 interface OrderInfoParams {
-    items: CartItem[]
-    subtotal: number
-    total: number
-    shippingCharge: number
-    district: string
-    discount_percent: number
-    discount_amount: number
-    valleyDistricts: string[]   // ← this fixes it
+  items: CartItem[]
+  subtotal: number
+  total: number
+  shippingCharge: number
+  district: string
+  discount_percent: number
+  discount_amount: number
+  valleyDistricts: string[]   // ← this fixes it
 }
 
 /**
@@ -44,20 +44,20 @@ interface OrderInfoParams {
  */
 
 export function buildOrderInformationUI({
-    items = [],
-    subtotal = 0,
-    total = 0,
-    shippingCharge = 0,
-    district = "",
-    discount_percent = 0,
-    discount_amount = 0,
-    valleyDistricts = [],
+  items = [],
+  subtotal = 0,
+  total = 0,
+  shippingCharge = 0,
+  district = "",
+  discount_percent = 0,
+  discount_amount = 0,
+  valleyDistricts = [],
 }: OrderInfoParams) {
-    const totalItems = items.reduce((acc, i) => acc + i.quantity, 0);
-    const isValley = valleyDistricts.includes(district);
+  const totalItems = items.reduce((acc, i) => acc + i.quantity, 0);
+  const isValley = valleyDistricts.includes(district);
 
-    // ─── Item rows ──────────────────────────────────────────────────────────────
-    const itemRows = items.map((item) => `
+  // ─── Item rows ──────────────────────────────────────────────────────────────
+  const itemRows = items.map((item) => `
     <div style="
       display:flex;
       align-items:center;
@@ -89,15 +89,6 @@ export function buildOrderInformationUI({
           white-space:nowrap;
           overflow:hidden;
           text-overflow:ellipsis;
-        ">${item.perfume_name}</p>
-        <p style="
-          margin:0 0 4px;
-          font-family:${T.fontBody};
-          font-size:11px;
-          color:${T.outline};
-          white-space:nowrap;
-          overflow:hidden;
-          text-overflow:ellipsis;
         ">${item.variant_name}</p>
         <p style="
           margin:0;
@@ -119,8 +110,8 @@ export function buildOrderInformationUI({
     </div>
   `).join("");
 
-    // ─── Discount row (conditional) ─────────────────────────────────────────────
-    const discountRow = discount_percent > 0 ? `
+  // ─── Discount row (conditional) ─────────────────────────────────────────────
+  const discountRow = discount_percent > 0 ? `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <span style="font-family:${T.fontBody};font-size:13px;color:#2e7d32;">
         Discount (${discount_percent}%)
@@ -131,8 +122,8 @@ export function buildOrderInformationUI({
     </div>
   ` : "";
 
-    // ─── Shipping row ───────────────────────────────────────────────────────────
-    const shippingRow = district ? `
+  // ─── Shipping row ───────────────────────────────────────────────────────────
+  const shippingRow = district ? `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <span style="font-family:${T.fontBody};font-size:13px;color:${T.outline};">Delivery</span>
       <span style="font-family:${T.fontBody};font-size:13px;font-weight:700;color:${T.primary};">
@@ -151,14 +142,18 @@ export function buildOrderInformationUI({
     </div>
   `;
 
-    // ─── Full HTML string ────────────────────────────────────────────────────────
-    return `
+  // ─── Full HTML string ────────────────────────────────────────────────────────
+  return `
 <div style="
   font-family:${T.fontBody};
   background:${T.background};
-  padding:28px 24px;
-  max-width:420px;
+  padding:clamp(16px, 4%, 32px) clamp(16px, 5%, 32px);
   box-sizing:border-box;
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
 ">
 
   <!-- Header -->
@@ -189,9 +184,9 @@ export function buildOrderInformationUI({
   </div>
 
   <!-- Items -->
-  <div style="margin-bottom:20px;">
-    ${itemRows}
-  </div>
+  <div style="flex:1;overflow-y:auto;margin-bottom:16px;min-height:0;">
+  ${itemRows}
+</div>
 
   <!-- Price breakdown -->
   <div style="

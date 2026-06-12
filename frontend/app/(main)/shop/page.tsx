@@ -14,9 +14,6 @@ export default async function Shop() {
             <main className="min-h-screen px-4 sm:px-6 md:px-12 py-8 bg-background">
                 <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 max-w-[1920px] mx-auto">
 
-                    {/* Responsive Sidebar Container Wrapper */}
-                    {/* On Desktop: It handles sticky positioning beautifully */}
-                    {/* On Mobile: It gets out of the way completely so the drawer can animate */}
                     <div className="lg:sticky lg:top-24 lg:self-start lg:h-[calc(100vh-8rem)] lg:overflow-y-auto no-scrollbar lg:w-72 flex-shrink-0">
                         <ShopSidebar brands={filters.brands} notes={filters.notes} families={filters.families} />
                     </div>

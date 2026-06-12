@@ -12,11 +12,17 @@ export default function PaymentPage() {
     const esewaStatus = searchParams.get('status')
     const token = searchParams.get('token')
     const method = pidx ? 'khalti' : esewaStatus ? 'esewa' : token ? 'getpay' : 'cod'
+    const badRequest = searchParams.get('invalid')
 
     const [status, setStatus] = useState<'loading' | 'Completed' | 'User canceled' | 'failed'>('loading')
 
     useEffect(() => {
+        if (badRequest) {
+            setStatus('failed')
+            return
+        }
         const confirm = async () => {
+
             if (method === 'cod') {
                 setStatus('Completed')
                 return

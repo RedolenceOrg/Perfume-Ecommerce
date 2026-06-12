@@ -34,4 +34,17 @@
   --font-headline: "Noto Serif";
   --font-body: "Manrope";
   --font-label: "Manrope";
+
+
+}
+
+.card-hidden {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+.card-visible {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }

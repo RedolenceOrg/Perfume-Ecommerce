@@ -13,7 +13,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from myproject.utils import conditional_ratelimit,send_order_confirmation_email
+from myproject.utils import conditional_ratelimit,send_order_confirmation_email,send_order_confirmation_whatsapp
 from .models import Cart, CartItem, Order, OrderItem
 from .utils.helper import get_product, get_discount_percent,release_expired_reservations
 
@@ -300,7 +300,7 @@ class CheckoutView(LoginRequiredMixin, View):
 
             for item in cart.items.all():
                 product = item.get_product(lock = True)
-                product.reserved += item.quantity # CHANGE
+                product.reserved += item.quantity 
                 product.save()
 
                 perfume = None
@@ -320,8 +320,6 @@ class CheckoutView(LoginRequiredMixin, View):
                     product_id=item.product_id,       
                 )
 
-
-
             if serializer.validated_data['payment_method'] == 'cod':
                 for item in order.items.all():
                     product = item.get_product(lock=True)
@@ -333,6 +331,7 @@ class CheckoutView(LoginRequiredMixin, View):
                 order.status = 'processing'
                 order.save()
                 send_order_confirmation_email(request.user.email, order.id,order.total_amount)
+                send_order_confirmation_whatsapp(f'977{str(order.phone_number)}', request.user.first_name, str(order.id))
                 cart.items.all().delete()
                 return JsonResponse({
                     'purchase_order_id': str(order.id),
@@ -512,22 +511,22 @@ class EsewaInitiateView(LoginRequiredMixin, View):
     def get(self, request, order_id):
         encoded = request.GET.get('data')
         if not encoded:
-            return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=failed")
+            return redirect(f"{FrontendUrl}/payment/{order_id}?status=failed")
 
         try:
             data = decode_esewa_response(encoded)
         except Exception:
-            return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=failed")
+            return redirect(f"{FrontendUrl}/payment/{order_id}?status=failed")
 
         if not verify_esewa_signature(data):
-            return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=failed")
+            return redirect(f"{FrontendUrl}/payment/{order_id}?status=failed")
 
         if data.get('status') == 'COMPLETE':
-            return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=COMPLETE")
+            return redirect(f"{FrontendUrl}/payment/{order_id}?status=COMPLETE")
         elif data.get('status') == 'CANCELED':
-            return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=CANCELED")
+            return redirect(f"{FrontendUrl}/payment/{order_id}?status=CANCELED")
 
-        return redirect(f"{FrontendUrl}/payment/{order_id}?method=esewa&status=failed")
+        return redirect(f"{FrontendUrl}/payment/{order_id}?status=failed")
     
 class EsewaVerifyView(LoginRequiredMixin, View):
     def get(self, request, order_id):

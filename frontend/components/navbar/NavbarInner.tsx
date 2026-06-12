@@ -97,7 +97,7 @@ export default function NavbarInner() {
 
                     {/* Logo */}
                     <Link href="/" className="text-xl sm:text-2xl font-headline tracking-widest uppercase text-primary hover:opacity-90 transition-opacity whitespace-nowrap">
-                        Redolence Nepal
+                        Redolence
                     </Link>
 
                     {/* Desktop Navigation */}
