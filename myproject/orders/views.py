@@ -492,6 +492,7 @@ class KhaltiConfirmView(LoginRequiredMixin, View):
                         product.save()
                 order.payment_status = 'paid'
                 order.status = 'processing'
+                order.payment_method = 'khalti'
                 order.save()
             Cart.objects.filter(user=request.user).delete()
 
@@ -571,6 +572,7 @@ class EsewaVerifyView(LoginRequiredMixin, View):
                         product.save()
                 order.payment_status = 'paid'
                 order.status = 'processing'
+                order.payment_method = 'esewa'
                 order.save()
                 Cart.objects.filter(user=request.user).delete()
             return JsonResponse({'status': 'success'})
@@ -638,6 +640,7 @@ class GetPayVerifyView(LoginRequiredMixin,View):
                     product.save()
             order.payment_status = 'paid'
             order.status = 'processing'
+            order.payment_method = 'getpay'
             order.save()
             Cart.objects.filter(user=request.user).delete()
         return JsonResponse({'status': 'success'})

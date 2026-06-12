@@ -12,7 +12,7 @@ ORDER_STATUS_CHOICES = [
     ('returned', 'Returned'),
     ('expired', 'Expired'),
 ]
-PAYMENT_METHODS = [('esewa','Esewa'),('khalti','Khalti'),('cod','COD')]
+PAYMENT_METHODS = [('esewa','Esewa'),('khalti','Khalti'),('cod','COD'),('getpay','GetPay')]
 PAYMENT_STATUS_CHOICES = [
     ('pending', 'Pending'),
     ('paid', 'Paid'),

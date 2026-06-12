@@ -12,6 +12,7 @@ import { VALLEY_DISTRICTS } from '../../types/perfumes'
 import ShippingForm from '../../components/checkout/Shippingform'
 import OrderSummary from '../../components/checkout/Ordersummary'
 import PaymentMethod from '../../components/checkout/Paymentmethod'
+import { buildOrderInformationUI } from '@/types/getpay'
 
 interface CartData {
     items: CartItem[]
@@ -69,18 +70,6 @@ export default function CheckoutPage() {
         fetchCart()
     }, [router])
 
-
-    // useEffect(() => {
-    //     const script = document.createElement('script')
-    //     script.src = 'https://minio.finpos.global/getpay-cdn/webcheckout/v5/bundle.js'
-    //     script.async = true
-    //     script.onload = () => console.log('GetPay loaded:', typeof (window as any).GetPay)
-    //     document.body.appendChild(script)
-
-    //     return () => {
-    //         document.body.removeChild(script)
-    //     }
-    // }, [])
 
     const handlePlaceOrder = async () => {
         setError(null)
@@ -154,6 +143,16 @@ export default function CheckoutPage() {
                             zipcode: true,
                             country: true
                         },
+                        orderInformationUI: buildOrderInformationUI({
+                            items: cartData?.items ?? [],
+                            subtotal,
+                            total,
+                            shippingCharge,
+                            district,
+                            discount_percent: cartData?.discount_percent ?? 0,
+                            discount_amount: cartData?.discount_amount ?? 0,
+                            valleyDistricts: VALLEY_DISTRICTS,
+                        }),
                         onSuccess: () => { window.location.href = '/getpay' },
                         onError: (error: any) => {
                             setLoading(false)
