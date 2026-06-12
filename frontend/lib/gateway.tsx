@@ -47,7 +47,7 @@ export const initiateGetPayPayment = (data: any) => {
         userInfo: data.userInfo,
         prefill: data.prefill,
         baseUrl: process.env.NEXT_PUBLIC_GETPAY_BASE_URL,
-        orderInformationUI: data.buildOrderInformationUI,
+        orderInformationUI: data.orderInformationUI,
         callbackUrl: {
             successUrl: data.callbackUrl.successUrl,
             failUrl: data.callbackUrl.failUrl,
