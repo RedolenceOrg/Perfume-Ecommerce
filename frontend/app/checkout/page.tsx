@@ -143,16 +143,7 @@ export default function CheckoutPage() {
                             zipcode: true,
                             country: true
                         },
-                        orderInformationUI: buildOrderInformationUI({
-                            items: cartData?.items ?? [],
-                            subtotal,
-                            total,
-                            shippingCharge,
-                            district,
-                            discount_percent: cartData?.discount_percent ?? 0,
-                            discount_amount: cartData?.discount_amount ?? 0,
-                            valleyDistricts: VALLEY_DISTRICTS,
-                        }),
+                        orderInformationUI: '<div style="color:red;font-size:20px;">TEST</div>',
                         onSuccess: () => { window.location.href = '/getpay' },
                         onError: (error: any) => {
                             setLoading(false)
