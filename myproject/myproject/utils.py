@@ -66,59 +66,60 @@ def send_order_confirmation_email(email, orderId,total_amount):
 
 
 # USE THIS AFTER TEMPLATE HAS BEEN APPROVED 
-# def send_order_confirmation_whatsapp(phone_number, orderid,total_amount,firstname):
-#     token = config('WHATSAPP_TOKEN')
-#     personal_id =config('WHATSAPP_PERSONAL_ID')
-#     url = f"https://graph.facebook.com/v25.0/{personal_id}/messages"
-#     headers = {
-#         "Authorization": f"Bearer {token}",
-#         "Content-Type": "application/json"
-#     }
-#     payload = {
-#         "messaging_product": "whatsapp",
-#         "to": phone_number,
-#         "type": "template",
-#         "template": {
-#             "name": "order_confirmation",
-#             "language": { "code": "en" },
-#             "components": [{
-#                 "type": "body",
-#                 "parameters": [
-#                     { "type": "text", "parameter_name": "firstname", "text": firstname },
-#                     { "type": "text", "parameter_name": "orderid", "text": orderid },
-#                     { "type": "text", "parameter_name": "totalprice", "text":total_amount},
-#                 ]
-#             }]
-#         }
-#     }
-#     requests.post(url, headers=headers, json=payload)
-
-def send_order_confirmation_whatsapp(phone_number, firstname, order_id,):
+def send_order_confirmation_whatsapp(phone_number, orderid,total_amount,firstname):
     token = config('WHATSAPP_TOKEN')
-    personal_id = config('WHATSAPP_PERSONAL_ID')
+    personal_id =config('WHATSAPP_PERSONAL_ID')
     url = f"https://graph.facebook.com/v25.0/{personal_id}/messages"
-    
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
-    
     payload = {
         "messaging_product": "whatsapp",
         "to": phone_number,
         "type": "template",
         "template": {
-            "name": "jaspers_market_order_confirmation_v1",
-            "language": { "code": "en_US" },
+            "name": "redolence_order_confirmation",
+            "language": { "code": "en" },
             "components": [{
                 "type": "body",
                 "parameters": [
-                    { "type": "text", "text": firstname },
-                    { "type": "text", "text": order_id },
-                    { "type": "text", "text": "June 12,2026" }
+                    { "type": "text", "parameter_name": "firstname", "text": firstname },
+                    { "type": "text", "parameter_name": "orderid", "text": orderid },
+                    { "type": "text", "parameter_name": "totalprice", "text":total_amount},
                 ]
             }]
         }
     }
+    response =requests.post(url, headers=headers, json=payload)
+    print(response.json())
+
+# def send_order_confirmation_whatsapp(phone_number, firstname, order_id,):
+#     token = config('WHATSAPP_TOKEN')
+#     personal_id = config('WHATSAPP_PERSONAL_ID')
+#     url = f"https://graph.facebook.com/v25.0/{personal_id}/messages"
     
-    requests.post(url, headers=headers, json=payload)
+#     headers = {
+#         "Authorization": f"Bearer {token}",
+#         "Content-Type": "application/json"
+#     }
+    
+#     payload = {
+#         "messaging_product": "whatsapp",
+#         "to": phone_number,
+#         "type": "template",
+#         "template": {
+#             "name": "jaspers_market_order_confirmation_v1",
+#             "language": { "code": "en_US" },
+#             "components": [{
+#                 "type": "body",
+#                 "parameters": [
+#                     { "type": "text", "text": firstname },
+#                     { "type": "text", "text": order_id },
+#                     { "type": "text", "text": "June 12,2026" }
+#                 ]
+#             }]
+#         }
+#     }
+    
+#     requests.post(url, headers=headers, json=payload)

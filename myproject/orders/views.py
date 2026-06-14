@@ -331,7 +331,7 @@ class CheckoutView(LoginRequiredMixin, View):
                 order.status = 'processing'
                 order.save()
                 send_order_confirmation_email(request.user.email, order.id,order.total_amount)
-                send_order_confirmation_whatsapp(f'977{str(order.phone_number)}', request.user.first_name, str(order.id))
+                send_order_confirmation_whatsapp(f'977{str(order.phone_number)}',str(order.id),str(total_amount) ,request.user.first_name, )
                 cart.items.all().delete()
                 return JsonResponse({
                     'purchase_order_id': str(order.id),
