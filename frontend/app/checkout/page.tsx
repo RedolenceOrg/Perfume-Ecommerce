@@ -187,17 +187,22 @@ export default function CheckoutPage() {
                 src="https://minio.finpos.global/getpay-cdn/webcheckout/v5/bundle.js"
                 strategy="afterInteractive"
             />
-            <main className="min-h-screen grid grid-cols-1 md:grid-cols-2 font-body md:h-screen">
-                <OrderSummary
-                    cartData={cartData}
-                    subtotal={subtotal}
-                    total={total}
-                    shippingCharge={shippingCharge}
-                    district={district}
-                />
+            <main className="min-h-screen grid grid-cols-1 md:grid-cols-2 font-body">
+
+
+                <div className="md:sticky md:top-0 md:h-screen md:overflow-hidden">
+                    <OrderSummary
+                        cartData={cartData}
+                        subtotal={subtotal}
+                        total={total}
+                        shippingCharge={shippingCharge}
+                        district={district}
+                    />
+                </div>
+
                 <div id="checkout" hidden></div>
 
-                <section className="bg-surface-container-low p-8 md:p-16 md:h-full md:overflow-y-auto">
+                <section className="bg-surface-container-low p-8 md:p-16">
                     <p className="text-[10px] uppercase tracking-[0.3em] text-outline mb-1">Almost there</p>
                     <h2 className="font-headline text-4xl text-primary mb-10">Shipping & Payment</h2>
 
