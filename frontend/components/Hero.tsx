@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function Hero() {
     return (
-        <section className="relative h-[calc(100vh-33px)] w-full overflow-hidden">
+        <section className="relative h-[calc(100vh)] w-full overflow-hidden">
 
             {/* Full Bleed Background Image */}
             <div className="absolute inset-0 w-full h-full">

@@ -54,10 +54,11 @@ export default function NavbarInner() {
     const pathname = usePathname();
     const currentType = searchParams.get('type');
     const { user, loading } = useAuth();
-
+    const isHomePage = pathname === '/';
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isAtTop, setIsAtTop] = useState(true);
 
     useEffect(() => {
         if (isMenuOpen) {
@@ -68,9 +69,12 @@ export default function NavbarInner() {
         return () => { document.body.style.overflow = ''; };
     }, [isMenuOpen]);
 
+
+
     useEffect(() => {
         const controlNavbar = () => {
             const currentScrollY = window.scrollY;
+            setIsAtTop(currentScrollY < 10);
 
             if (isMenuOpen) return;
 
@@ -88,11 +92,15 @@ export default function NavbarInner() {
 
     return (
         <>
-            <header
-                className={`sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-outline-variant/10 transition-transform duration-500 ease-in-out
-                    ${isVisible ? 'translate-y-0' : '-translate-y-full'}
-                `}
-            >
+
+            <header className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-500 ease-in-out
+    ${isVisible ? 'translate-y-0' : '-translate-y-full'}
+    ${isAtTop && isHomePage
+                    ? 'bg-transparent border-transparent'
+                    : 'bg-background/90 border-outline-variant/10 backdrop-blur-xl'
+                }
+`}>
+
                 <nav className="flex justify-between items-center px-4 sm:px-6 md:px-12 py-3.5 max-w-screen-2xl mx-auto">
 
                     {/* Logo */}

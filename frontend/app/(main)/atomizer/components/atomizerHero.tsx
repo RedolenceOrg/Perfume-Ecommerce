@@ -1,6 +1,6 @@
 export default function AtomizerHero() {
     return (
-        <section className="relative w-full min-h-[95vh] flex items-center justify-center overflow-hidden bg-surface">
+        <section className="relative w-full min-h-[100vh] flex items-center justify-center overflow-hidden bg-surface">
             {/* Background Image Container */}
             <div className="absolute inset-0 z-0">
                 <img

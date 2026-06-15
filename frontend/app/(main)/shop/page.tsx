@@ -11,7 +11,7 @@ export default async function Shop() {
         const filters = await res.json();
 
         return (
-            <main className="min-h-screen px-4 sm:px-6 md:px-12 py-8 bg-background">
+            <main className="min-h-screen px-4 sm:px-6 md:px-12 py-8 bg-background pt-[80px]">
                 <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 max-w-[1920px] mx-auto">
 
                     <div className="lg:sticky lg:top-24 lg:self-start lg:h-[calc(100vh-8rem)] lg:overflow-y-auto no-scrollbar lg:w-72 flex-shrink-0">
