@@ -26,7 +26,7 @@ export default async function PerfumePage({ params }: { params: Promise<{ slug: 
         const relatedPerfumes = await relatedRes.json()
 
         return (
-            <main className="max-w-screen-2xl mx-auto">
+            <main className="max-w-screen-2xl mx-auto pt-[66px]">
                 <HeroSection perfume={perfume} />
                 <Performance longevity={perfume.longevity?.level} sillage={perfume.sillage?.level} />
                 <Arrivals heading="You might also like" perfumes={relatedPerfumes} />

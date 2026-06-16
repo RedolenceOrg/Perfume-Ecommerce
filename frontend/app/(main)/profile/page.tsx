@@ -37,7 +37,7 @@ export default function ProfilePage() {
     if (error) return <div className="min-h-screen flex items-center justify-center font-body text-error">{error}</div>
 
     return (
-        <main className="bg-surface-container-high">
+        <main className="bg-surface-container-high pt-[66px]">
             <div className="pt-[44px] pb-24 px-8 max-w-7xl mx-auto min-h-screen bg-background">
                 <ProfileHeader profile={profile} />
 

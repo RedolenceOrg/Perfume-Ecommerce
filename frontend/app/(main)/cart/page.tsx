@@ -90,7 +90,7 @@ export default function CartPage() {
     if (!cartData || cartData.items.length === 0) return <CartEmpty />
 
     return (
-        <main className="pt-8 pb-24 px-6 md:px-12 max-w-7xl mx-auto min-h-screen bg-background text-primary">
+        <main className="pt-[80px] pb-24 px-6 md:px-12 max-w-7xl mx-auto min-h-screen bg-background text-primary">
             <CartHeader />
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
                 <CartList
