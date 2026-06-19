@@ -1,5 +1,5 @@
 // components/LoyaltyMilestones.tsx
-export default function LoyaltyMilestones({ totalSpend }: { totalSpend: number }) {
+export default function LoyaltyMilestones({ totalSpend, isVerified }: { totalSpend: number, isVerified: boolean }) {
     // Define your tiers
     const tiers = [
         { name: "Top", threshold: 5500 },
@@ -19,8 +19,18 @@ export default function LoyaltyMilestones({ totalSpend }: { totalSpend: number }
 
     const remaining = nextTier ? nextTier.threshold - totalSpend : 0;
 
+
     return (
-        <section className="w-full bg-surface-container-low p-8 md:p-12 border border-outline-variant/10">
+
+        <section className="w-full bg-surface-container-low p-8 md:p-12 border border-outline-variant/10 relative overflow-hidden">
+            {!isVerified && (
+                <div className="absolute inset-0 z-10 backdrop-blur-sm bg-background/30 flex flex-col items-center justify-center gap-3">
+                    <span className="material-symbols-outlined text-secondary text-2xl">lock</span>
+                    <p className="font-label text-[10px] uppercase tracking-widest text-outline text-center">
+                        Verify your account to unlock loyalty milestones
+                    </p>
+                </div>
+            )}
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                 <div>
                     <span className="font-label text-[10px] uppercase tracking-[0.3em] text-secondary font-bold block mb-2">

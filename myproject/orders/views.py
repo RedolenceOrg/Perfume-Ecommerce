@@ -174,8 +174,9 @@ class CartUpdateView(LoginRequiredMixin, View):
 
             cart = item.cart
             profile = request.user.profile
-            total_spend = float(profile.total_spend) if profile.total_spend else 0.0
-            discount_percent = get_discount_percent(total_spend)
+            discount_percent = 0
+            if request.user.isVerified:
+                discount_percent = get_discount_percent(float(profile.total_spend))
 
             total_price = sum(float(i.total_price) for i in cart.items.all())
             discount_amount = total_price * discount_percent / 100
@@ -216,10 +217,10 @@ class CartDeleteView(LoginRequiredMixin, View):
             cart = item.cart
             item.delete()
 
-            # Recalculate discount breakdown after deletion
             profile = request.user.profile
-            total_spend = float(profile.total_spend) if profile.total_spend else 0.0
-            discount_percent = get_discount_percent(total_spend)
+            discount_percent = 0
+            if request.user.isVerified:
+                discount_percent = get_discount_percent(float(profile.total_spend))
 
             total_price = sum(float(i.total_price) for i in cart.items.all())
             discount_amount = total_price * discount_percent / 100
@@ -267,7 +268,9 @@ class CheckoutView(LoginRequiredMixin, View):
         shipping_charge = 100 if serializer.validated_data['district'] in VALLEY_DISTRICTS else 150
         
         profile = request.user.profile
-        discount_percent = get_discount_percent(float(profile.total_spend))
+        discount_percent = 0
+        if request.user.isVerified:
+            discount_percent = get_discount_percent(float(profile.total_spend))
         
         # Calculate totals dynamically based on individual item models
         cart_subtotal = sum(float(i.total_price) for i in cart.items.all())
@@ -276,7 +279,10 @@ class CheckoutView(LoginRequiredMixin, View):
         total_amount = discounted_total + shipping_charge
 
         with transaction.atomic():
-
+            profile.district = serializer.validated_data['district']
+            profile.place = serializer.validated_data['place']
+            profile.phone_number = serializer.validated_data['phone_number']
+            profile.save()
 
             for item in cart.items.all():
                 product = item.get_product(lock=True)
@@ -394,8 +400,9 @@ class CartDetailView(LoginRequiredMixin, View):
         items = []
 
         profile = request.user.profile
-        total_spend = float(profile.total_spend) if profile.total_spend else 0.0
-        discount_percent = get_discount_percent(total_spend) 
+        discount_percent = 0
+        if request.user.isVerified:
+            discount_percent = get_discount_percent(float(profile.total_spend))
 
         for item in cart.items.all():
             product = item.get_product()

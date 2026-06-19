@@ -65,7 +65,7 @@ export default function ShippingForm({
             {/* Phone */}
             <div className="mb-8">
                 <label className="text-[10px] uppercase tracking-[0.2em] text-outline block mb-2">
-                    Phone Number <span className="text-red-500">*</span>
+                    Phone Number (Whatsapp Connected Number Appreciated) <span className="text-red-500">*</span>
                 </label>
                 <input
                     type="tel"

@@ -7,11 +7,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
-from .serializers import RegistrationSerializer,LoginSerializer,ProfileSerializer, ResetPasswordSerializer,updateProfileSerializer,ChangePasswordSerializer
+from .serializers import RegistrationSerializer,LoginSerializer,ProfileSerializer, ResetPasswordSerializer,updateProfileSerializer,ChangePasswordSerializer,VerifyAccountSerializer
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import PasswordResetOTP
 import random
-from myproject.utils import send_otp_email
+from myproject.utils import send_otp_email,send_account_verification_email
 from myproject.utils import conditional_ratelimit
 
 
@@ -114,7 +114,8 @@ class MeView(View):
             'id': request.user.id,
             'username': request.user.username,
             'email': request.user.email,
-            'first_name':request.user.first_name
+            'first_name':request.user.first_name,
+            'isVerified':request.user.isVerified
         })
     
 
@@ -223,7 +224,7 @@ class RequestResetPasswordView(View):
             PasswordResetOTP.objects.filter(email=email).delete()
             PasswordResetOTP.objects.create(email=email, otp=otp)
             send_otp_email(email, otp)
-        except User.DoesNotExist:
+        except user.DoesNotExist:
             pass
         
         return JsonResponse({'detail': 'If the email exists, an OTP has been sent'}, status=200)
@@ -254,6 +255,70 @@ class ResetPasswordView(View):
             return JsonResponse({'detail': 'Password has been reset successfully'}, status=200)
         except PasswordResetOTP.DoesNotExist:
             return JsonResponse({'detail': 'Invalid OTP'}, status=400)
-        except User.DoesNotExist:
+        except user.DoesNotExist:
             return JsonResponse({'detail': 'User does not exist'}, status=400)
+        
+@method_decorator(csrf_protect,name = 'dispatch')
+@method_decorator(conditional_ratelimit(rate = '3/h'),name = 'post')
+class RequestVerifyAccount(View):
+    def post(self,request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'detail':'Invalid JSON'},status = 400)
+        
+        email = data.get('email')
+        if not email:
+            return JsonResponse({'detail': 'Email is required'}, status=400)
+        
+        try:
+            user = User.objects.get(email__iexact=email)
+            otp = f"{random.randint(100000, 999999)}"
+            PasswordResetOTP.objects.filter(email=email).delete()
+            PasswordResetOTP.objects.create(email=email, otp=otp)
+            send_account_verification_email(email, otp)
+
+            return JsonResponse({'detail':'Verification email sent. Please check your email'}, status = 200)
+        except User.DoesNotExist:
+            return JsonResponse({'detail':'this user does not exist'}, status = 400)
+
+@method_decorator(csrf_protect,name = 'dispatch')
+class VerifyAccount(View):
+    def post(self,request):
+        try: 
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'detail':'Invalid Json'},status = 400)
+        
+        serializer = VerifyAccountSerializer(data = data)
+
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors,status = 400)
+        
+        try:
+
+            try:
+                otp_entry = PasswordResetOTP.objects.get(email=serializer.validated_data['email'], otp=serializer.validated_data['otp'])
+            except PasswordResetOTP.DoesNotExist:
+                return JsonResponse({'detail':'Invalid OTP'}, status = 400)
+            if otp_entry.is_expired():
+                otp_entry.delete()
+                return JsonResponse({'detail': 'OTP has expired'}, status=400)
+            
+            
+            user = User.objects.get(email__iexact=serializer.validated_data['email'])
+
+            if user.isVerified:
+                return JsonResponse({'detail':'This user is already verified. Enjoy your Member perks'},status = 200)
+            user.isVerified = True
+            user.save()
+            otp_entry.delete()
+            return JsonResponse({'detail': 'Account Verified Successfully'}, status=200)
+        
+
+        except User.DoesNotExist:
+            return JsonResponse({'detail':'This user does not exist'},status = 400)
+
+        
+        
 

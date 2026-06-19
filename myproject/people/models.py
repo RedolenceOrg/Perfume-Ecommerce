@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
+    isVerified = models.BooleanField(default= False)
 
     pass 
 
@@ -38,3 +39,4 @@ class PasswordResetOTP(models.Model):
     def is_expired(self):
         from django.utils import timezone
         return (timezone.now() - self.created_at).seconds > 600
+    

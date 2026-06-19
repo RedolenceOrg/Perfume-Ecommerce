@@ -62,7 +62,7 @@ class LoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email','username']
+        fields = ['email','username','isVerified']
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -96,6 +96,10 @@ class ResetPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField(max_length=6)
     new_password = serializers.CharField(write_only=True, min_length=8)
+
+class VerifyAccountSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6)
     
 
     

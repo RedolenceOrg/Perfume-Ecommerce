@@ -47,7 +47,7 @@ export default function ProfilePage() {
                     initialDistrict={profile.district}
                 />
                 <PasswordChangeForm />
-                <LoyaltyMilestones totalSpend={profile.total_spend} />
+                <LoyaltyMilestones totalSpend={profile.total_spend} isVerified={profile.user.isVerified} />
 
                 <OrderHistory orders={profile.orders || []} />
                 <DeleteAccount />
