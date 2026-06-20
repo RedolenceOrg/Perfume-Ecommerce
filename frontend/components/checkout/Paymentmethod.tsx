@@ -58,10 +58,14 @@ export default function PaymentMethod({ paymentMethod, setPaymentMethod }: Payme
                             onChange={() => setPaymentMethod('getpay')}
                             className="accent-secondary"
                         />
-                        <div className="w-7 h-7 rounded bg-[#5662FF] flex items-center justify-center flex-shrink-0">
-                            <span className="text-[10px] font-bold text-white">GP</span>
+                        <div className="w-7 h-7 rounded overflow-hidden flex-shrink-0">
+                            <img
+                                src="https://res.cloudinary.com/dzj95e0iv/image/upload/q_auto/f_auto/v1781960982/getpayimage_nhemgz.webp"
+                                alt="GetPay"
+                                className="w-full h-full object-contain"
+                            />
                         </div>
-                        <span className="text-sm text-primary">GetPay</span>
+                        <span className="text-sm text-primary">Pay with Debit/Credit Card</span>
                     </label>
                 )}
                 <label className={`flex items-center gap-3 p-4 rounded-lg border cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-secondary' : 'border-outline-variant/30 bg-background'}`}>
