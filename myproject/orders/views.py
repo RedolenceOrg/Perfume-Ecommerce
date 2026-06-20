@@ -28,7 +28,6 @@ EsewaEnabled = config('ESEWA_ENABLED', default=False, cast=bool)
 
 FrontendUrl  =config('FRONTEND_URL', default='http://localhost:3000')
 
-testFrontendUrl = 'https://test.redolencenepal.com'
 
 
 def generate_esewa_signature(total_amount, transaction_uuid):
@@ -382,12 +381,12 @@ class CheckoutView(LoginRequiredMixin, View):
                     'clientRequestId': str(order.id),
                     'price': float(total_amount),
                     'currency':'NPR',
-                    'websiteDomain': testFrontendUrl,
+                    'websiteDomain': FrontendUrl,
                     'businessName':'Redolence Nepal',
-                    'imageUrl':'https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.facebook.com%2Fredolencenepal2022%2F&ved=0CBYQjRxqFwoTCOjjgZPy8pQDFQAAAAAdAAAAABAF&opi=89978449',
+                    'imageUrl':'https://res.cloudinary.com/dzj95e0iv/image/upload/q_auto/f_auto/v1781960982/getpayimage_nhemgz.webp',
                     'callbackUrl': {
-                            'successUrl': f"{testFrontendUrl}/payment/{str(order.id)}",
-                            'failUrl': f"{testFrontendUrl}/payment/{str(order.id)}",
+                            'successUrl': f"{FrontendUrl}/payment/{str(order.id)}",
+                            'failUrl': f"{FrontendUrl}/payment/{str(order.id)}",
                             }
                 })
 
