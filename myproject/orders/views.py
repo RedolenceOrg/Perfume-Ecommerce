@@ -25,8 +25,9 @@ RESERVATION_TIME = 600
 
 KhaltiEnabled = config('KHALTI_ENABLED', default=False, cast=bool)
 EsewaEnabled = config('ESEWA_ENABLED', default=False, cast=bool)
+GetPayEnabled = config('GETPAY_ENABLED', default = False, cast =bool)
 
-FrontendUrl  =config('FRONTEND_URL', default='http://localhost:3000')
+FrontendUrl=config('FRONTEND_URL', default='http://localhost:3000').rstrip('/')
 
 
 
@@ -255,6 +256,8 @@ class CheckoutView(LoginRequiredMixin, View):
 
         if payment_method == 'esewa' and not EsewaEnabled:
             return JsonResponse({'detail': 'eSewa payments are not available yet'}, status=400)
+        if payment_method == 'getpay' and not GetPayEnabled:
+            return JsonResponse({'detail': 'GetPay payments are not available yet'}, status=400)
 
         try:
             cart = Cart.objects.get(user=request.user)
