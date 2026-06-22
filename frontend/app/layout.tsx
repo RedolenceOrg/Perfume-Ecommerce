@@ -5,21 +5,32 @@ import { ToastContainer } from 'react-toastify'
 import "./globals.css";
 import SmoothScroll from '../smoothscroll/SmoothScroll';
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 const notoSerif = Noto_Serif({ variable: "--font-headline", subsets: ["latin"] });
 const manrope = Manrope({ variable: "--font-body", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Redolence Nepal | Best Perfume in Nepal",
-  description: "Premium perfumes in Nepal",
-};
+  description: "Shop premium niche, designer & Middle Eastern perfumes in Nepal. Authentic fragrances delivered to your door. Explore Redolence Nepal's curated collection.",
+  keywords: ["perfume nepal", "niche perfume nepal", "buy perfume in nepal", "designer fragrance nepal", "middle eastern perfume nepal", "redolence nepal"],
+  openGraph: {
+    title: "Redolence Nepal | Best Perfume in Nepal",
+    description: "Shop premium niche, designer & Middle Eastern perfumes in Nepal.",
+    url: "https://redolencenepal.com",
+    siteName: "Redolence Nepal",
+    locale: "en_US",
+    type: "website",
+  },
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${notoSerif.variable} ${manrope.variable}`}>
+    <html lang="en" className={`${notoSerif.variable} ${manrope.variable}`}>
       <head>
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+          rel="stylesheet"
+        />
       </head>
       <body className="antialiased">
 

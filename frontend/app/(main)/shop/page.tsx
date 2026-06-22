@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+
 import { apiGet } from "@/context/api";
 import FilterTag from "./components/FilterTag";
 import ProductGrid from "./components/ProductGrid";

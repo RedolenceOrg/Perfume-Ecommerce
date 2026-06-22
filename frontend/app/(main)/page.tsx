@@ -1,6 +1,4 @@
 
-export const dynamic = "force-dynamic";
-
 import Arrivals from "@/components/Arrivals";
 import Hero from "@/components/Hero";
 import SeasonalPick from "@/components/SeasonalPick";
@@ -9,6 +7,7 @@ import DecantsHighlight from "@/components/decantSection";
 import MembersSection from "@/components/MembersSection";
 import ThriftSection from "@/components/ThriftSection";
 import { apiGet } from "@/context/api";
+import FAQ from "@/components/faq";
 
 
 
@@ -29,6 +28,7 @@ export default async function Home() {
         <MembersSection />
         <DecantsHighlight />
         <ThriftSection />
+        <FAQ />
       </div>
     );
   }

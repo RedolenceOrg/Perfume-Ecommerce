@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function ThriftSection() {
     return (
@@ -7,11 +8,11 @@ export default function ThriftSection() {
 
                 {/* Image Column */}
                 <div className="relative h-[520px] md:h-[680px] overflow-hidden">
-                    <img
-                        src="https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=1200&q=80"
+                    <Image
+                        src="https://i.pinimg.com/736x/42/11/f0/4211f0e4a0244a2bd5eb173ad2031e81.jpg"
                         alt="Curated vintage perfume bottles"
-                        className="h-full w-full object-cover"
-                        loading="lazy"
+                        fill
+                        className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
 
@@ -26,8 +27,8 @@ export default function ThriftSection() {
                     <div className="absolute bottom-7 left-7 right-7 flex items-end justify-between">
                         {[["100%", "Authenticated"], ["70%+", "Full Bottles"], ["60%", "Off Retail"]].map(([num, lbl], i) => (
                             <div key={i} className="text-center">
-                                <p className="font-serif text-3xl font-light text-white leading-none">{num}</p>
-                                <p className="text-[8px] tracking-[0.18em] uppercase text-white/60 mt-1">{lbl}</p>
+                                <p className="font-serif text-3xl font-lg text-white leading-none">{num}</p>
+                                <p className="text-[12px] tracking-[0.18em] uppercase text-white/60 mt-1">{lbl}</p>
                             </div>
                         ))}
                     </div>
