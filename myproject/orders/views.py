@@ -383,7 +383,7 @@ class CheckoutView(LoginRequiredMixin, View):
 
                 return JsonResponse({
                     'clientRequestId': str(order.id),
-                    'price': float(1),
+                    'price': float(total_amount),
                     'currency':'NPR',
                     'websiteDomain': FrontendUrl,
                     'businessName':'Redolence Nepal',
