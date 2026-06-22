@@ -28,6 +28,7 @@ EsewaEnabled = config('ESEWA_ENABLED', default=False, cast=bool)
 GetPayEnabled = config('GETPAY_ENABLED', default = False, cast =bool)
 
 FrontendUrl=config('FRONTEND_URL', default='http://localhost:3000').rstrip('/')
+GetPayBaseUrl = config('GETPAY_BASE_URL', default = '').rstrip('/')
 
 
 
@@ -616,7 +617,7 @@ class GetPayVerifyView(LoginRequiredMixin,View):
             return JsonResponse({'status': 'cancelled'})
 
         verification = requests.post(
-            'https://uat-bank-getpay.nchl.com.np/ecom-web-checkout/v1/secure-merchant/transactions/merchant-status',
+            f'${GetPayBaseUrl}/v1/secure-merchant/transactions/merchant-status',
             json={'id': id}
         )
         try:
