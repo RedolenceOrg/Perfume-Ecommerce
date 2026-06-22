@@ -2,9 +2,6 @@ import { apiGet } from "@/context/api";
 import AtomizerCard from "./components/atomizerCard";
 import AtomizerHero from "./components/atomizerHero";
 
-export const revalidate = 60
-
-
 export default async function Atomizer() {
 
     try {

@@ -1,16 +1,18 @@
+import Image from 'next/image'
 export default function SeasonalPick() {
     return (
         <section className="relative w-full h-screen overflow-hidden bg-[#efeeea]">
-            {/* 1. Full-Bleed Image Container */}
+            {/* Full-Bleed Image Container */}
             <div className="absolute inset-0 w-full h-full">
-                <img
-                    src="https://lelabo.ips.photos/lelabo-java/images/categories/17_LARGE_IMAGE_02_1898_-924791859.jpg"
+                <Image
+                    src="https://res.cloudinary.com/dzj95e0iv/image/upload/q_auto/f_auto/v1782015326/lelaboHeroForWebsite_edwmt8.webp"
                     alt="Spring Collection"
-                    className="w-full h-full object-cover"
+                    fill
+                    priority
+                    className="object-cover"
                 />
                 <div className="absolute inset-0 bg-black/20" />
             </div>
-
             {/* 3. Text Content Container - Changed to justify-start */}
             <div className="relative h-full w-full flex flex-col items-center justify-start text-center px-6 pt-16 md:pt-48">
 

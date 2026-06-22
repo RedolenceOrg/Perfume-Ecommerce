@@ -135,7 +135,7 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
                     <div className="flex flex-col">
                         <span className="text-[10px] font-bold text-gray-400 uppercase">Total Price</span>
                         <span className="text-2xl font-body text-secondary">
-                            ${Number(selectedVariant?.price || 0).toFixed(2)}
+                            NRS{Number(selectedVariant?.price || 0).toFixed(2)}
                         </span>
                     </div>
                     <button

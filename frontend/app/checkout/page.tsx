@@ -21,6 +21,8 @@ interface CartData {
     discount_amount: number
 }
 
+const getpaybundle = process.env.NEXT_PUBLIC_GETPAY_BUNDLE
+
 export default function CheckoutPage() {
     const router = useRouter()
     const { user } = useAuth()
@@ -184,7 +186,7 @@ export default function CheckoutPage() {
     return (
         <>
             <Script
-                src="https://minio.finpos.global/getpay-cdn/webcheckout/v5/bundle.js"
+                src={getpaybundle}
                 strategy="afterInteractive"
             />
             <main className="min-h-screen grid grid-cols-1 md:grid-cols-2 font-body">

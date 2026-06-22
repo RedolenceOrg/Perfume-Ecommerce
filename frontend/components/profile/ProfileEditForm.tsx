@@ -1,22 +1,9 @@
-import { authapiPost, authApiUpdate } from "@/context/api";
+import { authApiUpdate } from "@/context/api";
 import { useState } from "react";
 import { toast } from 'react-toastify'
-const NEPAL_DISTRICTS = [
-    "Kathmandu", "Bhaktapur", "Lalitpur", "Achham", "Arghakhanchi",
-    "Baglung", "Baitadi", "Bajhang", "Bajura", "Banke", "Bara",
-    "Bardiya", "Bhojpur", "Chitwan", "Dadeldhura", "Dailekh", "Dang",
-    "Darchula", "Dhading", "Dhankuta", "Dhanusa", "Dolakha", "Dolpa",
-    "Doti", "Eastern Rukum", "Gorkha", "Gulmi", "Humla", "Ilam",
-    "Jajarkot", "Jhapa", "Jumla", "Kailali", "Kalikot", "Kanchanpur",
-    "Kapilvastu", "Kaski", "Kavrepalanchok", "Khotang",
-    "Lamjung", "Mahottari", "Makwanpur", "Manang", "Morang", "Mugu",
-    "Mustang", "Myagdi", "Nawalpur", "Nuwakot", "Okhaldhunga", "Palpa",
-    "Panchthar", "Parbat", "Parsa", "Pyuthan", "Ramechhap", "Rasuwa",
-    "Rautahat", "Rolpa", "Rupandehi", "Salyan", "Sankhuwasabha", "Saptari",
-    "Sarlahi", "Sindhuli", "Sindhupalchok", "Siraha", "Solukhumbu",
-    "Sunsari", "Surkhet", "Syangja", "Taplejung", "Tehrathum",
-    "Udayapur", "Western Rukum"
-];
+import { NEPAL_DISTRICTS } from "../../types/perfumes" // update this path to wherever your districts file is
+
+const nepalDistricts = NEPAL_DISTRICTS
 
 export default function ProfileEditForm({
     initialPhone,
@@ -49,13 +36,7 @@ export default function ProfileEditForm({
     };
 
     return (
-        <section className="max-w-5xl mx-auto mb-20 bg-surface-container-low p-8 md:p-12 border border-outline-variant/10">
-            <div className="flex items-center space-x-4 mb-10">
-                <h2 className="font-serif text-2xl text-primary">
-                    Information Settings
-                </h2>
-                <div className="h-[1px] flex-grow bg-outline-variant/20"></div>
-            </div>
+        <div className="max-w-xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-2">
                     <label className="font-label text-[10px] uppercase tracking-[0.2em] text-outline font-bold">
@@ -65,7 +46,7 @@ export default function ProfileEditForm({
                         type="text"
                         value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                        className="w-full bg-transparent border-0 border-b border-outline-variant/50 py-3 px-0 focus:outline-none focus:border-outline focus:ring-0 focus:border-primary transition-colors font-body text-primary"
+                        className="w-full bg-transparent border-0 border-b border-outline-variant/50 py-3 px-0 focus:outline-none focus:border-primary focus:ring-0 transition-colors font-body text-primary"
                     />
                 </div>
                 <div className="space-y-2">
@@ -76,20 +57,20 @@ export default function ProfileEditForm({
                         type="text"
                         value={form.place}
                         onChange={(e) => setForm({ ...form, place: e.target.value })}
-                        className="w-full bg-transparent border-0 border-b border-outline-variant/50 py-3 px-0 focus:outline-none focus:border-outline focus:ring-0 focus:border-primary transition-colors font-body text-primary"
+                        className="w-full bg-transparent border-0 border-b border-outline-variant/50 py-3 px-0 focus:outline-none focus:border-primary focus:ring-0 transition-colors font-body text-primary"
                     />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                     <label className="font-label text-[10px] uppercase tracking-[0.2em] text-outline font-bold">
                         District
                     </label>
                     <select
                         value={form.district}
                         onChange={(e) => setForm({ ...form, district: e.target.value })}
-                        className="w-full bg-transparent border-0 border-b border-outline-variant/50 py-3 px-0 focus:outline-none focus:border-outline focus:ring-0 focus:border-primary transition-colors font-body text-primary"
+                        className="w-full bg-transparent border-0 border-b border-outline-variant/50 py-3 px-0 focus:outline-none focus:border-primary focus:ring-0 transition-colors font-body text-primary"
                     >
                         <option value="" disabled>Select district</option>
-                        {NEPAL_DISTRICTS.map((d) => (
+                        {nepalDistricts.map((d) => (
                             <option key={d} value={d}>{d}</option>
                         ))}
                     </select>
@@ -103,6 +84,6 @@ export default function ProfileEditForm({
                     Update Records
                 </button>
             </div>
-        </section>
+        </div>
     );
 }
