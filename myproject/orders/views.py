@@ -28,7 +28,7 @@ EsewaEnabled = config('ESEWA_ENABLED', default=False, cast=bool)
 GetPayEnabled = config('GETPAY_ENABLED', default = False, cast =bool)
 
 FrontendUrl=config('FRONTEND_URL', default='http://localhost:3000').rstrip('/')
-GetPayBaseUrl = config('GETPAY_BASE_URL', default = '').rstrip('/')
+GetPayBaseUrl = config('GETPAY_BASE_URL').rstrip('/')
 
 
 
@@ -613,11 +613,11 @@ class GetPayVerifyView(LoginRequiredMixin,View):
 
         if order.payment_status == 'paid':
             return JsonResponse({'status': 'success'})
-        if order.status == 'cancelled':
+        if order.status == '':
             return JsonResponse({'status': 'cancelled'})
 
         verification = requests.post(
-            f'${GetPayBaseUrl}/v1/secure-merchant/transactions/merchant-status',
+            f'{GetPayBaseUrl}/merchant-status',
             json={'id': id}
         )
         try:
