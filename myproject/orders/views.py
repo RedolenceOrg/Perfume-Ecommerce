@@ -617,7 +617,7 @@ class GetPayVerifyView(LoginRequiredMixin,View):
             return JsonResponse({'status': 'cancelled'})
 
         verification = requests.post(
-            f'${GetPayBaseUrl}/v1/secure-merchant/transactions/merchant-status',
+            f'{GetPayBaseUrl}/v1/secure-merchant/transactions/merchant-status',
             json={'id': id}
         )
         try:

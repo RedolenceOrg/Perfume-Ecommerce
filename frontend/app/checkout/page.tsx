@@ -155,7 +155,7 @@ export default function CheckoutPage() {
                             discount_amount: cartData?.discount_amount ?? 0,
                             valleyDistricts: VALLEY_DISTRICTS,
                         }),
-                        onSuccess: (response: any) => { console.log(response) },
+                        onSuccess: () => { console.log("GetPay initialized") },
                         onError: (error: any) => {
                             setLoading(false)
                             toast.error(error?.error)
