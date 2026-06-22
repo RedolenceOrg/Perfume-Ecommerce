@@ -3,21 +3,25 @@ import { useState, useRef } from 'react'
 
 const faqs = [
     {
-        question: "Placeholder Question 1",
-        answer: "Placeholder answer 1. Replace this with your actual content."
+        question: "What types of perfumes do you sell?",
+        answer: "We offer a curated collection of high-quality fragrances, specializing in Arabic, designer, and niche perfumes. Whether you are looking for a highly sought-after designer scent, a unique artisanal niche blend, or a rich and long-lasting Arabic fragrance, we have something to suit every preference."
     },
     {
-        question: "Placeholder Question 2",
-        answer: "Placeholder answer 2. Replace this with your actual content."
+        question: "Do you offer sample or travel-sized perfumes?",
+        answer: "Yes! We understand that you might want to wear a fragrance before committing to a full bottle. We offer travel-sized decants of our perfumes in 3ml, 5ml, 10ml, and 20ml options, perfect for testing, traveling, or carrying in your bag."
     },
     {
-        question: "Placeholder Question 3",
-        answer: "Placeholder answer 3. Replace this with your actual content."
+        question: "Can I test the fragrances before buying?",
+        answer: "Absolutely. We provide in-store trials for our entire fragrance collection. We invite you to visit our store, explore the scents in person, and discover how they develop on your skin before making a purchase."
     },
     {
-        question: "Placeholder Question 4",
-        answer: "Placeholder answer 4. Replace this with your actual content."
+        question: "Do you buy or accept used (thrift) perfumes?",
+        answer: "Yes, we do accept thrift perfumes, but we are highly selective to ensure quality and safety for our customers. We do not accept all perfumes, and every submission is subject to our in-store approval process."
     },
+    {
+        question: "What are the requirements for thrift perfumes?",
+        answer: "To be considered for our thrift program, the perfume must be in a transparent bottle. Opaque bottles are not accepted. We must be able to clearly see the liquid to verify its condition, color, and remaining volume."
+    }
 ]
 
 function FAQItem({ faq, isOpen, onToggle }: { faq: { question: string, answer: string }, isOpen: boolean, onToggle: () => void }) {
