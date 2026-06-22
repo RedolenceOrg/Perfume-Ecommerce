@@ -613,11 +613,11 @@ class GetPayVerifyView(LoginRequiredMixin,View):
 
         if order.payment_status == 'paid':
             return JsonResponse({'status': 'success'})
-        if order.status == 'cancelled':
+        if order.status == '':
             return JsonResponse({'status': 'cancelled'})
 
         verification = requests.post(
-            f'{GetPayBaseUrl}/v1/secure-merchant/transactions/merchant-status',
+            f'{GetPayBaseUrl}/merchant-status',
             json={'id': id}
         )
         try:
