@@ -2,8 +2,6 @@ import { apiGet } from "@/context/api";
 import ThriftGrid from "./components/ThriftGrid";
 import ThriftHeader from "./components/ThriftHeader";
 
-export const revalidate = 60
-
 export default async function ThriftPage() {
     try {
         const thriftResponse = await apiGet('/api/thrifts/')

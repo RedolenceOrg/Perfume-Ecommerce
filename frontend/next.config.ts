@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-
 const nextConfig: NextConfig = {
   allowedDevOrigins: ['localhost:3000'],
   images: {
@@ -9,10 +8,13 @@ const nextConfig: NextConfig = {
         hostname: '127.0.0.1',
         port: '8000',
       },
-
       {
         protocol: 'https',
-        hostname: 'perfume-ecommerce-production.up.railway.app',
+        hostname: 'admin.redolencenepal.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
       },
       {
         protocol: 'https',
@@ -24,10 +26,9 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'lelabo.ips.photos'
+        hostname: 'lelabo.ips.photos',
       },
     ],
   },
 };
-
 export default nextConfig;

@@ -47,6 +47,7 @@ class ShopView(APIView):
         family = request.query_params.getlist('family')
         notes = request.query_params.getlist('note')
         price_max = request.query_params.get('price_max')
+        price_min = request.query_params.get('price_min')
         gender = request.query_params.get('gender')
         perfume_type = request.query_params.get('type')
         perfumes = Perfume.objects.all().distinct()
@@ -62,6 +63,8 @@ class ShopView(APIView):
         if notes:
             for note in notes:
                 perfumes = perfumes.filter(note__name=note)
+        if price_min:
+            perfumes = perfumes.filter(price__gte =price_min)
         if price_max:
             perfumes = perfumes.filter(price__lte=price_max)
         if gender:
