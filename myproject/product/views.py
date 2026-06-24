@@ -87,9 +87,31 @@ class ShopView(APIView):
 @method_decorator(conditional_ratelimit(rate='60/m'), name='get')
 class PerfumeDetailView(APIView):
     def get(self, request, slug):
-        perfume = Perfume.objects.get(slug=slug)
-        serializer = PerfumeSerializer(perfume)
-        return Response(serializer.data)
+        try:
+            perfume = Perfume.objects.select_related('brand', 'longevity', 'sillage') \
+                .prefetch_related('family', 'images', 'decant_set', 'perfumenote_set__note') \
+                .get(slug=slug)
+        except Perfume.DoesNotExist:
+            return Response(status=404)
+
+        data = PerfumeSerializer(perfume).data
+        all_notes = (
+            data['notes']['top'] +
+            data['notes']['middle'] +
+            data['notes']['base']
+        )
+
+        related = Perfume.objects.filter(note__name__in=all_notes) \
+            .exclude(slug=slug) \
+            .select_related('brand') \
+            .prefetch_related('images') \
+            .annotate(match_count=Count('note')) \
+            .order_by('-match_count')[:10]
+
+        return Response({
+            'perfume': data,
+            'related': PerfumeListSerializer(related, many=True).data
+        })
 
 
 @method_decorator(conditional_ratelimit(rate='60/m'), name='get')
