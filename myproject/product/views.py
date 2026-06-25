@@ -10,39 +10,37 @@ from .models import Atomizer, AtomizerVariant, Perfume, Thrift
 
 @method_decorator(conditional_ratelimit(rate='40/m'), name='get')
 class getPerfumeHome(APIView):
-    def get(self,request):
-        new_arrivals = Perfume.objects.order_by('-date_added')[:10]
-        restocked = Perfume.objects.filter(is_restocked=True)
-        seasonal = Perfume.objects.filter(is_seasonal_pick =True)
-        data = {
+    def get(self, request):
+        base_qs = Perfume.objects.select_related('brand').prefetch_related('images')
+
+        new_arrivals = base_qs.order_by('-date_added')[:10]
+        restocked = base_qs.filter(is_restocked=True)
+        seasonal = base_qs.filter(is_seasonal_pick=True)
+
+        return Response({
             'new_arrivals': PerfumeListSerializer(new_arrivals, many=True).data,
             'restocked': PerfumeListSerializer(restocked, many=True).data,
-            'seasonal': PerfumeListSerializer(seasonal, many=True).data
-        }
-        return Response(data)
+            'seasonal': PerfumeListSerializer(seasonal, many=True).data,
+        })
     
 @method_decorator(conditional_ratelimit(rate='40/m'), name='get')
 class FilterOptionsView(APIView):
     def get(self, request):
-        brands = Perfume.objects.values_list('brand__name', flat=True).distinct()
-        notes = Perfume.objects.values_list('note__name', flat=True).distinct()
-        family = Perfume.objects.values_list('family__name', flat=True).distinct()
-        types = Perfume.objects.values_list('type', flat=True).distinct()
-        data = {
-            'types': types,
-            'brands': brands,
-            'notes': notes,
-            'families': family
-        }
-        return Response(data)
+        from .models import Brand, Notes, Family
+
+        return Response({
+            'brands': list(Brand.objects.values_list('name', flat=True)),
+            'notes': list(Notes.objects.values_list('name', flat=True)),
+            'families': list(Family.objects.values_list('name', flat=True)),
+            'types': ['Perfume', 'Attar'],  # ✅ static, no DB needed
+        })
     
 @method_decorator(conditional_ratelimit(rate='60/m'), name='get')
 class ShopView(APIView):
     def get(self, request):
         page = int(request.query_params.get('page', 1))
         limit = int(request.query_params.get('limit', 12))
-        
-        # Get filters from query params
+
         brand = request.query_params.get('brand')
         family = request.query_params.getlist('family')
         notes = request.query_params.getlist('note')
@@ -50,9 +48,9 @@ class ShopView(APIView):
         price_min = request.query_params.get('price_min')
         gender = request.query_params.get('gender')
         perfume_type = request.query_params.get('type')
-        perfumes = Perfume.objects.all().distinct()
 
-        # Apply filters
+        perfumes = Perfume.objects.select_related('brand').prefetch_related('images')
+
         if perfume_type:
             perfumes = perfumes.filter(type__iexact=perfume_type)
         if brand:
@@ -64,24 +62,25 @@ class ShopView(APIView):
             for note in notes:
                 perfumes = perfumes.filter(note__name=note)
         if price_min:
-            perfumes = perfumes.filter(price__gte =price_min)
+            perfumes = perfumes.filter(price__gte=price_min)
         if price_max:
             perfumes = perfumes.filter(price__lte=price_max)
         if gender:
             perfumes = perfumes.filter(gender__iexact=gender)
 
-        # Pagination
+        # ✅ distinct only when M2M filters are applied (they cause duplicate rows)
+        if family or notes:
+            perfumes = perfumes.distinct()
+
         start = (page - 1) * limit
         end = start + limit
         total = perfumes.count()
 
-        serializer = PerfumeListSerializer(perfumes[start:end], many=True)
-
         return Response({
-            'perfumes': serializer.data,
+            'perfumes': PerfumeListSerializer(perfumes[start:end], many=True).data,
             'total': total,
             'page': page,
-            'has_more': end < total
+            'has_more': end < total,
         })
     
 @method_decorator(conditional_ratelimit(rate='60/m'), name='get')
@@ -102,11 +101,11 @@ class PerfumeDetailView(APIView):
         )
 
         related = Perfume.objects.filter(note__name__in=all_notes) \
-            .exclude(slug=slug) \
-            .select_related('brand') \
-            .prefetch_related('images') \
-            .annotate(match_count=Count('note')) \
-            .order_by('-match_count')[:10]
+                .exclude(slug=slug) \
+                .select_related('brand') \
+                .prefetch_related('images') \
+                .annotate(match_count=Count('note', distinct=True)) \
+                .order_by('-match_count')[:10]
 
         return Response({
             'perfume': data,
