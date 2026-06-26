@@ -147,13 +147,15 @@ export default function HeroSection({ perfume }: HeroProps) {
                     <div
                         onClick={() => handleSelect('full')}
                         className={`col-span-3 border p-4 text-center transition-all duration-300 rounded-xl
-                            ${perfume.available_stock <= 0 ? 'opacity-50 cursor-not-allowed bg-surface-container-low' : 'cursor-pointer'}
-                            ${isSelected('full')
+        ${perfume.available_stock <= 0 ? 'opacity-50 cursor-not-allowed bg-surface-container-low' : 'cursor-pointer'}
+        ${isSelected('full')
                                 ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
                                 : perfume.available_stock > 0 ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10'
                             }`}
                     >
-                        <p className="text-[11px] uppercase tracking-widest text-outline mb-1">Full Bottle</p>
+                        <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
+                            Full Bottle · {perfume.full_bottle_size}ml
+                        </p>
                         <p className="font-headline text-sm font-semibold text-primary">
                             {perfume.available_stock <= 0
                                 ? 'OUT OF STOCK'
