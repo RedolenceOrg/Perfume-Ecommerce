@@ -2,27 +2,36 @@ import Link from "next/link";
 import { PerfumeSummary } from "@/types/perfumes";
 import Image from "next/image"
 
-export default function PerfumeCard({ id, name, brand, price, images, slug }: PerfumeSummary) {
-    const imageObj = images?.find(img => img.is_primary) || images?.[0];
-    const imagePath = imageObj?.image || '';
-
+export default function PerfumeCard({ name, brand, price, primary_image, secondary_image, slug }: PerfumeSummary) {
     return (
         <Link href={`/perfume/${slug}`} className="w-full group cursor-pointer block">
             {/* Image Container */}
             <div className="aspect-[3/4] bg-surface-container mb-4 overflow-hidden relative">
-                {imagePath ? (
-                    <Image
-                        src={imagePath}
-                        alt={name}
-                        fill
-                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                        className="object-contain group-hover:scale-105 transition-transform duration-700 ease-out"
-                    />
+                {primary_image ? (
+                    <>
+                        <Image
+                            src={primary_image}
+                            alt={name}
+                            fill
+                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                            className="object-contain group-hover:opacity-0 transition-opacity duration-700 ease-out"
+                        />
+                        {secondary_image && (
+                            <Image
+                                src={secondary_image}
+                                alt={`${name} secondary`}
+                                fill
+                                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                                className="object-contain opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out"
+                            />
+                        )}
+                    </>
                 ) : (
                     <div className="w-full h-full bg-surface-container flex items-center justify-center">
                         <span className="text-xs uppercase tracking-widest text-neutral-400 font-label">No Image</span>
                     </div>
                 )}
+
                 {/* Slide-up Button */}
                 <div className="absolute inset-x-0 bottom-0 p-4 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out">
                     <button className="w-full border border-primary text-primary bg-surface-container/60 backdrop-blur-sm px-4 py-2.5 text-[9px] uppercase tracking-[0.25em] font-bold font-label transition-all duration-500 active:scale-[0.98] flex items-center justify-center gap-1.5">

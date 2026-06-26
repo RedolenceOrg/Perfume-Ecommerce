@@ -32,7 +32,7 @@ class FilterOptionsView(APIView):
             'brands': list(Brand.objects.values_list('name', flat=True)),
             'notes': list(Notes.objects.values_list('name', flat=True)),
             'families': list(Family.objects.values_list('name', flat=True)),
-            'types': ['Perfume', 'Attar'],  # ✅ static, no DB needed
+            'types': ['Perfume', 'Attar'],
         })
     
 @method_decorator(conditional_ratelimit(rate='60/m'), name='get')
@@ -48,11 +48,14 @@ class ShopView(APIView):
         price_min = request.query_params.get('price_min')
         gender = request.query_params.get('gender')
         perfume_type = request.query_params.get('type')
+        perfume_collections = request.query_params.getlist('collection')
 
         perfumes = Perfume.objects.select_related('brand').prefetch_related('images')
 
         if perfume_type:
             perfumes = perfumes.filter(type__iexact=perfume_type)
+        if perfume_collections:
+            perfumes = perfumes.filter(collection__in=perfume_collections)
         if brand:
             perfumes = perfumes.filter(brand__name=brand)
         if family:

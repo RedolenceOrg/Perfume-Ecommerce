@@ -10,6 +10,13 @@ interface ShopSidebarProps {
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Unisex'];
 
+const COLLECTION_OPTIONS = [
+    { label: 'Niche', value: 'niche' },
+    { label: 'Designer', value: 'designer' },
+    { label: 'Middle Eastern', value: 'middle_eastern' },
+    { label: 'In House', value: 'in_house' },
+];
+
 export default function ShopSidebar({ brands, notes, families }: ShopSidebarProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -17,7 +24,6 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
     const [Filterbrand, setBrand] = useState('');
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
-
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
@@ -49,7 +55,6 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
         setList(list.includes(item) ? list.filter(i => i !== item) : [...list, item]);
     };
 
-    // Gender — single select only
     const handleGenderSelect = (g: string) => {
         const params = new URLSearchParams(searchParams.toString());
         const current = searchParams.get('gender');
@@ -57,6 +62,18 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
             params.delete('gender');
         } else {
             params.set('gender', g);
+        }
+        router.push(`/shop?${params.toString()}`);
+    };
+
+    const handleCollectionSelect = (value: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        const current = searchParams.getAll('collection');
+        if (current.includes(value)) {
+            params.delete('collection');
+            current.filter(v => v !== value).forEach(v => params.append('collection', v));
+        } else {
+            params.append('collection', value);
         }
         router.push(`/shop?${params.toString()}`);
     };
@@ -144,6 +161,25 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                     ))}
                 </section>
 
+                {/* Collection */}
+                <section>
+                    <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">Collection</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {COLLECTION_OPTIONS.map(({ label, value }) => (
+                            <button
+                                key={value}
+                                onClick={() => handleCollectionSelect(value)}
+                                className={`px-3.5 py-2 text-[9px] font-bold uppercase tracking-widest transition-all rounded-full border ${searchParams.getAll('collection').includes(value)
+                                    ? 'bg-primary text-background border-primary'
+                                    : 'bg-surface-container-high border-transparent hover:border-outline-variant text-primary/80'
+                                    }`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                </section>
+
                 {/* Scent Family */}
                 <section>
                     <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">Scent Family</h3>
@@ -170,7 +206,7 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                     </div>
                 </section>
 
-                {/* Gender — single select */}
+                {/* Gender */}
                 <section>
                     <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">Gender</h3>
                     <div className="flex flex-wrap gap-2">
@@ -189,7 +225,7 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                     </div>
                 </section>
 
-                {/* Price Min - Max */}
+                {/* Price Range */}
                 <section>
                     <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">Price Range</h3>
                     <div className="flex items-center gap-3">

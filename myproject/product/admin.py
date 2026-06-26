@@ -60,15 +60,15 @@ class AtomizerVariantInline(admin.TabularInline):
 
 @admin.register(Perfume)
 class PerfumeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'brand', 'type', 'gender', 'price', 'stock', 'available_stock', 'is_seasonal_pick', 'is_restocked']
-    list_filter = ['type', 'gender', 'brand', 'is_seasonal_pick', 'is_restocked']
+    list_display = ['name', 'brand', 'type','collection', 'gender', 'price', 'full_bottle_size','stock', 'available_stock', 'is_seasonal_pick', 'is_restocked']
+    list_filter = ['type','collection', 'gender', 'brand', 'is_seasonal_pick', 'is_restocked']
     search_fields = ['name', 'brand__name']
     ordering = ['brand', 'name']
     readonly_fields = ['slug', 'reserved', 'available_stock', 'date_added']
     inlines = [PerfumeImageInline, PerfumeNoteInline, DecantInline, SillageInline, LongevityInline]
 
     fields = [
-        'type', 'name', 'brand', 'gender', 'price',
+        'type','collection', 'name', 'brand', 'gender', 'price','full_bottle_size'
         'description', 'family',
         'stock', 'reserved', 'available_stock',
         'is_seasonal_pick', 'is_restocked',

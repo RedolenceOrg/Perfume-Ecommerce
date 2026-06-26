@@ -5,14 +5,6 @@ import Link from "next/link";
 
 export default function BestSellers({ perfumes }: { perfumes: PerfumeSummary[] }) {
 
-    const getImg = (perfume: PerfumeSummary) => {
-        const secondary =
-            perfume.images?.find(img => !img.is_primary)?.image ||
-            perfume.images?.[0]?.image;
-
-        return secondary ? `${secondary}` : '';
-    };
-
     const mainFeature = perfumes[0];
     const sideTop = perfumes[1];
     const sideMiddle = perfumes[2];
@@ -43,25 +35,20 @@ export default function BestSellers({ perfumes }: { perfumes: PerfumeSummary[] }
                         >
                             <img
                                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                                src={getImg(mainFeature)}
+                                src={mainFeature.secondary_image || mainFeature.primary_image || ''}
                                 alt={mainFeature.name}
                             />
-
                             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-500"></div>
-
                             <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8">
                                 <div className="bg-[#775a19] px-3 py-1 text-white text-[9px] uppercase tracking-[0.3em] font-bold mb-3 inline-block">
                                     Seasonal Pick #1
                                 </div>
-
                                 <h3 className="font-headline text-2xl md:text-3xl text-white mb-1">
                                     {mainFeature.name}
                                 </h3>
-
                                 <p className="text-white/80 mb-3 md:mb-4 italic font-headline text-xs md:text-sm">
                                     {mainFeature.brand}
                                 </p>
-
                                 <button className="text-white border-b border-white/40 pb-1 text-[10px] tracking-widest uppercase hover:border-white transition-colors">
                                     Details
                                 </button>
@@ -77,12 +64,10 @@ export default function BestSellers({ perfumes }: { perfumes: PerfumeSummary[] }
                         >
                             <img
                                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                src={getImg(sideTop)}
+                                src={sideTop.secondary_image || sideTop.primary_image || ''}
                                 alt={sideTop.name}
                             />
-
                             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors"></div>
-
                             <div className="absolute bottom-4 left-5">
                                 <h4 className="font-headline text-base md:text-lg text-white">
                                     {sideTop.name}
@@ -99,12 +84,10 @@ export default function BestSellers({ perfumes }: { perfumes: PerfumeSummary[] }
                         >
                             <img
                                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                src={getImg(sideMiddle)}
+                                src={sideMiddle.secondary_image || sideMiddle.primary_image || ''}
                                 alt={sideMiddle.name}
                             />
-
                             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors"></div>
-
                             <div className="absolute bottom-4 left-5">
                                 <h4 className="font-headline text-base md:text-lg text-white">
                                     {sideMiddle.name}
@@ -121,17 +104,14 @@ export default function BestSellers({ perfumes }: { perfumes: PerfumeSummary[] }
                         >
                             <img
                                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                src={getImg(bottomWide)}
+                                src={bottomWide.secondary_image || bottomWide.primary_image || ''}
                                 alt={bottomWide.name}
                             />
-
                             <div className="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors"></div>
-
                             <div className="absolute bottom-4 left-5">
                                 <h4 className="font-headline text-base md:text-lg text-white uppercase tracking-widest">
                                     {bottomWide.name}
                                 </h4>
-
                                 <p className="text-white/80 text-[10px] italic">
                                     {bottomWide.brand}
                                 </p>
