@@ -17,11 +17,13 @@ def get_product(product_type, product_id):
     return None
 
 def get_discount_percent(total_spend):
-    if total_spend >= 30000:
+    if total_spend >= 115500:
         return 15
-    elif total_spend >= 15000:
+    elif total_spend >= 60500:
+        return 12
+    elif total_spend >= 25500:
         return 10
-    elif total_spend >= 5000:
+    elif total_spend>=5500:
         return 5
     else:
         return 0

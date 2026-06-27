@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import recommender
 
 urlpatterns = [
     path('getperfumeHome/',views.getPerfumeHome.as_view(),name='get_perfumesHome'),
@@ -9,4 +10,5 @@ urlpatterns = [
     path('related/', views.RelatedPerfumesView.as_view(), name='related_perfumes'),
     path('atomizers/', views.AtomizerPage.as_view(), name='atomizer_page'),
     path('thrifts/', views.ThriftPage.as_view(), name='thrift_page'),
+    path('airecommend/',recommender.as_view(),name ='ai recommender')
 ]

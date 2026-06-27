@@ -1,7 +1,14 @@
 'use client'
+import { useLenis } from '@/smoothscroll/SmoothScroll'
 
-// components/MemberHero.tsx
 export const MemberHero = () => {
+    const lenis = useLenis()
+    const scrollToBenefits = () => {
+        lenis?.scrollTo('#benefits', {
+            duration: 2.8,
+            easing: (t) => 1 - Math.pow(1 - t, 4)
+        })
+    }
     return (
         <section className="relative bg-surface overflow-hidden">
 
@@ -43,13 +50,16 @@ export const MemberHero = () => {
 
                     {/* CTA */}
                     <div className="flex items-center gap-6">
-                        <button className="group flex items-center gap-3 bg-primary text-surface px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-primary/90 transition-all duration-300 active:scale-[0.98]">
+                        <button
+                            onClick={scrollToBenefits}
+                            className="group flex items-center gap-3 bg-primary text-surface px-8 py-4 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-primary/90 transition-all duration-300 active:scale-[0.98]"
+                        >
                             Explore Benefits
                             <span className="material-symbols-outlined text-sm transition-transform duration-300 group-hover:translate-x-1">
                                 arrow_forward
                             </span>
                         </button>
-                        <span className="font-label text-[10px] uppercase tracking-widest text-outline/60">
+                        <span className="text-primary font-heading text-3xl text-[12px] uppercase tracking-widest text-outline/60">
                             From NPR 5,500
                         </span>
                     </div>

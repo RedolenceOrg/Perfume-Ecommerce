@@ -68,7 +68,7 @@ class PerfumeAdmin(admin.ModelAdmin):
     inlines = [PerfumeImageInline, PerfumeNoteInline, DecantInline, SillageInline, LongevityInline]
 
     fields = [
-        'type','collection', 'name', 'brand', 'gender', 'price','full_bottle_size'
+        'type','collection', 'name', 'brand', 'gender', 'price','full_bottle_size',
         'description', 'family',
         'stock', 'reserved', 'available_stock',
         'is_seasonal_pick', 'is_restocked',
