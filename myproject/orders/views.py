@@ -653,5 +653,6 @@ class GetPayVerifyView(LoginRequiredMixin,View):
             order.save()
             Cart.objects.filter(user=request.user).delete()
         return JsonResponse({'status': 'success'})
-        
-        
+    
+
+

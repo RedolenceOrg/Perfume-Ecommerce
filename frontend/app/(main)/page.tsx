@@ -8,6 +8,7 @@ import MembersSection from "@/components/MembersSection";
 import ThriftSection from "@/components/ThriftSection";
 import { apiGet } from "@/context/api";
 import FAQ from "@/components/faq";
+import PerfumeRecommender from "@/components/PerfumeRecommender.tsx/PerfumeRecommender";
 
 
 
@@ -21,6 +22,7 @@ export default async function Home() {
     return (
       <div>
         <Hero />
+        <PerfumeRecommender />
         <Arrivals heading="Recent Arrivals" perfumes={perfumes.new_arrivals} />
         <SeasonalPick />
         <Arrivals heading="Seasonal Picks" perfumes={perfumes.seasonal} />

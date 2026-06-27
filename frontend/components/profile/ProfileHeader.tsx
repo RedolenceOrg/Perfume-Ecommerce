@@ -16,13 +16,19 @@ export default function ProfileHeader({ profile }: { profile: any }) {
         await logout()
         router.push('/')
     }
-
     const getLoyaltyClass = (spend: number) => {
-        if (spend > 5500) return "Top";
-        if (spend > 12000) return "Heart";
-        if (spend > 24000) return "Base";
-        if (spend > 40000) return "Sillage";
+        if (spend >= 115500) return "Sillage";
+        if (spend >= 60500) return "Base";
+        if (spend >= 25500) return "Middle";
+        if (spend >= 5500) return "Top";
         return "New";
+    };
+    const getCurrentTierSpend = (spend: number) => {
+        if (spend >= 115500) return spend - 40000;
+        if (spend >= 60500) return spend - 24000;
+        if (spend >= 25500) return spend - 12000;
+        if (spend >= 5500) return spend - 5500;
+        return spend;
     };
 
     return (
@@ -106,7 +112,11 @@ export default function ProfileHeader({ profile }: { profile: any }) {
                 ) : (
                     <>
                         <MetricCard label="Loyalty Class" value={getLoyaltyClass(profile.total_spend)} isItalic />
-                        <MetricCard label="Total Expenditure" value={`NPR ${profile.total_spend.toLocaleString()}`} subLabel="Lifetime Value" />
+                        <MetricCard
+                            label="Class Expenditure"
+                            value={`NPR ${getCurrentTierSpend(profile.total_spend).toLocaleString()}`}
+                            subLabel={`${getLoyaltyClass(profile.total_spend)} Tier`}
+                        />
                     </>
                 )}
             </div>

@@ -23,8 +23,6 @@ export default function ProductGrid() {
     useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
 
     const fetchPerfumes = useCallback(async (currentPage: number, isReset: boolean) => {
-        // Guard 1: If we are already fetching this specific page, abort.
-        // Guard 2: If we are already fetching a page and it's not a reset, abort.
         if (fetchingRef.current && !isReset) return;
         if (!isReset && currentPage <= lastFetchedPageRef.current) return;
 
@@ -33,10 +31,12 @@ export default function ProductGrid() {
         setLoading(true);
 
         try {
-            const params = new URLSearchParams({
-                page: currentPage.toString(),
-                limit: '12',
-                ...Object.fromEntries(searchParams.entries())
+            // ✅ replace Object.fromEntries with this
+            const params = new URLSearchParams();
+            params.set('page', currentPage.toString());
+            params.set('limit', '12');
+            searchParams.forEach((value, key) => {
+                params.append(key, value);
             });
 
             const res = await apiGet(`/api/shop/?${params}`);
@@ -46,7 +46,6 @@ export default function ProductGrid() {
             setHasMore(data.has_more);
         } catch (error) {
             console.error('Failed to fetch perfumes:', error);
-            // If it fails, roll back the tracked page so it can be retried if needed
             lastFetchedPageRef.current = currentPage - 1;
         } finally {
             setLoading(false);
