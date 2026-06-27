@@ -69,7 +69,8 @@ export interface Thrift {
     brand: string;
     remaining_juice: number;
     thrift_price: number;
-    image: PerfumeImage[];
+    primary_image: string;
+    secondary_image: string;
     available_stock: number;
 }
 export interface CartItem {
