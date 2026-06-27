@@ -8,24 +8,13 @@ export default function PerfumeCard({ name, brand, price, primary_image, seconda
             {/* Image Container */}
             <div className="aspect-[3/4] bg-surface-container mb-4 overflow-hidden relative">
                 {primary_image ? (
-                    <>
-                        <Image
-                            src={primary_image}
-                            alt={name}
-                            fill
-                            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                            className="object-contain group-hover:opacity-0 transition-opacity duration-700 ease-out"
-                        />
-                        {secondary_image && (
-                            <Image
-                                src={secondary_image}
-                                alt={`${name} secondary`}
-                                fill
-                                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                                className="object-contain opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-out"
-                            />
-                        )}
-                    </>
+                    <Image
+                        src={primary_image}
+                        alt={name}
+                        fill
+                        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                        className="object-contain transition-transform duration-700 ease-out group-hover:scale-105"
+                    />
                 ) : (
                     <div className="w-full h-full bg-surface-container flex items-center justify-center">
                         <span className="text-xs uppercase tracking-widest text-neutral-400 font-label">No Image</span>
