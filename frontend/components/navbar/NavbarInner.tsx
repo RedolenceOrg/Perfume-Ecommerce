@@ -1,13 +1,20 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 const navLinks = [
     { label: 'Home', href: '/' },
-    { label: 'Perfumes', href: '/shop?type=Perfume' },
+    {
+        label: 'Perfumes', href: '/shop?type=Perfume', dropdown: [
+            { label: 'Niche', href: '/shop?type=Perfume&collection=niche' },
+            { label: 'Designer', href: '/shop?type=Perfume&collection=designer' },
+            { label: 'Middle Eastern', href: '/shop?type=Perfume&collection=middle_eastern' },
+        ]
+    },
     { label: 'Attars', href: '/shop?type=Attar' },
     { label: 'Atomizer', href: '/atomizer' },
     { label: 'Thrift', href: '/thrift' },
@@ -15,11 +22,14 @@ const navLinks = [
 ];
 
 function NavLink({ link, pathname, currentType, onClick }: {
-    link: { label: string; href: string; highlight?: boolean };
+    link: { label: string; href: string; highlight?: boolean; dropdown?: { label: string; href: string }[] };
     pathname: string;
     currentType: string | null;
     onClick?: () => void;
 }) {
+    const [isHovered, setIsHovered] = useState(false);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     const isActive = () => {
         if (link.href.includes('?')) {
             const [basePath, query] = link.href.split('?');
@@ -30,6 +40,58 @@ function NavLink({ link, pathname, currentType, onClick }: {
     };
 
     const active = isActive();
+
+    const handleMouseEnter = () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        setIsHovered(true);
+    };
+
+    const handleMouseLeave = () => {
+        timeoutRef.current = setTimeout(() => setIsHovered(false), 150);
+    };
+
+    if (link.dropdown) {
+        return (
+            <div
+                className="relative"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+            >
+                <Link
+                    href={link.href}
+                    onClick={onClick}
+                    className={`transition-all duration-300 ease-out border-b-2 pb-1 block md:inline-block
+                        ${active
+                            ? 'text-secondary border-secondary'
+                            : 'text-primary/70 border-transparent hover:text-primary hover:border-primary/30'
+                        }
+                    `}
+                >
+                    {link.label}
+                </Link>
+
+                {/* Dropdown */}
+                {/* Dropdown */}
+                <div className={`absolute top-full left-0 mt-3 w-44 bg-background border border-outline-variant/30 rounded-lg shadow-xl overflow-hidden transition-all duration-150 origin-top
+    ${isHovered ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'}
+`}>
+                    {link.dropdown.map((item, i) => (
+                        <Link
+                            key={item.label}
+                            href={item.href}
+                            onClick={onClick}
+                            className={`group flex items-center justify-between px-4 py-2.5 text-sm font-headline text-primary/60 hover:text-primary hover:bg-outline-variant/10 transition-all duration-150
+                ${i !== link.dropdown!.length - 1 ? 'border-b border-outline-variant/10' : ''}
+            `}
+                        >
+                            <span className="group-hover:translate-x-0.5 transition-transform duration-150">{item.label}</span>
+                            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-secondary text-xs">→</span>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <Link
@@ -48,6 +110,7 @@ function NavLink({ link, pathname, currentType, onClick }: {
         </Link>
     );
 }
+
 
 export default function NavbarInner() {
     const searchParams = useSearchParams();

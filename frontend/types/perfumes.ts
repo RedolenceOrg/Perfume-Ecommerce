@@ -22,6 +22,8 @@ export interface PerformanceMetrics {
 export interface Perfume {
     id: number;
     name: string;
+    collection: string;
+    full_bottle_size: number;
     brand: string;
     price: number;
     description: string;
@@ -39,8 +41,10 @@ export interface PerfumeSummary {
     id: number;
     name: string;
     brand: string;
+    collection: string | null;
     price: string;
-    images: PerfumeImage[];
+    primary_image: string | null;
+    secondary_image: string | null;
     slug: string;
 }
 export interface AtomizerVariant {
@@ -65,7 +69,8 @@ export interface Thrift {
     brand: string;
     remaining_juice: number;
     thrift_price: number;
-    image: PerfumeImage[];
+    primary_image: string;
+    secondary_image: string;
     available_stock: number;
 }
 export interface CartItem {

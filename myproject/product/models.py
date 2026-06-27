@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.core.validators import MaxValueValidator
 
+
 class Notes(models.Model):
     name = models.CharField(max_length=100,unique=True)
     def __str__(self):
@@ -52,13 +53,14 @@ class Perfume(models.Model):
     is_restocked = models.BooleanField(default=False)
     stock = models.PositiveIntegerField(default=0)
     reserved = models.PositiveIntegerField(default=0)
-
-    
+    full_bottle_size = models.PositiveIntegerField(default = 100)
+    COLLECTION_CHOICES = [('niche','Niche'),('designer','Designer'),('middle_eastern','Middle Eastern'),('in_house','In House')]
     GENDER_CHOICES = [
         ('male', 'Male'),
         ('female', 'Female'),
         ('unisex', 'Unisex'),
     ]
+    collection = models.CharField(max_length=15, choices=COLLECTION_CHOICES,null=True,blank=True,db_index=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='unisex')
     slug = models.SlugField(unique=True, blank=True)
 

@@ -4,11 +4,13 @@ import { MemberHero, } from "./components/MemberHero";
 import { TiersSection } from "./components/Tiers";
 export default function MembersPage() {
     return (
-        <div className="">
+        <div>
             <MemberHero />
             <TiersSection />
             <AscensionSection />
-            <ComparisonTable />
+            <div id="benefits">
+                <ComparisonTable />
+            </div>
         </div>
     );
 }

@@ -3,12 +3,9 @@
 import { Thrift } from '@/types/perfumes';
 import { authapiPost } from '@/context/api';
 import { toast } from 'react-toastify'
+import Image from 'next/image'
 
 export default function ThriftProductCard({ thrift }: { thrift: Thrift }) {
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL
-    const primaryImage = thrift.image?.find((img) => img.is_primary)?.image
-        || thrift.image?.[0]?.image
-        || '/placeholder.png';
 
     const handleAddToCart = async () => {
         const payload = {
@@ -46,10 +43,12 @@ export default function ThriftProductCard({ thrift }: { thrift: Thrift }) {
             </div>
 
             <div className="aspect-square w-full relative mb-6 overflow-hidden rounded-lg bg-background">
-                <img
-                    src={`${BASE_URL}${primaryImage}`}
+                <Image
+                    src={thrift.primary_image ?? '/placeholder.png'}
                     alt={thrift.perfume_name}
-                    className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                    className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
                 />
 
                 {/* Add to Cart overlay — appears on hover */}

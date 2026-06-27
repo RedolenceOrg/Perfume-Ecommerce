@@ -13,9 +13,9 @@ export const TiersSection = () => {
         },
         {
             level: "02",
-            name: "The Heart Note",
+            name: "The Middle Note",
             subtitle: "Silver Tier",
-            requirement: "NPR 12,000+",
+            requirement: "NPR 20,000+",
             featured: false,
             benefits: [
                 { icon: "sell", text: "10% flat discount on all orders" },
@@ -27,7 +27,7 @@ export const TiersSection = () => {
             level: "03",
             name: "The Base Note",
             subtitle: "Gold Tier",
-            requirement: "NPR 24,000+",
+            requirement: "NPR 35,000+",
             featured: true,
             benefits: [
                 { icon: "sell", text: "12% flat discount on all orders" },
@@ -39,7 +39,7 @@ export const TiersSection = () => {
             level: "04",
             name: "The Sillage",
             subtitle: "Elite Tier",
-            requirement: "NPR 40,000+",
+            requirement: "NPR 55,000+",
             featured: false,
             benefits: [
                 { icon: "sell", text: "15% flat discount on all orders" },
@@ -60,6 +60,7 @@ export const TiersSection = () => {
                     <h2 className="font-headline text-primary text-4xl md:text-5xl">Distinguished Tiers</h2>
                     <p className="font-body text-outline max-w-xl mx-auto text-sm leading-relaxed">
                         Each tier unlocks as your cumulative spend grows. Benefits stack — every level carries the privileges of those before it.
+                        Reaching a new tier resets your spend.
                     </p>
                 </div>
 
@@ -68,7 +69,7 @@ export const TiersSection = () => {
                     <div className="inline-flex items-center gap-3 border border-secondary/30 bg-secondary-container/20 px-6 py-3">
                         <span className="material-symbols-outlined text-secondary text-sm">info</span>
                         <p className="font-label text-secondary text-[11px] uppercase tracking-widest">
-                            Membership unlocks after your first purchase of NPR 5,500 or more
+                            Membership unlocks after your first purchase of NPR 5,500 or more along with email verification of account.
                         </p>
                     </div>
                 </div>

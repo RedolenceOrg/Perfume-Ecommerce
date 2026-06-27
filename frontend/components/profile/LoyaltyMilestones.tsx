@@ -1,11 +1,13 @@
 // components/LoyaltyMilestones.tsx
 export default function LoyaltyMilestones({ totalSpend, isVerified }: { totalSpend: number, isVerified: boolean }) {
     // Define your tiers
+
     const tiers = [
+        { name: "New", threshold: 0 },
         { name: "Top", threshold: 5500 },
-        { name: "Heart", threshold: 12000 },
-        { name: "Base", threshold: 24000 },
-        { name: "Sillage", threshold: 40000 },
+        { name: "Middle", threshold: 25500 },
+        { name: "Base", threshold: 60500 },
+        { name: "Sillage", threshold: 115500 },
     ];
 
     // Find current and next tier
@@ -62,12 +64,12 @@ export default function LoyaltyMilestones({ totalSpend, isVerified }: { totalSpe
                 <div className="flex justify-between mt-6">
                     <div className="flex flex-col">
                         <span className="font-serif text-sm italic text-primary">{currentTier.name}</span>
-                        <span className="font-sans text-[10px] text-outline mt-1">NPR {currentTier.threshold.toLocaleString()}</span>
+
                     </div>
                     {nextTier && (
                         <div className="flex flex-col items-end">
                             <span className="font-serif text-sm italic text-outline/60">{nextTier.name}</span>
-                            <span className="font-sans text-[10px] text-outline mt-1">NPR {nextTier.threshold.toLocaleString()}</span>
+
                         </div>
                     )}
                 </div>
