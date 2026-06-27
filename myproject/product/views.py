@@ -153,9 +153,9 @@ class ThriftPage(APIView):
         serializer = ThriftSerializer(thrifts, many=True)
         return Response(serializer.data)
     
-# @method_decorator(csrf_protect, name='dispatch')
-# @method_decorator(conditional_ratelimit(rate='1/hr'), name='post')
-class recommender(LoginRequiredMixin, View):        
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(conditional_ratelimit(rate='5/hr'), name='post')
+class recommender(View):        
     def dispatch(self, request, *args, **kwargs):
 
         if not request.user.is_authenticated:
