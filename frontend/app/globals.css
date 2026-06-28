@@ -35,6 +35,7 @@
   --font-body: "Manrope";
   --font-label: "Manrope";
 
+  --animate-brand-scroll: brand-scroll 60s linear infinite;
 
 }
 
@@ -47,4 +48,14 @@
   opacity: 1;
   transform: translateY(0);
   transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+@keyframes brand-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }

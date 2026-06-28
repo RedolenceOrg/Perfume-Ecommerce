@@ -114,6 +114,33 @@ export default function HeroSection({ perfume }: HeroProps) {
                         {perfume.gender} · {perfume.family?.join(', ')}
                     </p>
                 </div>
+                {perfume.collection && (() => {
+                    const collections: Record<string, { label: string; className: string }> = {
+                        niche: {
+                            label: 'Niche',
+                            className: 'bg-primary-container text-inverse-primary',
+                        },
+                        designer: {
+                            label: 'Designer',
+                            className: 'bg-secondary-container text-secondary',
+                        },
+                        middle_eastern: {
+                            label: 'Middle Eastern',
+                            className: 'bg-tertiary-container text-inverse-primary',
+                        },
+                    }
+
+                    const config = collections[perfume.collection]
+                    if (!config) return null
+
+                    return (
+                        <div className={`inline-flex items-center self-start px-4 py-1.5 ${config.className}`}>
+                            <span className="text-[11px] uppercase tracking-[0.2em] font-semibold">
+                                {config.label}
+                            </span>
+                        </div>
+                    )
+                })()}
 
                 <p className="text-sm text-on-surface-variant leading-relaxed max-w-md">
                     {perfume.description}
