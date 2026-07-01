@@ -9,11 +9,11 @@ const notoSerif = Noto_Serif({ variable: "--font-headline", subsets: ["latin"] }
 const manrope = Manrope({ variable: "--font-body", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Redolence Nepal | Best Perfume in Nepal",
+  title: "Redolence Nepal | Best Perfumes in Nepal",
   description: "Shop premium niche, designer & Middle Eastern perfumes in Nepal. Authentic fragrances delivered to your door. Explore Redolence Nepal's curated collection.",
   keywords: ["perfume nepal", "niche perfume nepal", "buy perfume in nepal", "designer fragrance nepal", "middle eastern perfume nepal", "redolence nepal"],
   openGraph: {
-    title: "Redolence Nepal | Best Perfume in Nepal",
+    title: "Redolence Nepal | Best Perfumes in Nepal",
     description: "Shop premium niche, designer & Middle Eastern perfumes in Nepal.",
     url: "https://redolencenepal.com",
     siteName: "Redolence Nepal",
