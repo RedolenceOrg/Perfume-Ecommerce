@@ -68,7 +68,7 @@ class PerfumeSerializer(serializers.ModelSerializer):
     longevity = LongevitySerializer(read_only=True)
     sillage = SillageSerializer(read_only=True)
     available_stock = serializers.ReadOnlyField()
-
+    
     class Meta:
         model = Perfume
         fields = [

@@ -25,13 +25,6 @@ export default function SeasonalPick() {
                 <p className="font-mono text-[10px] md:text-sm uppercase tracking-[0.5em] text-white/90 mb-12">
                     Collection — 2026
                 </p>
-
-                {/* Minimalist CTA Button */}
-                <div className="mt-4">
-                    <button className="border border-white text-white px-10 py-4 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-white hover:text-black transition-all duration-700 backdrop-blur-sm active:scale-95">
-                        Shop the Season
-                    </button>
-                </div>
             </div>
         </section>
     );

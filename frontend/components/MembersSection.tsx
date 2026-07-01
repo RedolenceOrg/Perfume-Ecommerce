@@ -18,7 +18,7 @@ export default function MembersSection() {
             {/* Content */}
             <div className="relative h-full w-full flex flex-col items-center justify-start text-center px-8 md:px-20 pt-32">
 
-                <p className="font-mono text-[10px] md:text-sm uppercase tracking-[0.5em] text-white/70 mb-4">
+                <p className="font-headline text-[24px] md:text-sm uppercase tracking-[0.5em] text-white/70 mb-4">
                     Redolence Nepal — The Inner Circle
                 </p>
 
@@ -26,7 +26,7 @@ export default function MembersSection() {
                     Members
                 </h2>
 
-                <p className="font-mono text-[10px] md:text-sm uppercase tracking-[0.5em] text-white/70 mb-6">
+                <p className="font-headline text-[10px] md:text-sm uppercase tracking-[0.5em] text-white/70 mb-6">
                     Exclusive Access · Priority Releases · VIP Privileges
                 </p>
 
