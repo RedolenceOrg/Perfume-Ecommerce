@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -13,6 +12,7 @@ const navLinks = [
             { label: 'Niche', href: '/shop?type=Perfume&collection=niche' },
             { label: 'Designer', href: '/shop?type=Perfume&collection=designer' },
             { label: 'Middle Eastern', href: '/shop?type=Perfume&collection=middle_eastern' },
+            { label: 'In house', href: '/shop?type=Perfume&collection=in_house' },
         ]
     },
     { label: 'Attars', href: '/shop?type=Attar' },
@@ -21,13 +21,15 @@ const navLinks = [
     { label: 'Members', href: '/members', highlight: true },
 ];
 
-function NavLink({ link, pathname, currentType, onClick }: {
+function NavLink({ link, pathname, currentType, onClick, mobile = false }: {
     link: { label: string; href: string; highlight?: boolean; dropdown?: { label: string; href: string }[] };
     pathname: string;
     currentType: string | null;
     onClick?: () => void;
+    mobile?: boolean;
 }) {
     const [isHovered, setIsHovered] = useState(false);
+    const [isOpenMobile, setIsOpenMobile] = useState(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const isActive = () => {
@@ -51,6 +53,65 @@ function NavLink({ link, pathname, currentType, onClick }: {
     };
 
     if (link.dropdown) {
+        // MOBILE: accordion — chevron toggles, label still navigates
+        if (mobile) {
+            return (
+                <div className="w-full">
+                    <div className="flex items-center justify-between">
+                        <Link
+                            href={link.href}
+                            onClick={onClick}
+                            className={`transition-all duration-300 ease-out border-b-2 pb-1 block
+                                ${active
+                                    ? 'text-secondary border-secondary'
+                                    : 'text-primary/70 border-transparent hover:text-primary hover:border-primary/30'
+                                }
+                            `}
+                        >
+                            {link.label}
+                        </Link>
+                        <button
+                            type="button"
+                            aria-label={`Toggle ${link.label} options`}
+                            aria-expanded={isOpenMobile}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                setIsOpenMobile((prev) => !prev);
+                            }}
+                            className="p-2 -mr-2 text-primary/60 active:text-secondary transition-colors duration-150"
+                        >
+                            <span
+                                className={`material-symbols-outlined text-2xl transition-transform duration-300 ease-out ${isOpenMobile ? 'rotate-180' : 'rotate-0'}`}
+                            >
+                                expand_more
+                            </span>
+                        </button>
+                    </div>
+
+                    <div
+                        className={`overflow-hidden transition-all duration-300 ease-out
+                            ${isOpenMobile ? 'max-h-96 opacity-100 mt-3' : 'max-h-0 opacity-0'}
+                        `}
+                    >
+                        <div className="flex flex-col gap-3 pl-4 border-l border-outline-variant/20">
+                            {link.dropdown.map((item) => (
+                                <Link
+                                    key={item.label}
+                                    href={item.href}
+                                    onClick={onClick}
+                                    className="text-base font-body text-primary/60 hover:text-primary active:text-secondary transition-colors duration-150"
+                                >
+                                    {item.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // DESKTOP: hover dropdown
         return (
             <div
                 className="relative"
@@ -70,7 +131,6 @@ function NavLink({ link, pathname, currentType, onClick }: {
                     {link.label}
                 </Link>
 
-                {/* Dropdown */}
                 {/* Dropdown */}
                 <div className={`absolute top-full left-0 mt-3 w-44 bg-background border border-outline-variant/30 rounded-lg shadow-xl overflow-hidden transition-all duration-150 origin-top
     ${isHovered ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'}
@@ -250,7 +310,7 @@ export default function NavbarInner() {
 
             {/* Side Drawer */}
             <div
-                className={`fixed top-0 right-0 bottom-0 z-40 w-full max-w-[280px] bg-background border-l border-outline-variant/20 p-8 pt-24 shadow-2xl transition-transform duration-500 ease-out md:hidden
+                className={`fixed top-0 right-0 bottom-0 z-40 w-full max-w-[280px] bg-background border-l border-outline-variant/20 p-8 pt-24 shadow-2xl transition-transform duration-500 ease-out md:hidden overflow-y-auto
                     ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
                 `}
             >
@@ -262,6 +322,7 @@ export default function NavbarInner() {
                             pathname={pathname}
                             currentType={currentType}
                             onClick={() => setIsMenuOpen(false)}
+                            mobile
                         />
                     ))}
 
