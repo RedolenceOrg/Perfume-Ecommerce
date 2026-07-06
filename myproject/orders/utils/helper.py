@@ -1,4 +1,4 @@
-from product.models import Perfume, Decant, Thrift, AtomizerVariant
+from product.models import Perfume, Decant, Thrift, AtomizerVariant,NasalStrip
 
 def get_product(product_type, product_id):
 
@@ -13,7 +13,8 @@ def get_product(product_type, product_id):
 
     if product_type == "atomizer":
         return AtomizerVariant.objects.filter(id=product_id).first()
-
+    if product_type == "nasalstrip":
+        return NasalStrip.objects.filter(id=product_id).first()
     return None
 
 def get_discount_percent(total_spend):
