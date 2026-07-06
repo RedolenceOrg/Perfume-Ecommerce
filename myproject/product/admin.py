@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    Atomizer, AtomizerVariant,
+    Atomizer, AtomizerVariant, NasalStrip,
     Perfume, PerfumeImage, PerfumeNote,
     Notes, Family, Brand,
     Decant, Longevity, Sillage, Thrift
@@ -151,3 +151,9 @@ class FamilyAdmin(admin.ModelAdmin):
 class NotesAdmin(admin.ModelAdmin):
     list_display = ['name']
     search_fields = ['name']
+
+@admin.register(NasalStrip)
+class NasalStripAdmin(admin.ModelAdmin):
+    list_display = ['price', 'available_stock']
+    readonly_fields = ['available_stock']
+    fields = ['price', 'stock', 'reserved', 'available_stock','image']

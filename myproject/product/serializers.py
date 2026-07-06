@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Atomizer, AtomizerVariant, Decant, Perfume,Notes, PerfumeImage,PerfumeNote,Brand,Family, Thrift
+from .models import Atomizer, AtomizerVariant, Decant, NasalStrip, Perfume,Notes, PerfumeImage,PerfumeNote,Brand,Family, Thrift
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,6 +27,11 @@ class PerfumeImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PerfumeImage
         fields = ['image', 'is_primary']
+
+class NasalStripSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NasalStrip
+        fields = ['id','price','stock','image','available_stock']
 
 
 class PerfumeListSerializer(serializers.ModelSerializer):
