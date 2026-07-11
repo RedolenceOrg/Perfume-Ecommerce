@@ -83,6 +83,13 @@ export interface CartItem {
     images: string;
     in_stock: boolean;
 }
+export interface NasalStrip {
+    id: number;
+    price: number;
+    stock: number;
+    image: string;
+    available_stock: number;
+}
 export const VALLEY_DISTRICTS = ["Kathmandu", "Bhaktapur", "Lalitpur"]
 
 export const NEPAL_DISTRICTS = [

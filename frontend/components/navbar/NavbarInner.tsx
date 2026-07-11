@@ -18,6 +18,7 @@ const navLinks = [
     { label: 'Attars', href: '/shop?type=Attar' },
     { label: 'Atomizer', href: '/atomizer' },
     { label: 'Thrift', href: '/thrift' },
+    { label: 'Wellbeing', href: '/wellbeing' },
     { label: 'Members', href: '/members', highlight: true },
 ];
 
@@ -232,7 +233,7 @@ export default function NavbarInner() {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center gap-10 font-headline text-lg tracking-tight">
+                    <div className="hidden xl:flex items-center gap-6 xl:gap-8 font-headline text-base xl:text-lg tracking-tight">
                         {navLinks.map((link) => (
                             <NavLink
                                 key={link.label}
@@ -289,12 +290,13 @@ export default function NavbarInner() {
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             aria-label="Toggle Menu"
-                            className="md:hidden p-2 text-primary hover:text-secondary transition-colors duration-200"
+                            className="xl:hidden p-2 text-primary hover:text-secondary transition-colors duration-200"
                         >
                             <span className="material-symbols-outlined">
                                 {isMenuOpen ? 'close' : 'menu'}
                             </span>
                         </button>
+
 
                     </div>
                 </nav>

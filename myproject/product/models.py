@@ -142,4 +142,17 @@ class Thrift(models.Model):
         return self.stock - self.reserved
 
     def __str__(self):
-        return f"{self.perfume.name} - Thrift Condition: {self.remaining_juice} Status - {'Available' if self.available_stock > 0 else 'Sold'}"
+        return f"{self.perfume.name} - Thrift Condition: {self.remaining_juice} Status - {'Available' if self.available_stock > 0 else 
+        'Sold'}"
+
+class NasalStrip(models.Model):
+    price = models.DecimalField(max_digits=5, decimal_places=2)
+    stock = models.PositiveIntegerField(default=0)
+    reserved = models.PositiveIntegerField(default=0)
+    image = models.ImageField(upload_to='nasal_strip_images/',null=True,blank=True)
+
+    @property
+    def available_stock(self):
+        return self.stock - self.reserved
+    def __str__(self):
+        return f"Nasal Strip - Price: {self.price}"

@@ -3,7 +3,7 @@ from .models import Cart, CartItem, Order, OrderItem
 
 
 class addCartItemSerializer(serializers.Serializer):
-    product_type = serializers.ChoiceField(choices=["perfume","atomizer","decant","thrift"])
+    product_type = serializers.ChoiceField(choices=["perfume","atomizer","decant","thrift",'nasalstrip'],required=True)
     product_id = serializers.IntegerField()
     quantity  = serializers.IntegerField(min_value =1)
 
@@ -24,7 +24,6 @@ class PlaceOrderSerializer(serializers.Serializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    # Add a field for the lightweight item strings
     items = serializers.SerializerMethodField()
 
     class Meta:
