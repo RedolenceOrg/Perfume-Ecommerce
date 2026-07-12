@@ -108,6 +108,25 @@ export const NEPAL_DISTRICTS = [
     "Sunsari", "Surkhet", "Syangja", "Taplejung", "Tehrathum",
     "Udayapur", "Western Rukum"
 ]
+export interface CollectionConfig {
+    label: string
+    className: string
+}
+
+export const collections: Record<string, CollectionConfig> = {
+    niche: {
+        label: 'Niche',
+        className: 'bg-primary-container text-inverse-primary',
+    },
+    designer: {
+        label: 'Designer',
+        className: 'bg-secondary-container text-secondary',
+    },
+    middle_eastern: {
+        label: 'Middle Eastern',
+        className: 'bg-tertiary-container text-inverse-primary',
+    },
+}
 
 
 

@@ -63,7 +63,7 @@ export default function HeroSection({ perfume }: HeroProps) {
     }, [selectedSize, perfume.id, quantity])
 
     return (
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-20 px-6 lg:px-16 items-start pt-3 lg:pt-6">
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10 px-6 lg:px-16 items-start pt-3 lg:pt-6">
             {/* Left - Images */}
             <div className="flex gap-4 top-10 self-start">
                 <div className="flex flex-col gap-3 w-28 flex-shrink-0">
@@ -141,11 +141,6 @@ export default function HeroSection({ perfume }: HeroProps) {
                         </div>
                     )
                 })()}
-
-                <p className="text-sm text-on-surface-variant leading-relaxed max-w-md">
-                    {perfume.description}
-                </p>
-
                 {/* Size Selection */}
                 <div className="grid grid-cols-3 gap-3">
                     {perfume.decant.map((decant) => {
