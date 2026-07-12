@@ -248,7 +248,7 @@ export default function PerfumeRecommender() {
     const canGoNext = isDone || canProceed(step, answers);
 
     return (
-        <div ref={panelRef} className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-3">
+        <div ref={panelRef} className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-3 pointer-events-none">
 
             {/* Floating panel */}
             <div
@@ -369,14 +369,13 @@ export default function PerfumeRecommender() {
                     )}
                 </div>
             </div>
-
             {/* Bubble button */}
             <button
                 type="button"
                 onClick={() => setIsOpen((o) => !o)}
                 aria-label="Open scent finder"
                 aria-expanded={isOpen}
-                className="flex items-center gap-2 px-4 h-[52px] rounded-full bg-primary text-[#fbf9f5] hover:scale-105 active:scale-95 transition-transform shadow-sm"
+                className="flex items-center gap-2 px-4 h-[52px] rounded-full bg-primary text-[#fbf9f5] hover:scale-105 active:scale-95 transition-transform shadow-sm pointer-events-auto"
             >
                 <span className="text-sm font-label whitespace-nowrap">Find your scent</span>
                 <span className="text-xl">✦</span>
