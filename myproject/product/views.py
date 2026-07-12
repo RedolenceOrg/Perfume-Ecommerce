@@ -4,8 +4,8 @@ from django.db.models import Count
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from myproject.utils import conditional_ratelimit
-from .serializers import AtomizerSerializer, PerfumeListSerializer, PerfumeSerializer, ThriftSerializer
-from .models import Atomizer, Perfume, Thrift,Notes
+from .serializers import AtomizerSerializer, NasalStripSerializer, PerfumeListSerializer, PerfumeSerializer, ThriftSerializer
+from .models import Atomizer, NasalStrip, Perfume, Thrift,Notes
 import json
 from django.views import View
 from django.http import JsonResponse
@@ -153,6 +153,15 @@ class ThriftPage(APIView):
         serializer = ThriftSerializer(thrifts, many=True)
         return Response(serializer.data)
     
+
+@method_decorator(csrf_protect, name='dispatch')   
+@method_decorator(conditional_ratelimit(rate='40/m'), name='get')
+class WellBeingPage(APIView):
+    def get(self, request):
+        nasal_strips = NasalStrip.objects.all()
+        serializer = NasalStripSerializer(nasal_strips, many=True)
+        return Response(serializer.data)
+
 @method_decorator(csrf_protect, name='dispatch')
 @method_decorator(conditional_ratelimit(rate='5/hr'), name='post')
 class recommender(View):        

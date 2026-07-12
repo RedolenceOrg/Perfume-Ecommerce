@@ -16,6 +16,8 @@ const COLLECTION_OPTIONS = [
     { label: 'Middle Eastern', value: 'middle_eastern' },
     { label: 'In House', value: 'in_house' },
 ];
+const PILL_BASE =
+    'min-h-[38px] px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-full border touch-manipulation select-none';
 
 export default function ShopSidebar({ brands, notes, families }: ShopSidebarProps) {
     const searchParams = useSearchParams();
@@ -84,7 +86,7 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
             <div className="lg:hidden w-full flex items-center justify-between mb-6 pb-4 border-b border-outline-variant/20">
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="flex items-center gap-2 border border-primary px-5 py-2.5 text-[11px] uppercase tracking-[0.25em] font-bold font-label hover:bg-primary hover:text-background transition-colors duration-300"
+                    className="flex items-center gap-2 border border-primary px-5 py-2.5 text-[11px] uppercase tracking-[0.25em] font-bold font-label hover:bg-primary hover:text-background transition-colors duration-300 touch-manipulation"
                 >
                     <span className="material-symbols-outlined text-sm">tune</span>
                     Filter Collection
@@ -114,7 +116,7 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                     <h2 className="font-headline text-sm uppercase tracking-widest text-primary font-bold">Filters</h2>
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="p-2 text-primary hover:text-secondary transition-colors"
+                        className="p-2 text-primary hover:text-secondary transition-colors touch-manipulation"
                         aria-label="Close filters"
                     >
                         <span className="material-symbols-outlined">close</span>
@@ -150,7 +152,7 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                                     router.push(`/shop?${params.toString()}`);
                                     if (id === 'notes-list') setNotes('');
                                     else setBrand('');
-                                }} className="px-4 py-2 bg-primary text-background border border-primary text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-transparent hover:text-primary">
+                                }} className="px-4 py-2 bg-primary text-background border border-primary text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-transparent hover:text-primary touch-manipulation">
                                     Add
                                 </button>
                             </div>
@@ -164,12 +166,12 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                 {/* Collection */}
                 <section>
                     <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">Collection</h3>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2.5">
                         {COLLECTION_OPTIONS.map(({ label, value }) => (
                             <button
                                 key={value}
                                 onClick={() => handleCollectionSelect(value)}
-                                className={`px-3.5 py-2 text-[9px] font-bold uppercase tracking-widest transition-all rounded-full border ${searchParams.getAll('collection').includes(value)
+                                className={`${PILL_BASE} ${searchParams.getAll('collection').includes(value)
                                     ? 'bg-primary text-background border-primary'
                                     : 'bg-surface-container-high border-transparent hover:border-outline-variant text-primary/80'
                                     }`}
@@ -183,7 +185,7 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                 {/* Scent Family */}
                 <section>
                     <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">Scent Family</h3>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2.5">
                         {families.map((f) => (
                             <button
                                 key={f}
@@ -195,7 +197,7 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                                         router.push(`/shop?${params.toString()}`);
                                     })
                                 }
-                                className={`px-3.5 py-2 text-[9px] font-bold uppercase tracking-widest transition-all rounded-full border ${searchParams.getAll('family').includes(f)
+                                className={`${PILL_BASE} ${searchParams.getAll('family').includes(f)
                                     ? 'bg-primary text-background border-primary'
                                     : 'bg-surface-container-high border-transparent hover:border-outline-variant text-primary/80'
                                     }`}
@@ -209,12 +211,12 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                 {/* Gender */}
                 <section>
                     <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">Gender</h3>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2.5">
                         {GENDER_OPTIONS.map((g) => (
                             <button
                                 key={g}
                                 onClick={() => handleGenderSelect(g)}
-                                className={`px-3.5 py-2 text-[9px] font-bold uppercase tracking-widest transition-all rounded-full border ${searchParams.get('gender') === g
+                                className={`${PILL_BASE} ${searchParams.get('gender') === g
                                     ? 'bg-primary text-background border-primary'
                                     : 'bg-surface-container-high border-transparent hover:border-outline-variant text-primary/80'
                                     }`}
@@ -253,7 +255,7 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                     </div>
                     <button
                         onClick={handlePriceCommit}
-                        className="mt-4 w-full py-2.5 bg-primary text-background text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity"
+                        className="mt-4 w-full py-2.5 bg-primary text-background text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity touch-manipulation"
                     >
                         Apply
                     </button>

@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 import uuid
+from product.models import Perfume, Decant, Thrift, AtomizerVariant, NasalStrip
+
 
 
 ORDER_STATUS_CHOICES = [
@@ -67,7 +69,7 @@ class OrderItem(models.Model):
     )
 
     def get_product(self, lock=False):
-        from product.models import Perfume, Decant, Thrift, AtomizerVariant
+
         
         if self.product_type == "perfume":
             qs = Perfume.objects.select_for_update() if lock else Perfume.objects
@@ -80,6 +82,9 @@ class OrderItem(models.Model):
             return qs.filter(id=self.product_id).first()
         if self.product_type == "atomizer":
             qs = AtomizerVariant.objects.select_for_update() if lock else AtomizerVariant.objects
+            return qs.filter(id=self.product_id).first()
+        if self.product_type == "nasalstrip":
+            qs = NasalStrip.objects.select_for_update() if lock else NasalStrip.objects
             return qs.filter(id=self.product_id).first()
         return None
 
@@ -105,7 +110,7 @@ class Cart(models.Model):
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
 
-    product_type = models.CharField(max_length=20)  # perfume / decant / thrift / atomizer
+    product_type = models.CharField(max_length=20)  # perfume / decant / thrift / atomizer / nasalstrip
     product_id = models.PositiveIntegerField()
 
     quantity = models.PositiveIntegerField(default=1)
@@ -139,7 +144,6 @@ class CartItem(models.Model):
         return f"{self.quantity} x {self.get_item_name()}"
 
     def get_product(self, lock=False):
-        from product.models import Perfume, Decant, Thrift, AtomizerVariant
 
         if self.product_type == "perfume":
             qs = Perfume.objects.select_for_update() if lock else Perfume.objects
@@ -152,6 +156,9 @@ class CartItem(models.Model):
             return qs.filter(id=self.product_id).first()
         if self.product_type == "atomizer":
             qs = AtomizerVariant.objects.select_for_update() if lock else AtomizerVariant.objects
+            return qs.filter(id=self.product_id).first()
+        if self.product_type == "nasalstrip":
+            qs = NasalStrip.objects.select_for_update() if lock else NasalStrip.objects
             return qs.filter(id=self.product_id).first()
         return None
     
@@ -173,5 +180,7 @@ class CartItem(models.Model):
 
         if self.product_type == "atomizer":
             return f"{product.atomizer.name} ({product.size}ml in {product.colors})"
+        if self.product_type == "nasalstrip":
+            return f"Nasal Strip"
 
         return "Unknown"

@@ -9,7 +9,7 @@ export default function NotePyramid({ perfume }: { perfume: Perfume }) {
 
   return (
     <section className="mb-16 px-4 sm:px-6 max-w-xl mx-auto md:max-w-none">
-      <h2 className="font-headline text-xl sm:text-2xl text-primary mb-8 uppercase tracking-widest text-center">
+      <h2 className="font-headline text-xl sm:text-2xl mb-8 uppercase tracking-widest text-center">
         Note Pyramid
       </h2>
 
