@@ -22,11 +22,11 @@ export default function PerfumeCard({ name, brand, price, primary_image, seconda
                 )}
 
                 {/* Slide-up Button */}
-                <div className="absolute inset-x-0 bottom-0 p-4 translate-y-3 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out">
-                    <button className="w-full border border-primary text-primary bg-surface-container/60 backdrop-blur-sm px-4 py-2.5 text-[9px] uppercase tracking-[0.25em] font-bold font-label transition-all duration-500 active:scale-[0.98] flex items-center justify-center gap-1.5">
+                <div className="absolute inset-x-0 bottom-0 p-4 translate-y-3 opacity-0 pointer-events-none group-hover:translate-y-0 group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-500 ease-out">
+                    <div className="w-full border border-primary text-primary bg-surface-container/60 backdrop-blur-sm px-4 py-2.5 text-[9px] uppercase tracking-[0.25em] font-bold font-label transition-all duration-500 active:scale-[0.98] flex items-center justify-center gap-1.5">
                         View
                         <span className="material-symbols-outlined text-[10px]">arrow_forward</span>
-                    </button>
+                    </div>
                 </div>
             </div>
 
