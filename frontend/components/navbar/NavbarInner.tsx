@@ -18,7 +18,7 @@ const navLinks = [
     { label: 'Attars', href: '/shop?type=Attar' },
     { label: 'Atomizer', href: '/atomizer' },
     { label: 'Thrift', href: '/thrift' },
-    //{ label: 'Wellbeing', href: '/wellbeing' },
+    { label: 'Wellbeing', href: '/wellbeing' },
     { label: 'Members', href: '/members', highlight: true },
 ];
 
