@@ -7,33 +7,28 @@ import { apiGet } from '@/context/api';
 
 export default function ProductGrid() {
     const [perfumes, setPerfumes] = useState<Perfume[]>([]);
-    const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
     const searchParams = useSearchParams();
 
-    const loadingRef = useRef(loading);
-    const hasMoreRef = useRef(hasMore);
+    const pageRef = useRef(1);
     const fetchingRef = useRef(false);
+    const hasMoreRef = useRef(true);
 
-    // Track the exact page we are currently fetching or have successfully fetched
-    const lastFetchedPageRef = useRef<number>(0);
-
-    useEffect(() => { loadingRef.current = loading; }, [loading]);
     useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
 
-    const fetchPerfumes = useCallback(async (currentPage: number, isReset: boolean) => {
-        if (fetchingRef.current && !isReset) return;
-        if (!isReset && currentPage <= lastFetchedPageRef.current) return;
+    const fetchPerfumes = useCallback(async (isReset = false) => {
+        if (fetchingRef.current) return;
+        if (!isReset && !hasMoreRef.current) return;
 
         fetchingRef.current = true;
-        lastFetchedPageRef.current = currentPage;
         setLoading(true);
 
+        const targetPage = isReset ? 1 : pageRef.current + 1;
+
         try {
-            // ✅ replace Object.fromEntries with this
             const params = new URLSearchParams();
-            params.set('page', currentPage.toString());
+            params.set('page', targetPage.toString());
             params.set('limit', '12');
             searchParams.forEach((value, key) => {
                 params.append(key, value);
@@ -44,50 +39,39 @@ export default function ProductGrid() {
 
             setPerfumes(prev => isReset ? data.perfumes : [...prev, ...data.perfumes]);
             setHasMore(data.has_more);
+
+
+            pageRef.current = targetPage;
         } catch (error) {
             console.error('Failed to fetch perfumes:', error);
-            lastFetchedPageRef.current = currentPage - 1;
         } finally {
             setLoading(false);
             fetchingRef.current = false;
         }
     }, [searchParams]);
 
-    // Handle Search Parameter changes (Reset Everything)
     useEffect(() => {
-        lastFetchedPageRef.current = 0; // Reset network tracker
+        pageRef.current = 1;
         setHasMore(true);
+        hasMoreRef.current = true;
         setPerfumes([]);
-        setPage(1);
 
-        // Fetch page 1 immediately for the new filters
-        fetchPerfumes(1, true);
+        fetchPerfumes(true);
     }, [searchParams, fetchPerfumes]);
 
-    // Handle Infinite Scroll Page Increments
-    useEffect(() => {
-        // Skip firing if it's the initial page 1 setup (handled by the searchParams effect)
-        if (page === 1 && lastFetchedPageRef.current === 1) return;
-
-        if (page > 1) {
-            fetchPerfumes(page, false);
-        }
-    }, [page, fetchPerfumes]);
-
+    // Intersection Observer callback
     const observer = useRef<IntersectionObserver | null>(null);
     const lastElementRef = useCallback((node: HTMLDivElement | null) => {
-        if (loadingRef.current) return;
         if (observer.current) observer.current.disconnect();
 
         observer.current = new IntersectionObserver(entries => {
-            // Only increment page if we aren't currently loading and there is more data
-            if (entries[0].isIntersecting && hasMoreRef.current && !loadingRef.current) {
-                setPage(prev => prev + 1);
+            if (entries[0].isIntersecting && hasMoreRef.current && !fetchingRef.current) {
+                fetchPerfumes(false);
             }
         });
 
         if (node) observer.current.observe(node);
-    }, []);
+    }, [fetchPerfumes]);
 
     return (
         <div className="flex-1">
