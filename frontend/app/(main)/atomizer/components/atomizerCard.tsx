@@ -2,13 +2,13 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Atomizer, AtomizerVariant } from '@/types/perfumes';
 import { authapiPost } from '@/context/api';
-import { toast } from 'react-toastify'
+import { toast } from 'react-toastify';
 
 export default function AtomizerCard({ atomizers }: { atomizers: Atomizer[] }) {
     if (!atomizers?.length) return null;
 
     return (
-        /* responsive padding and centering */
+        /* Responsive padding, centering, and surface background */
         <section className="w-full p-6 md:p-16 bg-surface flex flex-col items-center gap-8 md:gap-16">
             {atomizers.map((atomizer) => (
                 <AtomizerItem key={atomizer.id} atomizer={atomizer} />
@@ -33,7 +33,7 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
     // 3. Current selected variant state
     const [selectedVariant, setSelectedVariant] = useState<AtomizerVariant>(availableVariantsForSize[0]);
 
-    // Sync variant when size changes - useEffect is more appropriate for state updates
+    // Sync variant when size changes
     useEffect(() => {
         const match = availableVariantsForSize.find(v => v.colors === selectedVariant?.colors)
             || availableVariantsForSize[0];
@@ -45,25 +45,23 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
             product_type: 'atomizer',
             product_id: selectedVariant.id,
             quantity: 1
-        }
+        };
         try {
-            const res = await authapiPost('/cart/add-to-cart/', payload)
+            const res = await authapiPost('/cart/add-to-cart/', payload);
             if (!res.ok) {
-                toast.error('Failed to add to cart')
+                toast.error('Failed to add to cart');
+            } else {
+                toast.success('Added to cart');
             }
-            else {
-                toast.success('Added to cart')
-            }
+        } catch (err) {
+            toast.error("Failed — you must log in to add to cart");
         }
-        catch (err) {
-            toast.error("Failed you must log in to add to cart")
-        }
-    }
+    };
 
     return (
-        <div className="flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-8 p-4 md:p-6 max-w-sm md:max-w-2xl w-full border border-secondary/10 rounded-2xl shadow-xl bg-white overflow-hidden">
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-8 p-4 md:p-6 max-w-sm md:max-w-2xl w-full border-2 border-outline-variant shadow-xl bg-surface-container-lowest overflow-hidden">
 
-            {/* Image Section - Fixed aspect ratio for mobile */}
+            {/* Image Section */}
             <div className="relative w-full aspect-square md:aspect-auto">
                 <img
                     src={`${selectedVariant.image}`}
@@ -71,7 +69,7 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
                     className="w-full h-full object-cover rounded-xl"
                 />
                 {atomizer.is_premium && (
-                    <span className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+                    <span className="absolute top-3 left-3 bg-primary/90 backdrop-blur-sm text-surface-container-lowest text-[10px] px-3 py-1 rounded-full font-label font-bold uppercase tracking-wider">
                         Premium Edition
                     </span>
                 )}
@@ -80,8 +78,10 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
             {/* Content Section */}
             <div className="flex flex-col">
                 <div className="mb-4">
-                    <h1 className="text-xl md:text-2xl font-bold text-secondary">{atomizer.name}</h1>
-                    <p className="text-xs md:text-sm text-gray-500 mt-2 line-clamp-2 md:line-clamp-none">
+                    <h1 className="text-xl md:text-2xl font-headline font-bold text-primary">
+                        {atomizer.name}
+                    </h1>
+                    <p className="text-xs md:text-sm font-body text-outline mt-2 line-clamp-2 md:line-clamp-none">
                         {atomizer.description}
                     </p>
                 </div>
@@ -89,16 +89,18 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
                 <div className="space-y-6">
                     {/* Size Selection */}
                     <div>
-                        <span className="text-[10px] font-black uppercase text-gray-400 block mb-3 tracking-widest">Available Sizes</span>
+                        <span className="text-[10px] font-label font-black uppercase text-outline block mb-3 tracking-widest">
+                            Available Sizes
+                        </span>
                         <div className="flex flex-wrap gap-2">
                             {sizes.map((size) => (
                                 <button
                                     key={size}
                                     onClick={() => setSelectedSize(size)}
-                                    className={`px-4 py-2 text-xs font-bold border transition-all rounded-lg
+                                    className={`px-4 py-2 text-xs font-label font-bold border transition-all
                                         ${selectedSize === size
-                                            ? 'bg-secondary text-white border-secondary shadow-md scale-105'
-                                            : 'border-gray-200 text-gray-500 hover:border-secondary/50'}`}
+                                            ? 'bg-secondary text-surface-container-lowest border-secondary shadow-md scale-105'
+                                            : 'border-outline-variant text-outline bg-surface-container-low hover:border-secondary/50'}`}
                                 >
                                     {size}ml
                                 </button>
@@ -109,20 +111,21 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
                     {/* Color Selection */}
                     {availableVariantsForSize.some(v => v.colors !== '') && (
                         <div>
-                            <span className="text-[10px] font-black uppercase text-gray-400 block mb-3 tracking-widest">Select Color</span>
+                            <span className="text-[10px] font-label font-black uppercase text-outline block mb-3 tracking-widest">
+                                Select Color
+                            </span>
                             <div className="flex flex-wrap gap-4">
                                 {availableVariantsForSize.map((variant) => (
                                     <button
                                         key={variant.id}
                                         onClick={() => setSelectedVariant(variant)}
                                         title={variant.colors}
-                                        className={`w-8 h-8 rounded-full border-2 transition-all relative
+                                        className={`w-8 h-8 border-2 transition-all relative
                                             ${selectedVariant.id === variant.id
                                                 ? 'border-secondary scale-110 shadow-lg'
                                                 : 'border-transparent hover:scale-105'}`}
                                         style={{ backgroundColor: variant.colors.toLowerCase() }}
                                     >
-
                                     </button>
                                 ))}
                             </div>
@@ -130,17 +133,20 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
                     )}
                 </div>
 
-                {/* Footer Section - Sticks to bottom on desktop */}
-                <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between gap-4">
+                {/* Footer Section */}
+                <div className="mt-8 pt-6 border-t border-surface-container-high flex items-center justify-between gap-4">
                     <div className="flex flex-col">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase">Total Price</span>
-                        <span className="text-2xl font-body text-secondary">
-                            NRS{Number(selectedVariant?.price || 0).toFixed(2)}
+                        <span className="text-[10px] font-label font-bold text-outline uppercase">Total Price</span>
+                        <span className="text-2xl font-headline text-primary">
+                            NRS
+                        </span>
+                        <span className="text-2xl font-headline text-primary">
+                            {Number(selectedVariant?.price || 0).toFixed(2)}
                         </span>
                     </div>
                     <button
                         onClick={handleAddToCart}
-                        className="flex-1 md:flex-none bg-secondary px-8 py-3 text-white text-sm font-body rounded-xl hover:bg-secondary/90 transition-all shadow-lg active:scale-95 uppercase tracking-tight"
+                        className="flex-1 md:flex-none bg-primary px-8 py-3 text-surface-container-lowest text-lg font-label hover:bg-primary-container transition-all shadow-[5px_10px_10px_0px_rgba(0,0,0,0.5)] active:scale-95 uppercase tracking-tight"
                     >
                         Add to Cart
                     </button>

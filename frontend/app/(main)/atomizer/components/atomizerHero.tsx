@@ -18,7 +18,7 @@ export default function AtomizerHero() {
                     The Science of Scent
                 </span>
 
-                <h1 className="text-6xl md:text-9xl font-serif tracking-tighter text-white mb-8 leading-none">
+                <h1 className="text-6xl md:text-9xl font-headline tracking-tighter text-white mb-8 leading-none">
                     The <span className="italic font-light">Vessels</span>
                 </h1>
 
@@ -26,7 +26,7 @@ export default function AtomizerHero() {
 
                 <p className="text-lg md:text-xl font-body text-white/90 max-w-2xl mx-auto leading-relaxed tracking-wide">
                     Every drop is sacred. Our atomizers are engineered to produce a
-                    <span className="text-white font-medium italic"> micro-fine mist  </span>
+                    <span className="text-white font-body italic"> micro-fine mist  </span>
                     that captures the soul of every fragrance while preventing evaporation.
                 </p>
 

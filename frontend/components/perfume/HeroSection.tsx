@@ -18,6 +18,7 @@ export default function HeroSection({ perfume }: HeroProps) {
     const [selectedSize, setSelectedSize] = useState<Decant | 'full' | null>(null)
     const [quantity, setQuantity] = useState(1)
     const [selectedImage, setSelectedImage] = useState(primaryImage)
+    const [copied, setCopied] = useState(false) // State for clipboard feedback
 
     const currentMaxStock = useMemo(() =>
         selectedSize === 'full'
@@ -61,6 +62,17 @@ export default function HeroSection({ perfume }: HeroProps) {
             toast.error('You must log in to add to cart')
         }
     }, [selectedSize, perfume.id, quantity])
+
+    // Share Handler
+    const handleShare = useCallback(async () => {
+        try {
+            await navigator.clipboard.writeText(window.location.href)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+        } catch (err) {
+            toast.error('Failed to copy link')
+        }
+    }, [])
 
     return (
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10 px-6 lg:px-16 items-start pt-3 lg:pt-6">
@@ -213,7 +225,7 @@ export default function HeroSection({ perfume }: HeroProps) {
                     <button
                         disabled={isDisabled}
                         onClick={handleAddToCartSubmit}
-                        className={`flex-1 py-3 text-xs uppercase tracking-widest rounded-full transition-all duration-300
+                        className={`flex-1 py-3 text-xs uppercase tracking-widest transition-all duration-300
                             ${isDisabled
                                 ? 'bg-outline/20 text-outline cursor-not-allowed'
                                 : 'bg-primary hover:opacity-90 shadow-sm hover:shadow-md text-white'
@@ -221,9 +233,27 @@ export default function HeroSection({ perfume }: HeroProps) {
                     >
                         {!selectedSize ? 'Select a size' : currentMaxStock <= 0 ? 'Out of Stock' : 'Add to Cart'}
                     </button>
-                    <button className="material-symbols-outlined border border-outline/20 p-3 rounded-full hover:bg-surface-container-high transition">
-                        share
-                    </button>
+
+                    {/* Share Button with Clipboard and Tooltip */}
+                    <div className="relative inline-block">
+                        <button
+                            onClick={handleShare}
+                            title="Share Link"
+                            className={`material-symbols-outlined border p-3 transition-all duration-300 ${copied
+                                ? 'border-emerald-600 bg-emerald-50 text-emerald-600 scale-105'
+                                : 'border-outline/20 hover:bg-surface-container-high'
+                                }`}
+                        >
+                            {copied ? 'check' : 'share'}
+                        </button>
+
+                        {/* Tooltip Popup */}
+                        {copied && (
+                            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 text-[10px] font-semibold text-white bg-primary rounded shadow-md whitespace-nowrap animate-fadeIn">
+                                Link Copied!
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <div className="border-t border-outline/10 pt-6">

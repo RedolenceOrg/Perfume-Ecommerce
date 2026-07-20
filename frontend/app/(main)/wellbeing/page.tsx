@@ -11,7 +11,7 @@ export default async function Page() {
 
     if (!nasalStrip) {
         return (
-            <main className="max-w-screen-2xl mx-auto pt-[66px] px-6 lg:px-16 py-24 text-center">
+            <main className="max-w-screen-2xl mx-auto pt-[88px] px-6 lg:px-16 py-24 text-center">
                 <p className="font-body text-outline">
                     Nasal strips are coming soon — check back shortly.
                 </p>
