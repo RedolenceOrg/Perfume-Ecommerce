@@ -304,7 +304,7 @@ export default function NavbarInner() {
 
             {/* Backdrop */}
             <div
-                className={`fixed inset-0 z-40 bg-[#271310]/20 backdrop-blur-sm transition-opacity duration-500 md:hidden
+                className={`fixed inset-0 z-40 bg-[#271310]/20 backdrop-blur-sm transition-opacity duration-500 xl:hidden
                     ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}
                 `}
                 onClick={() => setIsMenuOpen(false)}
@@ -312,7 +312,7 @@ export default function NavbarInner() {
 
             {/* Side Drawer */}
             <div
-                className={`fixed top-0 right-0 bottom-0 z-40 w-full max-w-[280px] bg-background border-l border-outline-variant/20 p-8 pt-24 shadow-2xl transition-transform duration-500 ease-out md:hidden overflow-y-auto
+                className={`fixed top-0 right-0 bottom-0 z-40 w-full max-w-[280px] bg-background border-l border-outline-variant/20 p-8 pt-24 shadow-2xl transition-transform duration-500 ease-out xl:hidden overflow-y-auto
                     ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}
                 `}
             >
