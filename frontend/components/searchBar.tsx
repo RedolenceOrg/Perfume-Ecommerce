@@ -26,7 +26,7 @@ interface SearchBarProps {
 
 export default function SearchBar({
     endpoint = '/api/search/',
-    placeholder = 'Search perfumes...',
+    placeholder = 'Search perfumes, brands...',
     minChars = 2,
     debounceMs = 300,
     className = 'max-w-xl',
@@ -171,7 +171,8 @@ export default function SearchBar({
                 <div
                     id="search-results-listbox"
                     role="listbox"
-                    className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[420px] overflow-y-auto rounded-xl border border-gray-200 bg-surface p-1.5 shadow-lg"
+                    data-lenis-prevent
+                    className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-[420px] overflow-y-auto overscroll-contain rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg"
                 >
                     {error && <div className="px-3 py-3.5 text-center text-sm text-gray-500">{error}</div>}
 
