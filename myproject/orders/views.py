@@ -340,7 +340,7 @@ class CheckoutView(LoginRequiredMixin, View):
                 order.status = 'processing'
                 order.save()
                 send_order_confirmation_email(request.user.email, order.id,order.total_amount)
-                send_order_confirmation_whatsapp(f'977{str(order.phone_number)}',str(order.id),str(total_amount) ,request.user.first_name, )
+                # send_order_confirmation_whatsapp(f'977{str(order.phone_number)}',str(order.id),str(total_amount) ,request.user.first_name, )
                 cart.items.all().delete()
                 return JsonResponse({
                     'purchase_order_id': str(order.id),
@@ -415,15 +415,15 @@ class CartDetailView(LoginRequiredMixin, View):
 
             if product:
                 if item.product_type == "atomizer":
-                    img_url = product.image.url if product.image else ""
+                    img_url = product.image.url if product.image else None
                 if item.product_type == "nasalstrip":
-                    img_url = product.image.url if product.image else ""
+                    img_url = product.image.url if product.image else None
                 if item.product_type == "thrift":
-                    img_url = product.images.first().image.url if product.images.exists() else ""
-                elif item.product_type in ["perfume", "decant",]:
+                    img_url = product.images.first().image.url if product.images.exists() else None
+                elif item.product_type in ["perfume", "decant"]:
                     perfume = product.perfume if hasattr(product, "perfume") else product
                     img = perfume.images.filter(is_primary=True).first()
-                    img_url = img.image.url if img else ""
+                    img_url = img.image.url if img else None
 
             items.append({  
                 "id": item.id,

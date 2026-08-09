@@ -25,13 +25,19 @@ export default function CartItemCard({ item, onRemove, onUpdateQuantity }: CartI
                 </div>
             )}
 
-            {/* Image Box - Centered on mobile, aligned left on desktop */}
+            {/* Image Box */}
             <div className="w-full sm:w-44 h-48 sm:h-46 bg-surface-container-low rounded-lg overflow-hidden flex-shrink-0 border border-outline-variant/20 flex items-center justify-center">
-                <img
-                    className="w-full h-full object-contain p-4 sm:p-2"
-                    src={`${item.images}`}
-                    alt={item.perfume_name}
-                />
+                {item.images ? (
+                    <img
+                        className="w-full h-full object-contain p-4 sm:p-2"
+                        src={item.images}
+                        alt={item.perfume_name}
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-outline text-xs uppercase tracking-widest">
+                        No image
+                    </div>
+                )}
             </div>
 
             {/* Item Info */}
