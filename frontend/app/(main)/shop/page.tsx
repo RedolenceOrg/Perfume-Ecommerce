@@ -3,6 +3,7 @@ import { apiGet } from "@/context/api";
 import FilterTag from "./components/FilterTag";
 import ProductGrid from "./components/ProductGrid";
 import ShopSidebar from "./components/Sidebar";
+import SearchBar from "@/components/searchBar";
 
 export default async function Shop() {
     try {
@@ -19,7 +20,10 @@ export default async function Shop() {
                         </Suspense>
                     </div>
                     <div className="flex-1 min-w-0">
-                        <h1 className="font-headline text-3xl md:text-4xl mb-6 md:mb-8 text-primary">The Collection</h1>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 md:mb-8">
+                            <h1 className="font-headline text-3xl md:text-4xl text-primary">The Collection</h1>
+                            <SearchBar className="w-full sm:max-w-sm" />
+                        </div>
                         <Suspense fallback={null}>
                             <FilterTag />
                         </Suspense>
