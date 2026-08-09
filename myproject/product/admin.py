@@ -3,7 +3,7 @@ from .models import (
     Atomizer, AtomizerVariant, NasalStrip,
     Perfume, PerfumeImage, PerfumeNote,
     Notes, Family, Brand,
-    Decant, Longevity, Sillage, Thrift
+    Decant, Longevity, Sillage, Thrift, ThriftImage
 )
 
 
@@ -23,6 +23,9 @@ class ThriftInline(admin.TabularInline):
     extra = 0
     fields = ['remaining_juice', 'thrift_price', 'stock', 'reserved', 'available_stock']
     readonly_fields = ['reserved', 'available_stock']
+class ThriftImageInline(admin.TabularInline):
+    model = ThriftImage
+    extra = 1
 
 
 class PerfumeImageInline(admin.TabularInline):
@@ -94,12 +97,12 @@ class DecantAdmin(admin.ModelAdmin):
 # ──────────────────────────────────────────
 @admin.register(Thrift)
 class ThriftAdmin(admin.ModelAdmin):
-    
+    inlines =  [ThriftImageInline]
     list_display = ['perfume', 'remaining_juice', 'thrift_price', 'stock', 'reserved', 'colored_available_stock']
     search_fields = ['perfume__name']
     ordering = ['-stock', 'perfume__name']
     readonly_fields = ['reserved', 'available_stock']
-    fields = ['perfume', 'remaining_juice', 'thrift_price', 'stock', 'reserved', 'available_stock']
+    fields = ['perfume', 'remaining_juice', 'thrift_price', 'stock', 'reserved', 'available_stock',]
 
     @admin.display(description='Available Stock', ordering='stock')
     def colored_available_stock(self, obj):

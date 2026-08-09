@@ -118,19 +118,15 @@ class ThriftSerializer(serializers.ModelSerializer):
     brand = serializers.CharField(source='perfume.brand.name', read_only=True)
     perfume_id = serializers.IntegerField(source='perfume.id', read_only=True)
     available_stock = serializers.ReadOnlyField()
-    primary_image = serializers.SerializerMethodField()
-    secondary_image = serializers.SerializerMethodField()
-
-    def get_primary_image(self, obj):
-        img = next((i for i in obj.perfume.images.all() if i.is_primary), None) or obj.perfume.images.first()
-        return img.image.url if img else None
-
-    def get_secondary_image(self, obj):
-        img = next((i for i in obj.perfume.images.all() if not i.is_primary), None)
-        return img.image.url if img else None
+    images = serializers.SerializerMethodField()
 
     class Meta:
         model = Thrift
-        fields = ['id', 'perfume_id', 'perfume_name', 'brand', 'remaining_juice', 'thrift_price', 'primary_image', 'secondary_image', 'available_stock']
-
-
+        fields = [
+            'id', 'perfume_id', 'perfume_name', 'brand',
+            'remaining_juice', 'thrift_price',
+            'images', 'available_stock'
+        ]
+    def get_images(self, obj):
+        images = obj.images.all()
+        return [{'image': image.image.url} for image in images]
