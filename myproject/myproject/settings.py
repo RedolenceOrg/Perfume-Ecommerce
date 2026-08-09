@@ -90,7 +90,7 @@ EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
 ANYMAIL = {
     "RESEND_API_KEY": config("RESEND_API_KEY"),
 }
-DEFAULT_FROM_EMAIL = "noreply@contact.redolencenepal.com"
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@contact.redolencenepal.com')
 RATELIMIT_VIEW = 'myproject.utils.ratelimit_exceeded'
 
 ROOT_URLCONF = 'myproject.urls'
