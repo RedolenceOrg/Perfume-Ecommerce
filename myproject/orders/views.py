@@ -418,7 +418,9 @@ class CartDetailView(LoginRequiredMixin, View):
                     img_url = product.image.url if product.image else ""
                 if item.product_type == "nasalstrip":
                     img_url = product.image.url if product.image else ""
-                elif item.product_type in ["perfume", "decant", "thrift",]:
+                if item.product_type == "thrift":
+                    img_url = product.images.first().image.url if product.images.exists() else ""
+                elif item.product_type in ["perfume", "decant",]:
                     perfume = product.perfume if hasattr(product, "perfume") else product
                     img = perfume.images.filter(is_primary=True).first()
                     img_url = img.image.url if img else ""
