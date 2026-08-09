@@ -2,6 +2,9 @@ export interface PerfumeImage {
     image: string;
     is_primary: boolean;
 }
+export interface ImageObject {
+    image: string;
+}
 
 export interface Notes {
     top: string[];
@@ -69,8 +72,7 @@ export interface Thrift {
     brand: string;
     remaining_juice: number;
     thrift_price: number;
-    primary_image: string;
-    secondary_image: string;
+    images: ImageObject[];
     available_stock: number;
 }
 export interface CartItem {
