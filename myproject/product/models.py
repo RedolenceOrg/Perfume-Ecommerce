@@ -129,21 +129,23 @@ class AtomizerVariant(models.Model):
     @property
     def available_stock(self):
         return self.stock - self.reserved
-    
+
+class ThriftImage(models.Model):
+    thrift  = models.ForeignKey('Thrift', on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='thrift_images/')
+
 class Thrift(models.Model):
     perfume = models.ForeignKey(Perfume, on_delete=models.CASCADE, related_name='thrifts')
-    remaining_juice = models.DecimalField(max_digits=5, decimal_places=2)  # Remaining juice in ml
+    remaining_juice = models.DecimalField(max_digits=5, decimal_places=2)
     thrift_price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=1)
     reserved = models.PositiveIntegerField(default=0)
-
     @property
     def available_stock(self):
         return self.stock - self.reserved
 
     def __str__(self):
-        return f"{self.perfume.name} - Thrift Condition: {self.remaining_juice} Status - {'Available' if self.available_stock > 0 else 
-        'Sold'}"
+        return f"{self.perfume.name} - Thrift Condition: {self.remaining_juice} Status - {'Available' if self.available_stock > 0 else 'Sold'}"
 
 class NasalStrip(models.Model):
     price = models.DecimalField(max_digits=5, decimal_places=2)
