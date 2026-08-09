@@ -1,4 +1,5 @@
 
+from django.db.models import Q
 from rest_framework.views import APIView
 from django.db.models import Count
 from rest_framework.response import Response
@@ -246,7 +247,7 @@ Map the user's free-text notes to the closest matches in the list."""
 Given this occasion: "{body.get('occasion')}"
 And these candidate perfumes: {json.dumps(perfumes)}
 
-Pick the top 3 best fits for the occasion.
+Pick the top 3 best fits for the occasion. Do not repeat perfumes.
 Return a JSON object with key "recommendations": array of exactly 3 objects, each with:
 - name: string
 - brand: string
@@ -271,3 +272,19 @@ Return a JSON object with key "recommendations": array of exactly 3 objects, eac
                 rec["link"] = "#"
 
         return JsonResponse(result)
+
+class SearchView(APIView):
+    def get(self, request):
+        query = request.query_params.get('q', '').strip()
+        if not query:
+            return Response({"error": "Query parameter 'q' is required."}, status=400)
+
+        perfumes = (
+            Perfume.objects
+            .filter(Q(name__icontains=query) | Q(brand__name__icontains=query))
+            .select_related('brand')
+            .prefetch_related('images')
+            .distinct()[:10]
+        )
+        serializer = PerfumeListSerializer(perfumes, many=True)
+        return Response(serializer.data)
