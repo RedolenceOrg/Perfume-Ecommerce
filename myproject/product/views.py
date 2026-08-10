@@ -169,16 +169,22 @@ class SearchView(APIView):
         if not query:
             return Response({"error": "Query parameter 'q' is required."}, status=400)
 
+        words = query.split()
+        if len(words) > 10:
+            return Response({"error": "Query parameter 'q' can contain a maximum of 10 words."}, status=400)
+        q_filter = Q()
+        for word in words:
+            q_filter &= (Q(name__icontains=word) | Q(brand__name__icontains=word))
+
         perfumes = (
             Perfume.objects
-            .filter(Q(name__icontains=query) | Q(brand__name__icontains=query))
+            .filter(q_filter)
             .select_related('brand')
             .prefetch_related('images')
             .distinct()[:10]
         )
         serializer = PerfumeListSerializer(perfumes, many=True)
         return Response(serializer.data)
-
     
 @method_decorator(conditional_ratelimit(rate='10/hr'), name='post')
 @method_decorator(csrf_protect, name='dispatch')
