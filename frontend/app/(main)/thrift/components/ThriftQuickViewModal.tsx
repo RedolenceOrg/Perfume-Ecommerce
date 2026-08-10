@@ -111,7 +111,7 @@ export default function ThriftQuickViewModal({ thrift, onClose, onAddToCart }: T
 
                     <button
                         onClick={onAddToCart}
-                        className="mt-auto w-full bg-black text-white text-[10px] font-bold uppercase tracking-widest py-3 rounded"
+                        className="mt-auto w-full bg-primary text-white text-[10px] font-bold uppercase tracking-widest py-3 rounded"
                     >
                         Add to Cart
                     </button>

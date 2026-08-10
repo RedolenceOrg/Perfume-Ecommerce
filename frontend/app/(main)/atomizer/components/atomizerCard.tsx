@@ -146,7 +146,7 @@ function AtomizerItem({ atomizer }: { atomizer: Atomizer }) {
                     </div>
                     <button
                         onClick={handleAddToCart}
-                        className="flex-1 md:flex-none bg-secondary px-8 py-3 text-surface-container-lowest text-lg font-label hover:bg-primary-container transition-all shadow-[5px_10px_10px_0px_rgba(0,0,0,0.5)] active:scale-95 uppercase tracking-tight"
+                        className="flex-1 md:flex-none bg-primary px-8 py-3 text-surface-container-lowest text-lg font-label hover:bg-primary-container transition-all shadow-[5px_10px_10px_0px_rgba(0,0,0,0.5)] active:scale-95 uppercase tracking-tight"
                     >
                         Add to Cart
                     </button>

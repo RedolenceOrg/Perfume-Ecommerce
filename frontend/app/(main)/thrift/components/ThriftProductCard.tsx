@@ -42,7 +42,7 @@ export default function ThriftProductCard({ thrift }: { thrift: Thrift }) {
     return (
         <>
             <div className="relative border border-outline-variant border-2 bg-surface p-4 flex flex-col group transition-all duration-200 hover:border-outline h-full">
-                <div className='bg-black text-white text-[10px] font-bold font-body uppercase tracking-widest px-2 py-1 absolute top-2 left-0 z-10 border border-outline rounded-r-xl'
+                <div className='bg-primary text-white text-[10px] font-bold font-body uppercase tracking-widest px-2 py-1 absolute top-2 left-0 z-10 border border-outline rounded-r-xl'
                     style={{ width: `${Number(thrift.remaining_juice)}%` }}>
                     Remaining: {Number(thrift.remaining_juice)}%
                 </div>
@@ -59,7 +59,7 @@ export default function ThriftProductCard({ thrift }: { thrift: Thrift }) {
                     {/* Desktop only: hover-triggered overlay */}
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="hidden md:block absolute bottom-0 left-0 right-0 bg-black text-white text-[10px] font-bold uppercase tracking-widest py-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"
+                        className="hidden md:block absolute bottom-0 left-0 right-0 bg-primary text-white text-[10px] font-bold uppercase tracking-widest py-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"
                     >
                         View
                     </button>
@@ -82,7 +82,7 @@ export default function ThriftProductCard({ thrift }: { thrift: Thrift }) {
 
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="md:hidden mt-auto pt-4 w-full bg-black text-white text-[10px] font-bold uppercase tracking-widest py-3 rounded"
+                        className="md:hidden mt-auto pt-4 w-full bg-primary text-white text-[10px] font-bold uppercase tracking-widest py-3 rounded"
                     >
                         View
                     </button>
