@@ -153,7 +153,7 @@ export default function SearchBar({
                     onFocus={() => query.trim().length >= minChars && setIsOpen(true)}
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder}
-                    className="w-full border-0 border-b border-gray-300 bg-transparent py-2.5 pl-9 pr-9 text-sm text-gray-900 outline-none transition-colors focus:border-gray-900"
+                    className="w-full border-0 border-b border-outline-variant bg-transparent py-2.5 pl-9 pr-9 text-sm text-primary outline-none transition-colors focus:border-secondary"
                     role="combobox"
                     aria-expanded={showDropdown}
                     aria-autocomplete="list"

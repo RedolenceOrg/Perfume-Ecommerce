@@ -8,6 +8,7 @@ interface User {
     email: string
     first_name: string
     isVerified: boolean
+    rank: boolean
 }
 
 interface AuthContextType {
