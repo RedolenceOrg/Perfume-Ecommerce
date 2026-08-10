@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 interface ShopSidebarProps {
@@ -17,7 +17,69 @@ const COLLECTION_OPTIONS = [
     { label: 'In House', value: 'in_house' },
 ];
 const PILL_BASE =
-    'min-h-[38px] px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-full border touch-manipulation select-none';
+    'min-h-[38px] px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest transition-all rounded-full border touch-manipulation select-none disabled:opacity-50 disabled:cursor-not-allowed';
+
+// ─── Accordion section wrapper ──────────────────────────────────────────────
+function AccordionSection({
+    label,
+    hasSelection,
+    expanded,
+    onToggle,
+    children,
+}: {
+    label: string;
+    hasSelection: boolean;
+    expanded: boolean;
+    onToggle: () => void;
+    children: React.ReactNode;
+}) {
+    const forcedOpen = hasSelection || expanded;
+    const rowClass = forcedOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr] group-hover:grid-rows-[1fr]';
+    // opacity must ALSO have a pure-CSS hover fallback — forcedOpen alone only
+    // reacts to clicks, so on desktop hover-only interaction it stayed at 0.
+    const opacityClass = forcedOpen
+        ? 'opacity-100 delay-100'
+        : 'opacity-0 group-hover:opacity-100 group-hover:delay-100';
+
+    return (
+        <section className="group">
+            <div
+                role="button"
+                tabIndex={0}
+                aria-expanded={forcedOpen}
+                onClick={() => {
+                    if (!hasSelection) onToggle();
+                }}
+                onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !hasSelection) {
+                        e.preventDefault();
+                        onToggle();
+                    }
+                }}
+                className={`flex items-center justify-between border-b pb-3 transition-colors duration-300 ${hasSelection ? 'border-primary cursor-default' : 'border-outline-variant cursor-pointer'
+                    }`}
+            >
+                <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold">
+                    {label}
+                </h3>
+                <span
+                    className={`material-symbols-outlined text-lg text-outline transition-transform duration-300 ${forcedOpen ? 'rotate-180' : 'rotate-0'
+                        }`}
+                >
+                    expand_more
+                </span>
+            </div>
+
+            <div className={`grid transition-[grid-template-rows] duration-400 ease-out ${rowClass}`}>
+                <div className="overflow-hidden">
+                    <div className={`pt-5 transition-opacity duration-300 ${opacityClass}`}>
+                        {children}
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
 
 export default function ShopSidebar({ brands, notes, families }: ShopSidebarProps) {
     const searchParams = useSearchParams();
@@ -27,6 +89,17 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
     const [isOpen, setIsOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+
+    function toggleSection(key: string) {
+        setExpandedSections((prev) => {
+            const next = new Set(prev);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
+    }
 
     useEffect(() => {
         const urlMin = searchParams.get('price_min');
@@ -44,41 +117,74 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
         return () => { document.body.style.overflow = ''; };
     }, [isOpen]);
 
-    const handlePriceCommit = () => {
+    function navigate(buildParams: (params: URLSearchParams) => void) {
+        if (isPending) return;
         const params = new URLSearchParams(searchParams.toString());
-        if (minPrice) params.set('price_min', minPrice);
-        else params.delete('price_min');
-        if (maxPrice) params.set('price_max', maxPrice);
-        else params.delete('price_max');
-        router.push(`/shop?${params.toString()}`);
-    };
+        buildParams(params);
+        startTransition(() => {
+            router.push(`/shop?${params.toString()}`, { scroll: false });
+        });
+    }
 
-    const toggleFilter = (item: string, list: string[], setList: (l: string[]) => void) => {
-        setList(list.includes(item) ? list.filter(i => i !== item) : [...list, item]);
+    const handlePriceCommit = () => {
+        navigate((params) => {
+            if (minPrice) params.set('price_min', minPrice);
+            else params.delete('price_min');
+            if (maxPrice) params.set('price_max', maxPrice);
+            else params.delete('price_max');
+        });
     };
 
     const handleGenderSelect = (g: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        const current = searchParams.get('gender');
-        if (current === g) {
-            params.delete('gender');
-        } else {
-            params.set('gender', g);
-        }
-        router.push(`/shop?${params.toString()}`);
+        navigate((params) => {
+            const current = searchParams.get('gender');
+            if (current === g) params.delete('gender');
+            else params.set('gender', g);
+        });
     };
 
     const handleCollectionSelect = (value: string) => {
-        const params = new URLSearchParams(searchParams.toString());
-        const current = searchParams.getAll('collection');
-        if (current.includes(value)) {
+        navigate((params) => {
+            const current = searchParams.getAll('collection');
             params.delete('collection');
-            current.filter(v => v !== value).forEach(v => params.append('collection', v));
-        } else {
-            params.append('collection', value);
-        }
-        router.push(`/shop?${params.toString()}`);
+            if (current.includes(value)) {
+                current.filter((v) => v !== value).forEach((v) => params.append('collection', v));
+            } else {
+                current.forEach((v) => params.append('collection', v));
+                params.append('collection', value);
+            }
+        });
     };
+
+    const handleFamilySelect = (f: string) => {
+        navigate((params) => {
+            const current = searchParams.getAll('family');
+            params.delete('family');
+            if (current.includes(f)) {
+                current.filter((v) => v !== f).forEach((v) => params.append('family', v));
+            } else {
+                current.forEach((v) => params.append('family', v));
+                params.append('family', f);
+            }
+        });
+    };
+
+    const handleAddText = (kind: 'note' | 'brand') => {
+        const value = kind === 'note' ? Filternotes : Filterbrand;
+        if (!value) return;
+        navigate((params) => {
+            params.append(kind, value);
+        });
+        if (kind === 'note') setNotes('');
+        else setBrand('');
+    };
+
+    const hasBrand = searchParams.getAll('brand').length > 0;
+    const hasNote = searchParams.getAll('note').length > 0;
+    const hasCollection = searchParams.getAll('collection').length > 0;
+    const hasFamily = searchParams.getAll('family').length > 0;
+    const hasGender = !!searchParams.get('gender');
+    const hasPrice = !!searchParams.get('price_min') || !!searchParams.get('price_max');
 
     return (
         <>
@@ -105,9 +211,11 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
             />
 
             {/* Sidebar Shell */}
-            <aside className={`
+            <aside
+                data-lenis-prevent
+                className={`
                 fixed top-0 left-0 bottom-0 z-50 w-full max-w-[320px] bg-background p-6 overflow-y-auto shadow-2xl transition-transform duration-500 ease-out
-                lg:static lg:w-72 lg:max-w-none lg:p-0 lg:z-auto lg:shadow-none lg:bg-transparent lg:translate-x-0 lg:overflow-y-visible lg:border-r lg:border-outline-variant/10 lg:pr-8 space-y-10
+                lg:sticky lg:top-6 lg:w-72 lg:max-w-none lg:p-0 lg:z-auto lg:shadow-none lg:bg-transparent lg:translate-x-0 lg:overflow-y-auto lg:max-h-[calc(100vh-3rem)] lg:border-r lg:border-outline-variant/10 lg:pr-8 space-y-8
                 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
 
@@ -124,53 +232,53 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                 </div>
 
                 {/* Brand & Notes */}
-                <section className="space-y-6">
-                    {[
-                        { label: 'Search Brand', id: 'brand-list', data: brands, placeholder: 'Type to search...' },
-                        { label: 'Search Notes', id: 'notes-list', data: notes, placeholder: 'e.g. Vanilla, Oud...' },
-                    ].map(({ label, id, data, placeholder }) => (
-                        <div key={id}>
-                            <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">{label}</h3>
-                            <div className="flex gap-2 items-end">
-                                <input
-                                    type="text"
-                                    list={id}
-                                    onChange={(e) => {
-                                        if (id === 'notes-list') setNotes(e.target.value);
-                                        else setBrand(e.target.value);
-                                    }}
-                                    value={id === 'notes-list' ? Filternotes : Filterbrand}
-                                    placeholder={placeholder}
-                                    className="flex-1 bg-transparent border-b border-outline-variant py-2 px-1 text-sm focus:outline-none focus:border-primary transition-colors font-body"
-                                />
-                                <button onClick={() => {
-                                    const key = id === 'notes-list' ? 'note' : 'brand';
-                                    const value = id === 'notes-list' ? Filternotes : Filterbrand;
-                                    if (!value) return;
-                                    const params = new URLSearchParams(searchParams.toString());
-                                    params.append(key, value);
-                                    router.push(`/shop?${params.toString()}`);
-                                    if (id === 'notes-list') setNotes('');
-                                    else setBrand('');
-                                }} className="px-4 py-2 bg-primary text-background border border-primary text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-transparent hover:text-primary touch-manipulation">
-                                    Add
-                                </button>
-                            </div>
-                            <datalist id={id}>
-                                {data.map((item) => <option key={item} value={item} />)}
-                            </datalist>
+                {[
+                    { label: 'Search Brand', id: 'brand-list', key: 'brand', data: brands, placeholder: 'Type to search...', kind: 'brand' as const, hasSelection: hasBrand, value: Filterbrand, setValue: setBrand },
+                    { label: 'Search Notes', id: 'notes-list', key: 'notes', data: notes, placeholder: 'e.g. Vanilla, Oud...', kind: 'note' as const, hasSelection: hasNote, value: Filternotes, setValue: setNotes },
+                ].map(({ label, id, key, data, placeholder, kind, hasSelection, value, setValue }) => (
+                    <AccordionSection
+                        key={key}
+                        label={label}
+                        hasSelection={hasSelection}
+                        expanded={expandedSections.has(key)}
+                        onToggle={() => toggleSection(key)}
+                    >
+                        <div className="flex gap-2 items-end">
+                            <input
+                                type="text"
+                                list={id}
+                                onChange={(e) => setValue(e.target.value)}
+                                value={value}
+                                placeholder={placeholder}
+                                className="flex-1 bg-transparent border-b border-outline-variant py-2 px-1 text-sm focus:outline-none focus:border-primary transition-colors font-body"
+                            />
+                            <button
+                                onClick={() => handleAddText(kind)}
+                                disabled={isPending}
+                                className="px-4 py-2 bg-primary text-background border border-primary text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-transparent hover:text-primary touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Add
+                            </button>
                         </div>
-                    ))}
-                </section>
+                        <datalist id={id}>
+                            {data.map((item) => <option key={item} value={item} />)}
+                        </datalist>
+                    </AccordionSection>
+                ))}
 
                 {/* Collection */}
-                <section>
-                    <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">Collection</h3>
+                <AccordionSection
+                    label="Collection"
+                    hasSelection={hasCollection}
+                    expanded={expandedSections.has('collection')}
+                    onToggle={() => toggleSection('collection')}
+                >
                     <div className="flex flex-wrap gap-2.5">
                         {COLLECTION_OPTIONS.map(({ label, value }) => (
                             <button
                                 key={value}
                                 onClick={() => handleCollectionSelect(value)}
+                                disabled={isPending}
                                 className={`${PILL_BASE} ${searchParams.getAll('collection').includes(value)
                                     ? 'bg-primary text-background border-primary'
                                     : 'bg-surface-container-high border-transparent hover:border-outline-variant text-primary/80'
@@ -180,42 +288,21 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                             </button>
                         ))}
                     </div>
-                </section>
-
-                {/* Scent Family */}
-                <section>
-                    <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">Scent Family</h3>
-                    <div className="flex flex-wrap gap-2.5">
-                        {families.map((f) => (
-                            <button
-                                key={f}
-                                onClick={() =>
-                                    toggleFilter(f, searchParams.getAll('family'), (vals) => {
-                                        const params = new URLSearchParams(searchParams.toString());
-                                        params.delete('family');
-                                        vals.forEach(v => params.append('family', v));
-                                        router.push(`/shop?${params.toString()}`);
-                                    })
-                                }
-                                className={`${PILL_BASE} ${searchParams.getAll('family').includes(f)
-                                    ? 'bg-primary text-background border-primary'
-                                    : 'bg-surface-container-high border-transparent hover:border-outline-variant text-primary/80'
-                                    }`}
-                            >
-                                {f}
-                            </button>
-                        ))}
-                    </div>
-                </section>
+                </AccordionSection>
 
                 {/* Gender */}
-                <section>
-                    <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">Gender</h3>
+                <AccordionSection
+                    label="Gender"
+                    hasSelection={hasGender}
+                    expanded={expandedSections.has('gender')}
+                    onToggle={() => toggleSection('gender')}
+                >
                     <div className="flex flex-wrap gap-2.5">
                         {GENDER_OPTIONS.map((g) => (
                             <button
                                 key={g}
                                 onClick={() => handleGenderSelect(g)}
+                                disabled={isPending}
                                 className={`${PILL_BASE} ${searchParams.get('gender') === g
                                     ? 'bg-primary text-background border-primary'
                                     : 'bg-surface-container-high border-transparent hover:border-outline-variant text-primary/80'
@@ -225,11 +312,15 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                             </button>
                         ))}
                     </div>
-                </section>
+                </AccordionSection>
 
                 {/* Price Range */}
-                <section>
-                    <h3 className="font-headline text-xs uppercase tracking-[0.3em] text-secondary font-bold mb-4">Price Range</h3>
+                <AccordionSection
+                    label="Price Range"
+                    hasSelection={hasPrice}
+                    expanded={expandedSections.has('price')}
+                    onToggle={() => toggleSection('price')}
+                >
                     <div className="flex items-center gap-3">
                         <div className="flex-1">
                             <p className="text-[9px] uppercase tracking-widest text-outline mb-1.5">Min</p>
@@ -255,11 +346,36 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                     </div>
                     <button
                         onClick={handlePriceCommit}
-                        className="mt-4 w-full py-2.5 bg-primary text-background text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity touch-manipulation"
+                        disabled={isPending}
+                        className="mt-4 w-full py-2.5 bg-primary text-background text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-opacity touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         Apply
                     </button>
-                </section>
+                </AccordionSection>
+
+                {/* Scent Family — last, since backend-driven length can vary and shouldn't push other filters around */}
+                <AccordionSection
+                    label="Scent Family"
+                    hasSelection={hasFamily}
+                    expanded={expandedSections.has('family')}
+                    onToggle={() => toggleSection('family')}
+                >
+                    <div className="flex flex-wrap gap-2.5">
+                        {families.map((f) => (
+                            <button
+                                key={f}
+                                onClick={() => handleFamilySelect(f)}
+                                disabled={isPending}
+                                className={`${PILL_BASE} ${searchParams.getAll('family').includes(f)
+                                    ? 'bg-primary text-background border-primary'
+                                    : 'bg-surface-container-high border-transparent hover:border-outline-variant text-primary/80'
+                                    }`}
+                            >
+                                {f}
+                            </button>
+                        ))}
+                    </div>
+                </AccordionSection>
 
             </aside>
         </>

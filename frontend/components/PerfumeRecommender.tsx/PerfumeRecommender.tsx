@@ -1,5 +1,6 @@
 "use client";
 import { authapiPost } from "@/context/api";
+import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect, useRef } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -17,6 +18,11 @@ interface Results {
     link?: string;
     reason?: string;
 }
+interface ChatMessage {
+    role: "user" | "assistant";
+    content: string;
+    recommendations?: Results[]; // attached to assistant turns that returned picks
+}
 type StepId = keyof SurveyAnswers;
 interface Step {
     id: StepId;
@@ -31,6 +37,7 @@ interface Step {
 // ─── Constants ────────────────────────────────────────────────────────────────
 const GENDER_OPTIONS = ["Male", "Female", "Unisex"];
 const COLLECTION_OPTIONS = ["Niche", "Designer", "Middle Eastern", "In House"];
+const MAX_FOLLOWUPS = 4;
 const STEPS: Step[] = [
     { id: "gender", label: "Step 1 of 6", question: "Who is this for?", type: "single", options: GENDER_OPTIONS, required: true },
     { id: "price_max", label: "Step 2 of 6", question: "What's your maximum budget?", type: "price", placeholder: "e.g. 15000", required: true },
@@ -48,6 +55,21 @@ function canProceed(step: Step, answers: SurveyAnswers): boolean {
     if (step.type === "multi") return Array.isArray(val) && val.length > 0;
     if (step.type === "price") return !!val && String(val).trim() !== "";
     return true;
+}
+
+function buildBasePayload(answers: SurveyAnswers) {
+    return {
+        gender: answers.gender?.toLowerCase(),
+        price_max: answers.price_max ? Number(answers.price_max) : undefined,
+        collection: answers.collection?.map((c) =>
+            c === "Middle Eastern" ? "middle_eastern"
+                : c === "In House" ? "in_house"
+                    : c.toLowerCase()
+        ),
+        family: answers.family,
+        notes: answers.notes,
+        occasion: answers.occasion,
+    };
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -73,8 +95,6 @@ function StepContent({ step, answers, families, onChange }: {
     onChange: (id: StepId, value: string | string[]) => void;
 }) {
     const options = step.id === "family" && families.length > 0 ? families : step.options ?? [];
-
-    // HYDRATION FIX: Use a reference to trigger element focus securely on the client side
     const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
     useEffect(() => {
@@ -148,20 +168,40 @@ function StepContent({ step, answers, families, onChange }: {
     return null;
 }
 
+function ResultCard({ r }: { r: Results }) {
+    return (
+        <a
+            href={r.link || "#"}
+            className="block p-3 rounded-xl border border-outline-variant hover:border-outline transition-colors bg-white"
+        >
+            <p className="text-sm font-medium text-primary">{r.name}</p>
+            <p className="text-xs text-outline mb-1">{r.brand}</p>
+            <p className="text-xs text-outline leading-relaxed">{r.reason}</p>
+        </a>
+    );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function PerfumeRecommender() {
+    const { user, loading: authLoading } = useAuth();
     const [mounted, setMounted] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [current, setCurrent] = useState(0);
     const [answers, setAnswers] = useState<SurveyAnswers>({});
     const [families, setFamilies] = useState<string[]>([]);
     const [isDone, setIsDone] = useState(false);
-    const [results, setResults] = useState<Results[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(false);
+
+    // ── chat/follow-up state — every round (initial + each follow-up) lives here ──
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+    const [chatInput, setChatInput] = useState("");
+    const [chatLoading, setChatLoading] = useState(false);
+    const [poolExhausted, setPoolExhausted] = useState(false);
+    const chatEndRef = useRef<HTMLDivElement>(null);
+
     const panelRef = useRef<HTMLDivElement>(null);
 
-    // HYDRATION FIX: Keep component isolated until client mount occurs
     useEffect(() => {
         setMounted(true);
     }, []);
@@ -175,6 +215,10 @@ export default function PerfumeRecommender() {
         if (isOpen) document.addEventListener("mousedown", handleOutside);
         return () => document.removeEventListener("mousedown", handleOutside);
     }, [isOpen]);
+
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [chatMessages, chatLoading]);
 
     function handleChange(id: StepId, value: string | string[]) {
         setAnswers((prev) => ({ ...prev, [id]: value }));
@@ -193,41 +237,76 @@ export default function PerfumeRecommender() {
     }
 
     async function handleSubmit() {
-        const payload = {
-            gender: answers.gender?.toLowerCase(),
-            price_max: answers.price_max ? Number(answers.price_max) : undefined,
-            collection: answers.collection?.map((c) =>
-                c === "Middle Eastern" ? "middle_eastern"
-                    : c === "In House" ? "in_house"
-                        : c.toLowerCase()
-            ),
-            family: answers.family,
-            notes: answers.notes,
-            occasion: answers.occasion,
-        };
-
         setIsDone(true);
         setIsLoading(true);
         setError(false);
 
         try {
-            const res = await authapiPost("/api/airecommend/", payload);
+            const res = await authapiPost("/api/airecommend/", buildBasePayload(answers));
 
-            // Check for API errors or Auth failure blocks early
             if (!res.ok) {
                 setError(true);
-                setResults([]);
                 return;
             }
 
             const data = await res.json();
-            // UNDEFINED RUNTIME BUG FIX: Defensively fall back to empty list if key missing
-            setResults(data.recommendations || []);
+            const recs: Results[] = data.recommendations || [];
+
+            // Seed the chat with the initial results as the first assistant turn
+            setChatMessages([
+                {
+                    role: "assistant",
+                    content: recs.length > 0 ? "Here's what I found for you:" : "No matches found. Try adjusting your preferences.",
+                    recommendations: recs,
+                },
+            ]);
+            if (data.exhausted) setPoolExhausted(true);
         } catch {
             setError(true);
-            setResults([]);
         } finally {
             setIsLoading(false);
+        }
+    }
+
+    async function handleChatSend() {
+        const text = chatInput.trim();
+        const followupCount = chatMessages.filter((m) => m.role === "user").length;
+        if (!text || chatLoading || followupCount >= MAX_FOLLOWUPS || poolExhausted) return;
+
+        const nextMessages: ChatMessage[] = [...chatMessages, { role: "user", content: text }];
+        setChatMessages(nextMessages);
+        setChatInput("");
+        setChatLoading(true);
+
+        try {
+            const res = await authapiPost("/api/airecommend/", {
+                ...buildBasePayload(answers),
+                conversation: nextMessages,
+                message: text,
+            });
+
+            if (!res.ok) {
+                setChatMessages((prev) => [...prev, { role: "assistant", content: "Something went wrong — try again?" }]);
+                return;
+            }
+
+            const data = await res.json();
+            const recs: Results[] = Array.isArray(data.recommendations) ? data.recommendations : [];
+
+            // Every round — even empty ones — gets its own bubble, nothing overwrites earlier rounds
+            setChatMessages((prev) => [
+                ...prev,
+                {
+                    role: "assistant",
+                    content: data.reply || (recs.length > 0 ? "Here's what I found." : "Nothing new to show for that."),
+                    recommendations: recs.length > 0 ? recs : undefined,
+                },
+            ]);
+            if (data.exhausted) setPoolExhausted(true);
+        } catch {
+            setChatMessages((prev) => [...prev, { role: "assistant", content: "Something went wrong — try again?" }]);
+        } finally {
+            setChatLoading(false);
         }
     }
 
@@ -235,24 +314,32 @@ export default function PerfumeRecommender() {
         setAnswers({});
         setCurrent(0);
         setIsDone(false);
-        setResults([]);
         setError(false);
         setIsLoading(false);
+        setChatMessages([]);
+        setChatInput("");
+        setChatLoading(false);
+        setPoolExhausted(false);
     }
 
     if (!mounted) return null;
+    if (authLoading) return null;
+    if (!user || !user.rank) return null;
 
     const step = STEPS[current];
     const progress = isDone ? 100 : Math.round((current / STEPS.length) * 100);
     const isLastStep = current === STEPS.length - 1;
     const canGoNext = isDone || canProceed(step, answers);
+    const followupCount = chatMessages.filter((m) => m.role === "user").length;
+    const followupsExhausted = followupCount >= MAX_FOLLOWUPS || poolExhausted;
+    const hasAnyResults = chatMessages.some((m) => m.recommendations && m.recommendations.length > 0);
 
     return (
         <div ref={panelRef} className="fixed bottom-6 left-6 z-50 flex flex-col items-start gap-3 pointer-events-none">
 
             {/* Floating panel */}
             <div
-                className={`w-[320px] bg-white border border-outline-variant rounded-xl overflow-hidden transition-all duration-300 origin-bottom-left ${isOpen
+                className={`w-[420px] bg-white border border-outline-variant rounded-xl overflow-hidden transition-all duration-300 origin-bottom-left ${isOpen
                     ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
                     : "opacity-0 scale-90 translate-y-2 pointer-events-none"
                     }`}
@@ -282,7 +369,7 @@ export default function PerfumeRecommender() {
                 </div>
 
                 {/* Body */}
-                <div className="px-4 pt-5 pb-3 min-h-[200px]">
+                <div className="px-4 pt-5 pb-3 min-h-[200px] max-h-[70vh] overflow-y-auto" data-lenis-prevent>
                     {isDone ? (
                         <div className="py-2">
                             {isLoading ? (
@@ -293,23 +380,71 @@ export default function PerfumeRecommender() {
                                 <div className="text-center">
                                     <p className="text-sm text-outline">Something went wrong. Please try again.</p>
                                 </div>
-                            ) : results && results.length > 0 ? ( // SAFE LENGTH CHECK
-                                <div className="flex flex-col gap-2">
-                                    {results.map((r, i) => (
-                                        <a
-                                            key={i}
-                                            href={r.link || "#"}
-                                            className="block p-3 rounded-xl border border-outline-variant hover:border-outline transition-colors"
-                                        >
-                                            <p className="text-sm font-medium text-primary">{r.name}</p>
-                                            <p className="text-xs text-outline mb-1">{r.brand}</p>
-                                            <p className="text-xs text-outline leading-relaxed">{r.reason}</p>
-                                        </a>
-                                    ))}
-                                </div>
                             ) : (
-                                <div className="text-center">
-                                    <p className="text-sm text-outline">No matches found. Try adjusting your preferences.</p>
+                                <div className="flex flex-col gap-3">
+                                    {chatMessages.map((m, i) =>
+                                        m.role === "user" ? (
+                                            <div
+                                                key={i}
+                                                className="text-xs px-3 py-2 rounded-xl max-w-[75%] leading-relaxed bg-primary text-[#fbf9f5] self-end ml-auto"
+                                            >
+                                                {m.content}
+                                            </div>
+                                        ) : (
+                                            <div key={i} className="flex flex-col gap-2 max-w-[90%]">
+                                                {m.content && (
+                                                    <div className="text-xs px-3 py-2 rounded-xl leading-relaxed bg-background border border-outline-variant text-primary self-start">
+                                                        {m.content}
+                                                    </div>
+                                                )}
+                                                {m.recommendations && m.recommendations.length > 0 && (
+                                                    <div className="flex flex-col gap-2 pl-1">
+                                                        {m.recommendations.map((r, j) => (
+                                                            <ResultCard key={j} r={r} />
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    )}
+                                    {chatLoading && (
+                                        <div className="text-xs px-3 py-2 rounded-xl bg-background border border-outline-variant text-outline self-start animate-pulse w-fit">
+                                            Thinking...
+                                        </div>
+                                    )}
+                                    <div ref={chatEndRef} />
+
+                                    {hasAnyResults && (
+                                        followupsExhausted ? (
+                                            <p className="text-[11px] text-outline text-center pt-1">
+                                                {poolExhausted
+                                                    ? "That's everything matching your filters — retake the quiz to widen the search."
+                                                    : "That's all the refinements for this search — start over for a fresh one."}
+                                            </p>
+                                        ) : (
+                                            <div className="flex gap-2 pt-1 sticky bottom-0 bg-white pb-1">
+                                                <input
+                                                    type="text"
+                                                    value={chatInput}
+                                                    onChange={(e) => setChatInput(e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter") handleChatSend();
+                                                    }}
+                                                    placeholder="e.g. these are too sweet"
+                                                    disabled={chatLoading}
+                                                    className="flex-1 px-3 py-2 rounded-xl border border-outline-variant bg-background text-xs text-primary font-body placeholder:text-outline focus:outline-none focus:border-outline disabled:opacity-60"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleChatSend}
+                                                    disabled={chatLoading || !chatInput.trim()}
+                                                    className="px-3 py-2 rounded-xl bg-primary text-[#fbf9f5] text-xs font-label font-medium hover:bg-primary-container transition-colors disabled:bg-outline-variant disabled:cursor-not-allowed"
+                                                >
+                                                    Send
+                                                </button>
+                                            </div>
+                                        )
+                                    )}
                                 </div>
                             )}
                         </div>
