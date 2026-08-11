@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Search, X, Loader2 } from 'lucide-react';
 import { apiGet } from '@/context/api';
 
 interface Perfume {
@@ -29,16 +30,18 @@ export default function SearchBar({
     placeholder = 'Search perfumes, brands...',
     minChars = 2,
     debounceMs = 300,
-    className = 'max-w-xl',
+    className = '',
 }: SearchBarProps) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<Perfume[]>([]);
     const [isOpen, setIsOpen] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
     const [error, setError] = useState<string | null>(null);
 
     const containerRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const abortRef = useRef<AbortController | null>(null);
 
@@ -52,7 +55,7 @@ export default function SearchBar({
             setError(null);
 
             try {
-                const res = await apiGet(`${endpoint}?q=${encodeURIComponent(q)}`);
+                const res = await apiGet(`${endpoint}?q=${encodeURIComponent(q)}`, { signal: controller.signal });
                 if (!res.ok) throw new Error('Search request failed');
                 const data: Perfume[] = await res.json();
                 setResults(Array.isArray(data) ? data : []);
@@ -94,18 +97,43 @@ export default function SearchBar({
         function handleClickOutside(e: MouseEvent) {
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
                 setIsOpen(false);
+                if (!query.trim()) {
+                    setIsExpanded(false);
+                }
             }
         }
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [query]);
+
+    function openSearch() {
+        setIsExpanded(true);
+        requestAnimationFrame(() => inputRef.current?.focus());
+    }
 
     function closeAndReset() {
         setIsOpen(false);
+        setIsExpanded(false);
         setQuery('');
     }
 
+    function clearQuery() {
+        setQuery('');
+        setResults([]);
+        setIsOpen(false);
+        inputRef.current?.focus();
+    }
+
     function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+        if (e.key === 'Escape') {
+            if (query.trim()) {
+                clearQuery();
+            } else {
+                closeAndReset();
+            }
+            return;
+        }
+
         if (!isOpen || results.length === 0) return;
 
         if (e.key === 'ArrowDown') {
@@ -119,8 +147,6 @@ export default function SearchBar({
                 e.preventDefault();
                 window.location.href = `/perfume/${results[activeIndex].slug}`;
             }
-        } else if (e.key === 'Escape') {
-            setIsOpen(false);
         }
     }
 
@@ -133,41 +159,68 @@ export default function SearchBar({
     const showDropdown = isOpen && query.trim().length >= minChars;
 
     return (
-        <div ref={containerRef} className={`relative w-full ${className}`}>
-            <div className="relative flex items-center">
-                <svg
-                    className="pointer-events-none absolute left-3 h-4 w-4 text-gray-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    aria-hidden="true"
-                >
-                    <circle cx="11" cy="11" r="7" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onFocus={() => query.trim().length >= minChars && setIsOpen(true)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={placeholder}
-                    className="w-full border-0 border-b border-outline-variant bg-transparent py-2.5 pl-9 pr-9 text-sm text-primary outline-none transition-colors focus:border-secondary"
-                    role="combobox"
-                    aria-expanded={showDropdown}
-                    aria-autocomplete="list"
-                    aria-controls="search-results-listbox"
-                />
-                {isLoading && (
-                    <div
-                        className="absolute right-3 h-3.5 w-3.5 animate-spin rounded-full border-2 border-gray-200 border-t-gray-500"
-                        aria-label="Loading"
+        // This root reserves the slot handed to it by the parent (e.g. "w-full sm:max-w-sm").
+        // Everything inside is absolutely positioned against the RIGHT edge of that slot,
+        // so growing width expands leftward without shifting layout.
+        <div ref={containerRef} className={`relative h-10 ${className}`}>
+            {/* Icon trigger — pinned to the right edge, visible when collapsed */}
+            <button
+                type="button"
+                aria-label="Open search"
+                onClick={openSearch}
+                className={`absolute right-0 top-0 flex h-10 w-10 items-center justify-center text-primary hover:text-secondary transition-opacity duration-200 ease-out
+                    ${isExpanded ? 'opacity-0 pointer-events-none' : 'opacity-100'}
+                `}
+            >
+                <Search size={20} strokeWidth={1.75} />
+            </button>
+
+            {/* Expanding bar — anchored right, grows leftward to fill the slot */}
+            <div
+                className={`absolute right-0 top-0 h-10 overflow-hidden transition-all duration-300 ease-out
+                    ${isExpanded ? 'w-full opacity-100' : 'w-0 opacity-0'}
+                `}
+            >
+                <div className="relative flex h-full w-full items-center">
+                    <Search
+                        className="pointer-events-none absolute left-3 h-4 w-4 text-gray-400"
+                        size={16}
+                        strokeWidth={2}
+                        aria-hidden="true"
                     />
-                )}
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        onFocus={() => query.trim().length >= minChars && setIsOpen(true)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={placeholder}
+                        className="w-full border-0 border-b border-outline-variant bg-transparent py-2.5 pl-9 pr-9 text-sm text-primary outline-none transition-colors focus:border-secondary"
+                        role="combobox"
+                        aria-expanded={showDropdown}
+                        aria-autocomplete="list"
+                        aria-controls="search-results-listbox"
+                    />
+                    {isLoading ? (
+                        <Loader2
+                            className="absolute right-3 h-4 w-4 animate-spin text-gray-400"
+                            aria-label="Loading"
+                        />
+                    ) : (
+                        <button
+                            type="button"
+                            aria-label="Close search"
+                            onClick={closeAndReset}
+                            className="absolute right-2 p-1 text-gray-400 hover:text-gray-700 transition-colors"
+                        >
+                            <X size={16} strokeWidth={2} />
+                        </button>
+                    )}
+                </div>
             </div>
 
-            {showDropdown && (
+            {isExpanded && showDropdown && (
                 <div
                     id="search-results-listbox"
                     role="listbox"

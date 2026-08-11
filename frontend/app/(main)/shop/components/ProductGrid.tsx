@@ -5,6 +5,8 @@ import PerfumeCard from '@/components/perfumeCard';
 import { PerfumeSummary as Perfume } from '@/types/perfumes';
 import { apiGet } from '@/context/api';
 
+const PAGE_SIZE = 12;
+
 export default function ProductGrid() {
     const [perfumes, setPerfumes] = useState<Perfume[]>([]);
     const [hasMore, setHasMore] = useState(true);
@@ -12,16 +14,22 @@ export default function ProductGrid() {
     const searchParams = useSearchParams();
 
     const pageRef = useRef(1);
-    const fetchingRef = useRef(false);
     const hasMoreRef = useRef(true);
+    const loadingRef = useRef(false);
+    const abortRef = useRef<AbortController | null>(null);
 
     useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
 
     const fetchPerfumes = useCallback(async (isReset = false) => {
-        if (fetchingRef.current) return;
         if (!isReset && !hasMoreRef.current) return;
 
-        fetchingRef.current = true;
+        // Cancel any in-flight request instead of silently dropping this one —
+        // otherwise a stale response can overwrite results for the current filters.
+        abortRef.current?.abort();
+        const controller = new AbortController();
+        abortRef.current = controller;
+
+        loadingRef.current = true;
         setLoading(true);
 
         const targetPage = isReset ? 1 : pageRef.current + 1;
@@ -29,24 +37,29 @@ export default function ProductGrid() {
         try {
             const params = new URLSearchParams();
             params.set('page', targetPage.toString());
-            params.set('limit', '12');
+            params.set('limit', PAGE_SIZE.toString());
             searchParams.forEach((value, key) => {
                 params.append(key, value);
             });
 
-            const res = await apiGet(`/api/shop/?${params}`);
+            const res = await apiGet(`/api/shop/?${params}`, { signal: controller.signal });
             const data = await res.json();
 
             setPerfumes(prev => isReset ? data.perfumes : [...prev, ...data.perfumes]);
             setHasMore(data.has_more);
-
-
             pageRef.current = targetPage;
         } catch (error) {
-            console.error('Failed to fetch perfumes:', error);
+            if ((error as Error).name !== 'AbortError') {
+                console.error('Failed to fetch perfumes:', error);
+            }
         } finally {
-            setLoading(false);
-            fetchingRef.current = false;
+            // Only clear loading state if this request is still the most recent one —
+            // a stale, already-superseded request finishing shouldn't stop the spinner
+            // for the newer request that replaced it.
+            if (abortRef.current === controller) {
+                loadingRef.current = false;
+                setLoading(false);
+            }
         }
     }, [searchParams]);
 
@@ -57,6 +70,10 @@ export default function ProductGrid() {
         setPerfumes([]);
 
         fetchPerfumes(true);
+
+        return () => {
+            abortRef.current?.abort();
+        };
     }, [searchParams, fetchPerfumes]);
 
     // Intersection Observer callback
@@ -65,7 +82,7 @@ export default function ProductGrid() {
         if (observer.current) observer.current.disconnect();
 
         observer.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasMoreRef.current && !fetchingRef.current) {
+            if (entries[0].isIntersecting && hasMoreRef.current && !loadingRef.current) {
                 fetchPerfumes(false);
             }
         });
@@ -82,10 +99,13 @@ export default function ProductGrid() {
             ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {perfumes.map((perfume, index) => (
-                        <PerfumeCard
+                        <div
                             key={`grid-${perfume.id}-${index}`}
-                            {...perfume}
-                        />
+                            className="product-fade-in"
+                            style={{ animationDelay: `${(index % PAGE_SIZE) * 45}ms` }}
+                        >
+                            <PerfumeCard {...perfume} />
+                        </div>
                     ))}
                 </div>
             )}
@@ -108,6 +128,27 @@ export default function ProductGrid() {
                     </span>
                 )}
             </div>
+
+            <style jsx global>{`
+                @keyframes productFadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(14px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                .product-fade-in {
+                    animation: productFadeIn 0.5s ease-out both;
+                }
+                @media (prefers-reduced-motion: reduce) {
+                    .product-fade-in {
+                        animation: none;
+                    }
+                }
+            `}</style>
         </div>
     );
 }

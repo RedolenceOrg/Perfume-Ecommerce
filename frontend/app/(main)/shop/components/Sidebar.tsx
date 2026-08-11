@@ -35,8 +35,6 @@ function AccordionSection({
 }) {
     const forcedOpen = hasSelection || expanded;
     const rowClass = forcedOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr] group-hover:grid-rows-[1fr]';
-    // opacity must ALSO have a pure-CSS hover fallback — forcedOpen alone only
-    // reacts to clicks, so on desktop hover-only interaction it stayed at 0.
     const opacityClass = forcedOpen
         ? 'opacity-100 delay-100'
         : 'opacity-0 group-hover:opacity-100 group-hover:delay-100';
@@ -101,11 +99,13 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
         });
     }
 
+    // Keeps the Min/Max inputs in sync with the URL in both directions:
+    // fills them when params exist, and clears them when params are removed
+    // (e.g. via the FilterTag "x" pill) — previously this only ever set values,
+    // never cleared them, so removing a price filter left stale numbers behind.
     useEffect(() => {
-        const urlMin = searchParams.get('price_min');
-        const urlMax = searchParams.get('price_max');
-        if (urlMin) setMinPrice(urlMin);
-        if (urlMax) setMaxPrice(urlMax);
+        setMinPrice(searchParams.get('price_min') ?? '');
+        setMaxPrice(searchParams.get('price_max') ?? '');
     }, [searchParams]);
 
     useEffect(() => {
@@ -126,13 +126,20 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
         });
     }
 
+    // If a max price is set without a min, default min to 0 — a max-only
+    // filter isn't meaningful to the backend without a floor.
     const handlePriceCommit = () => {
         navigate((params) => {
-            if (minPrice) params.set('price_min', minPrice);
+            const effectiveMin = maxPrice ? (minPrice || '0') : minPrice;
+
+            if (effectiveMin) params.set('price_min', effectiveMin);
             else params.delete('price_min');
+
             if (maxPrice) params.set('price_max', maxPrice);
             else params.delete('price_max');
         });
+
+        if (maxPrice && !minPrice) setMinPrice('0');
     };
 
     const handleGenderSelect = (g: string) => {
@@ -250,7 +257,7 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                                 onChange={(e) => setValue(e.target.value)}
                                 value={value}
                                 placeholder={placeholder}
-                                className="flex-1 bg-transparent border-b border-outline-variant py-2 px-1 text-sm focus:outline-none focus:border-primary transition-colors font-body"
+                                className="bg-transparent border-b border-outline-variant py-2 px-1 text-sm focus:outline-none focus:border-primary transition-colors font-body"
                             />
                             <button
                                 onClick={() => handleAddText(kind)}
