@@ -162,7 +162,8 @@ class WellBeingPage(APIView):
         return Response(serializer.data)
 
 
-
+@method_decorator(csrf_protect, name='dispatch')   
+@method_decorator(conditional_ratelimit(rate='40/m'), name='get')
 class SearchView(APIView):
     def get(self, request):
         query = request.query_params.get('q', '').strip()

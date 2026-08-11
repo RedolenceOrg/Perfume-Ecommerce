@@ -125,15 +125,6 @@ class AtomizerAdmin(admin.ModelAdmin):
         return obj.variants.count()
     variant_count.short_description = 'Variants'
 
-
-@admin.register(AtomizerVariant)
-class AtomizerVariantAdmin(admin.ModelAdmin):
-    list_display = ['atomizer', 'size', 'price', 'colors', 'stock', 'reserved', 'available_stock']
-    search_fields = ['atomizer__name']
-    readonly_fields = ['reserved', 'available_stock']
-    fields = ['atomizer', 'size', 'price', 'colors', 'stock', 'reserved', 'available_stock', 'image']
-
-
 # ──────────────────────────────────────────
 # Supporting models
 # ──────────────────────────────────────────
