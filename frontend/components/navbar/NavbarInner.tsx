@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { ChevronDown, ShoppingCart, User as UserIcon, Menu, X } from 'lucide-react';
 
 const navLinks = [
     { label: 'Home', href: '/' },
@@ -82,11 +83,11 @@ function NavLink({ link, pathname, currentType, onClick, mobile = false }: {
                             }}
                             className="p-2 -mr-2 text-primary/60 active:text-secondary transition-colors duration-150"
                         >
-                            <span
-                                className={`material-symbols-outlined text-2xl transition-transform duration-300 ease-out ${isOpenMobile ? 'rotate-180' : 'rotate-0'}`}
-                            >
-                                expand_more
-                            </span>
+                            <ChevronDown
+                                size={22}
+                                strokeWidth={1.75}
+                                className={`transition-transform duration-300 ease-out ${isOpenMobile ? 'rotate-180' : 'rotate-0'}`}
+                            />
                         </button>
                     </div>
 
@@ -253,20 +254,15 @@ export default function NavbarInner() {
                             aria-label="Cart"
                             className="p-2 transition-all duration-300 ease-out hover:opacity-80 group"
                         >
-                            <span className="material-symbols-outlined text-primary group-hover:text-secondary">
-                                shopping_bag
-                            </span>
+                            <ShoppingCart size={22} strokeWidth={1.75} className="text-primary group-hover:text-secondary" />
                         </Link>
-
                         {/* Account */}
                         {loading ? (
                             <div className="w-6 h-6" />
                         ) : user ? (
                             <Link href="/profile" className="p-2 group">
                                 <div className="flex items-center gap-1.5">
-                                    <span className="material-symbols-outlined text-primary group-hover:text-secondary">
-                                        person
-                                    </span>
+                                    <UserIcon size={22} strokeWidth={1.75} className="text-primary group-hover:text-secondary" />
                                     <span className="text-xs sm:text-sm font-medium text-primary hidden sm:inline-block">
                                         {user.first_name}
                                     </span>
@@ -277,9 +273,7 @@ export default function NavbarInner() {
                                 href="/login"
                                 className="flex items-center gap-1 p-2 transition-all duration-300 ease-out hover:opacity-80 group"
                             >
-                                <span className="material-symbols-outlined text-primary group-hover:text-secondary">
-                                    person
-                                </span>
+                                <UserIcon size={22} strokeWidth={1.75} className="text-primary group-hover:text-secondary" />
                                 <span className="text-[10px] sm:text-xs uppercase tracking-widest text-primary/70 hidden sm:inline-block">
                                     Login
                                 </span>
@@ -292,9 +286,7 @@ export default function NavbarInner() {
                             aria-label="Toggle Menu"
                             className="xl:hidden p-2 text-primary hover:text-secondary transition-colors duration-200"
                         >
-                            <span className="material-symbols-outlined">
-                                {isMenuOpen ? 'close' : 'menu'}
-                            </span>
+                            {isMenuOpen ? <X size={24} strokeWidth={1.75} /> : <Menu size={24} strokeWidth={1.75} />}
                         </button>
 
 

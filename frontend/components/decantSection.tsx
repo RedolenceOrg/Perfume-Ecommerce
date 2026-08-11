@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function DecantsHighlight() {
     return (
-        <section className="bg-surface py-12 md:py-20 px-4 sm:px-6 lg:px-16 max-w-7xl mx-auto">
+        <section className="bg-surface py-12 md:py-20 px-4 sm:px-6 lg:px-16">
             {/* Header */}
             <div className="mb-12 md:mb-16 text-center">
                 <h2 className="font-headline text-4xl md:text-5xl text-primary mb-3 italic">The Decant Edit</h2>

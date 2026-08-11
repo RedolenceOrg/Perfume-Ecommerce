@@ -33,8 +33,8 @@ export async function authapiDelete(endpoint: string, body?: object) {
     })
 }
 
-export async function apiGet(endpoint: string) {
-    return fetch(`${BASEURL}${endpoint}`)
+export async function apiGet(endpoint: string, options?: RequestInit) {
+    return fetch(`${BASEURL}${endpoint}`, options)
 }
 
 export async function authApiUpdate(endpoint: string, body?: object) {
