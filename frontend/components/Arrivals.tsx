@@ -2,7 +2,9 @@
 
 import PerfumeCard from "./perfumeCard";
 import { useRef, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PerfumeSummary } from "@/types/perfumes";
+
 type ArrivalsProps = {
     heading: string;
     perfumes: PerfumeSummary[]
@@ -40,7 +42,7 @@ export default function Arrivals({ heading, perfumes }: ArrivalsProps) {
                     }
                 })
             }, {
-                root: null,        // 👈 observe against the viewport
+                root: null,
                 threshold: 0.15
             })
 
@@ -63,15 +65,17 @@ export default function Arrivals({ heading, perfumes }: ArrivalsProps) {
                     <div className="flex gap-4">
                         <button
                             onClick={() => scroll('left')}
-                            className="w-12 h-12 flex items-center justify-center border border-[#c4c7c7] hover:border-black transition-all"
+                            aria-label="Scroll left"
+                            className="w-12 h-12 flex items-center justify-center hover:bg-gray-200 transition-all rounded-full"
                         >
-                            <span className="material-symbols-outlined">chevron_left</span>
+                            <ChevronLeft size={20} strokeWidth={1.75} />
                         </button>
                         <button
                             onClick={() => scroll('right')}
-                            className="w-12 h-12 flex items-center justify-center border border-[#c4c7c7] hover:border-black transition-all"
+                            aria-label="Scroll right"
+                            className="w-12 h-12 flex items-center justify-center hover:bg-gray-200  transition-all rounded-full"
                         >
-                            <span className="material-symbols-outlined">chevron_right</span>
+                            <ChevronRight size={20} strokeWidth={1.75} />
                         </button>
                     </div>
                 </div>
@@ -84,7 +88,7 @@ export default function Arrivals({ heading, perfumes }: ArrivalsProps) {
                 >
                     {perfumes.map((perfume) => (
                         <div key={perfume.id} className="flex-none w-[240px] md:w-[260px] lg:w-[280px] snap-start perfume-card card-hidden">
-                            <PerfumeCard key={perfume.id}{...perfume} />
+                            <PerfumeCard key={perfume.id} {...perfume} />
                         </div>
                     ))}
                 </div>
