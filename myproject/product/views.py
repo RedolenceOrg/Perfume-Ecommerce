@@ -16,10 +16,29 @@ from decouple import config
 co = cohere.ClientV2(api_key = config('AI_API_KEY'))
 MAX_CANDIDATES = 15
 
+from django.db.models import Exists, OuterRef
+
+
 @method_decorator(conditional_ratelimit(rate='40/m'), name='get')
 class getPerfumeHome(APIView):
     def get(self, request):
-        base_qs = Perfume.objects.select_related('brand').prefetch_related('images')
+        decant_in_stock = Decant.objects.filter(
+            perfume=OuterRef('pk'),
+            stock__gt=F('reserved')
+        )
+
+        base_qs = (
+            Perfume.objects
+            .select_related('brand')
+            .prefetch_related('images')
+            .annotate(
+                has_decant_stock=Exists(decant_in_stock)
+            )
+            .filter(
+                Q(stock__gt=F('reserved')) |
+                Q(has_decant_stock=True)
+            )
+        )
 
         new_arrivals = base_qs.order_by('-date_added')[:10]
         restocked = base_qs.filter(is_restocked=True)

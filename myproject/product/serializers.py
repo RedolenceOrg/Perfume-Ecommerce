@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Atomizer, AtomizerVariant, Decant, NasalStrip, Perfume,Notes, PerfumeImage,PerfumeNote,Brand,Family, Thrift
-
+from django.db.models import F
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
@@ -34,22 +34,59 @@ class NasalStripSerializer(serializers.ModelSerializer):
         fields = ['id','price','stock','image','available_stock']
 
 
+
+
 class PerfumeListSerializer(serializers.ModelSerializer):
     brand = serializers.CharField(source='brand.name')
     primary_image = serializers.SerializerMethodField()
     secondary_image = serializers.SerializerMethodField()
+    availability_badge = serializers.SerializerMethodField()
+
+    def get_availability_badge(self, obj):
+        has_bottle = obj.available_stock > 0
+
+        has_decant = obj.decant_set.filter(
+            stock__gt=F('reserved')
+        ).exists()
+
+        if has_bottle and has_decant:
+            return None
+
+        if has_bottle:
+            return 'bottle_only'
+
+        if has_decant:
+            return 'decant_only'
+
+        return None
 
     def get_primary_image(self, obj):
-        img = next((i for i in obj.images.all() if i.is_primary), None) or obj.images.first()
+        img = next(
+            (i for i in obj.images.all() if i.is_primary),
+            None
+        ) or obj.images.first()
+
         return img.image.url if img else None
 
     def get_secondary_image(self, obj):
-        img = next((i for i in obj.images.all() if not i.is_primary), None)
+        img = next(
+            (i for i in obj.images.all() if not i.is_primary),
+            None
+        )
         return img.image.url if img else None
 
     class Meta:
         model = Perfume
-        fields = ['id', 'name', 'brand', 'price', 'collection', 'primary_image', 'secondary_image', 'slug']
+        fields = [
+            'id',
+            'name',
+            'brand',
+            'price',
+            'primary_image',
+            'secondary_image',
+            'slug',
+            'availability_badge'
+        ]
 
 class DecantSerializer(serializers.ModelSerializer):
     available_stock = serializers.ReadOnlyField()

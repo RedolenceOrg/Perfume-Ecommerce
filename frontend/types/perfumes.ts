@@ -49,6 +49,7 @@ export interface PerfumeSummary {
     primary_image: string | null;
     secondary_image: string | null;
     slug: string;
+    availability_badge: string | null;
 }
 export interface AtomizerVariant {
     id: number;
