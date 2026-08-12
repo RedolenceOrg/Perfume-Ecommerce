@@ -1,11 +1,11 @@
-from django.db.models import Q
+from django.db.models import Q,F, Exists, OuterRef
 from rest_framework.views import APIView
 from django.db.models import Count
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from myproject.utils import conditional_ratelimit
 from .serializers import AtomizerSerializer, NasalStripSerializer, PerfumeListSerializer, PerfumeSerializer, ThriftSerializer
-from .models import Atomizer, NasalStrip, Perfume, Thrift,Notes
+from .models import Atomizer, Decant, NasalStrip, Perfume, Thrift,Notes
 import json
 from django.views import View
 from django.http import JsonResponse
@@ -48,6 +48,8 @@ class FilterOptionsView(APIView):
             ),
         })
     
+
+
 @method_decorator(conditional_ratelimit(rate='60/m'), name='get')
 class ShopView(APIView):
     def get(self, request):
@@ -84,9 +86,27 @@ class ShopView(APIView):
             perfumes = perfumes.filter(price__lte=price_max)
         if gender:
             perfumes = perfumes.filter(gender__iexact=gender)
+
         if decant_sizes:
-            perfumes = perfumes.filter(decant__size__in=decant_sizes)
-        # ✅ distinct only when M2M filters are applied (they cause duplicate rows)
+            matching_decant = Decant.objects.filter(
+                perfume=OuterRef('pk'),
+                size__in=decant_sizes,
+                stock__gt=F('reserved'),
+            )
+            perfumes = perfumes.filter(Exists(matching_decant))
+
+        # NEW: global stock gate — only show a perfume if EITHER the full bottle
+        # has stock, OR at least one decant (any size) has stock.
+        any_decant_in_stock = Decant.objects.filter(
+            perfume=OuterRef('pk'),
+            stock__gt=F('reserved'),
+        )
+        perfumes = perfumes.annotate(
+            has_stock_decant=Exists(any_decant_in_stock)
+        ).filter(
+            Q(stock__gt=F('reserved')) | Q(has_stock_decant=True)
+        )
+
         if family or notes:
             perfumes = perfumes.distinct()
 
