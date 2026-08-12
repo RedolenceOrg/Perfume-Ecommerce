@@ -102,4 +102,5 @@ class VerifyAccountSerializer(serializers.Serializer):
     otp = serializers.CharField(max_length=6)
     
 
-    
+class SuggestionSerializer(serializers.Serializer):
+    suggestion = serializers.CharField(max_length=200)
