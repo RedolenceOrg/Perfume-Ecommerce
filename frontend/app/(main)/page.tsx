@@ -12,10 +12,11 @@ import PerfumeRecommender from "@/components/PerfumeRecommender.tsx/PerfumeRecom
 import BrandScroll from "@/components/BrandScroll";
 
 
-
 export default async function Home() {
   try {
-    const res = await apiGet('/api/getperfumeHome/')
+    const res = await apiGet('/api/getperfumeHome/',
+      { next: { revalidate: 86400 } }
+    )
     if (!res.ok) return <div>NO DATA FOUND at HOME</div>
     const perfumes = await res.json()
 
