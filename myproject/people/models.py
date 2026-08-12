@@ -39,4 +39,10 @@ class PasswordResetOTP(models.Model):
     def is_expired(self):
         from django.utils import timezone
         return (timezone.now() - self.created_at).seconds > 600
-    
+
+class Suggestions(models.Model):
+    suggestion = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.suggestion[:30]}..."

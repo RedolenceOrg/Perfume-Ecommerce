@@ -1,4 +1,5 @@
 import json
+from time import timezone
 from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
@@ -7,9 +8,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
-from .serializers import RegistrationSerializer,LoginSerializer,ProfileSerializer, ResetPasswordSerializer,updateProfileSerializer,ChangePasswordSerializer,VerifyAccountSerializer
+from .serializers import RegistrationSerializer,LoginSerializer,ProfileSerializer, ResetPasswordSerializer, SuggestionSerializer,updateProfileSerializer,ChangePasswordSerializer,VerifyAccountSerializer
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import PasswordResetOTP
+from .models import PasswordResetOTP, Suggestions
 import random
 from myproject.utils import send_otp_email,send_account_verification_email
 from myproject.utils import conditional_ratelimit
@@ -325,7 +326,28 @@ class VerifyAccount(View):
 
         except User.DoesNotExist:
             return JsonResponse({'detail':'This user does not exist'},status = 400)
-
+@method_decorator(conditional_ratelimit(rate='2/m'), name='dispatch')
+@method_decorator(csrf_protect,name = 'dispatch')
+class SuggestionsView(View):
+    def post(self,request):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'detail':'Invalid JSON'},status = 400)
         
-        
+        serializer = SuggestionSerializer(data = data)
 
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors,status = 400)
+        
+        suggestion_text = serializer.validated_data['suggestion']
+        suggestion = Suggestions.objects.create(suggestion=suggestion_text)
+
+        return JsonResponse({
+            'detail': 'Suggestion submitted successfully',
+            'suggestion': {
+                'id': suggestion.id,
+                'suggestion': suggestion.suggestion,
+                'created_at': suggestion.created_at,
+            }
+        }, status=201)

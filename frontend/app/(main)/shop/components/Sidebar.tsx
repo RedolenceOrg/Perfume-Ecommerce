@@ -6,6 +6,7 @@ interface ShopSidebarProps {
     brands: string[];
     notes: string[];
     families: string[];
+    decantSizes: number[];
 }
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Unisex'];
@@ -79,7 +80,7 @@ function AccordionSection({
     );
 }
 
-export default function ShopSidebar({ brands, notes, families }: ShopSidebarProps) {
+export default function ShopSidebar({ brands, notes, families, decantSizes }: ShopSidebarProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [Filternotes, setNotes] = useState('');
@@ -176,6 +177,20 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
         });
     };
 
+    const handleDecantSizeSelect = (size: number) => {
+        navigate((params) => {
+            const value = String(size);
+            const current = searchParams.getAll('decant_size');
+            params.delete('decant_size');
+            if (current.includes(value)) {
+                current.filter((v) => v !== value).forEach((v) => params.append('decant_size', v));
+            } else {
+                current.forEach((v) => params.append('decant_size', v));
+                params.append('decant_size', value);
+            }
+        });
+    };
+
     const handleAddText = (kind: 'note' | 'brand') => {
         const value = kind === 'note' ? Filternotes : Filterbrand;
         if (!value) return;
@@ -192,6 +207,7 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
     const hasFamily = searchParams.getAll('family').length > 0;
     const hasGender = !!searchParams.get('gender');
     const hasPrice = !!searchParams.get('price_min') || !!searchParams.get('price_max');
+    const hasDecantSize = searchParams.getAll('decant_size').length > 0;
 
     return (
         <>
@@ -358,6 +374,30 @@ export default function ShopSidebar({ brands, notes, families }: ShopSidebarProp
                     >
                         Apply
                     </button>
+                </AccordionSection>
+
+                {/* Decant Size */}
+                <AccordionSection
+                    label="Decant Size"
+                    hasSelection={hasDecantSize}
+                    expanded={expandedSections.has('decant_size')}
+                    onToggle={() => toggleSection('decant_size')}
+                >
+                    <div className="flex flex-wrap gap-2.5">
+                        {decantSizes.map((size) => (
+                            <button
+                                key={size}
+                                onClick={() => handleDecantSizeSelect(size)}
+                                disabled={isPending}
+                                className={`${PILL_BASE} ${searchParams.getAll('decant_size').includes(String(size))
+                                    ? 'bg-primary text-background border-primary'
+                                    : 'bg-surface-container-high border-transparent hover:border-outline-variant text-primary/80'
+                                    }`}
+                            >
+                                {Number(size)}ml
+                            </button>
+                        ))}
+                    </div>
                 </AccordionSection>
 
                 {/* Scent Family — last, since backend-driven length can vary and shouldn't push other filters around */}

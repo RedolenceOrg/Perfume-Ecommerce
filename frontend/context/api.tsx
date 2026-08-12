@@ -36,6 +36,14 @@ export async function authapiDelete(endpoint: string, body?: object) {
 export async function apiGet(endpoint: string, options?: RequestInit) {
     return fetch(`${BASEURL}${endpoint}`, options)
 }
+export async function apiPost(endpoint: string, body?: object) {
+    return fetch(`${BASEURL}${endpoint}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') || '' },
+        body: body ? JSON.stringify(body) : undefined
+    })
+}
 
 export async function authApiUpdate(endpoint: string, body?: object) {
     return fetch(`${BASEURL}${endpoint}`, {

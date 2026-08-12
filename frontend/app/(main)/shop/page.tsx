@@ -16,7 +16,7 @@ export default async function Shop() {
                 <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 max-w-[1920px] mx-auto">
                     <div className="lg:sticky lg:top-24 lg:self-start lg:h-[calc(100vh-8rem)] lg:overflow-y-auto no-scrollbar lg:w-72 flex-shrink-0">
                         <Suspense fallback={null}>
-                            <ShopSidebar brands={filters.brands} notes={filters.notes} families={filters.families} />
+                            <ShopSidebar brands={filters.brands} notes={filters.notes} families={filters.families} decantSizes={filters.decant_sizes} />
                         </Suspense>
                     </div>
                     <div className="flex-1 min-w-0">
