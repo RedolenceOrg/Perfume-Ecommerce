@@ -6,25 +6,74 @@ import { useSearchParams, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { ChevronDown, ShoppingCart, User as UserIcon, Menu, X } from 'lucide-react';
 
-const navLinks = [
+// ─── Types ───────────────────────────────────────────────────────────────
+interface SimpleItem {
+    label: string;
+    href: string;
+}
+
+interface DropdownGroup {
+    heading: string;
+    items: SimpleItem[];
+}
+
+interface NavLinkData {
+    label: string;
+    href: string;
+    highlight?: boolean;
+    dropdown?: SimpleItem[];       // flat dropdown (e.g. Travel Size Decants)
+    megaDropdown?: DropdownGroup[]; // grouped dropdown (e.g. Perfumes: Gender / Categories)
+}
+
+const DECANT_SIZES = ['3', '5', '10', '20'];
+const ALL_DECANTS_HREF = `/shop?${DECANT_SIZES.map((s) => `decant_size=${s}`).join('&')}`;
+
+const navLinks: NavLinkData[] = [
     { label: 'Home', href: '/' },
     {
-        label: 'Perfumes', href: '/shop?type=Perfume', dropdown: [
-            { label: 'Niche', href: '/shop?type=Perfume&collection=niche' },
-            { label: 'Designer', href: '/shop?type=Perfume&collection=designer' },
-            { label: 'Middle Eastern', href: '/shop?type=Perfume&collection=middle_eastern' },
-            { label: 'In house', href: '/shop?type=Perfume&collection=in_house' },
-        ]
+        label: 'Perfumes',
+        href: '/shop?type=Perfume',
+        megaDropdown: [
+            {
+                heading: 'Gender',
+                items: [
+                    { label: 'Male', href: '/shop?type=Perfume&gender=Male' },
+                    { label: 'Female', href: '/shop?type=Perfume&gender=Female' },
+                    { label: 'Unisex', href: '/shop?type=Perfume&gender=Unisex' },
+                ],
+            },
+            {
+                heading: 'Categories',
+                items: [
+                    { label: 'Niche', href: '/shop?type=Perfume&collection=niche' },
+                    { label: 'Designer', href: '/shop?type=Perfume&collection=designer' },
+                    { label: 'Middle Eastern', href: '/shop?type=Perfume&collection=middle_eastern' },
+                    { label: 'In House', href: '/shop?type=Perfume&collection=in_house' },
+                ],
+            },
+        ],
     },
     { label: 'Attars', href: '/shop?type=Attar' },
+    {
+        label: 'Travel Size Decants',
+        href: ALL_DECANTS_HREF,
+        dropdown: [
+            { label: 'All Decants', href: ALL_DECANTS_HREF },
+            { label: '3ml', href: '/shop?decant_size=3' },
+            { label: '5ml', href: '/shop?decant_size=5' },
+            { label: '10ml', href: '/shop?decant_size=10' },
+            { label: '20ml', href: '/shop?decant_size=20' },
+        ],
+    },
     { label: 'Atomizer', href: '/atomizer' },
     { label: 'Thrift', href: '/thrift' },
     { label: 'Wellbeing', href: '/wellbeing' },
     { label: 'Members', href: '/members', highlight: true },
 ];
 
+// ─── NavLink ─────────────────────────────────────────────────────────────
 function NavLink({ link, pathname, currentType, onClick, mobile = false }: {
-    link: { label: string; href: string; highlight?: boolean; dropdown?: { label: string; href: string }[] };
+    link: NavLinkData;
     pathname: string;
     currentType: string | null;
     onClick?: () => void;
@@ -54,50 +103,53 @@ function NavLink({ link, pathname, currentType, onClick, mobile = false }: {
         timeoutRef.current = setTimeout(() => setIsHovered(false), 150);
     };
 
-    if (link.dropdown) {
-        // MOBILE: accordion — chevron toggles, label still navigates
-        if (mobile) {
-            return (
-                <div className="w-full">
-                    <div className="flex items-center justify-between">
-                        <Link
-                            href={link.href}
-                            onClick={onClick}
-                            className={`transition-all duration-300 ease-out border-b-2 pb-1 block
-                                ${active
-                                    ? 'text-secondary border-secondary'
-                                    : 'text-primary/70 border-transparent hover:text-primary hover:border-primary/30'
-                                }
-                            `}
-                        >
-                            {link.label}
-                        </Link>
-                        <button
-                            type="button"
-                            aria-label={`Toggle ${link.label} options`}
-                            aria-expanded={isOpenMobile}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                setIsOpenMobile((prev) => !prev);
-                            }}
-                            className="p-2 -mr-2 text-primary/60 active:text-secondary transition-colors duration-150"
-                        >
-                            <ChevronDown
-                                size={22}
-                                strokeWidth={1.75}
-                                className={`transition-transform duration-300 ease-out ${isOpenMobile ? 'rotate-180' : 'rotate-0'}`}
-                            />
-                        </button>
-                    </div>
+    const hasDropdown = !!link.dropdown;
+    const hasMegaDropdown = !!link.megaDropdown;
 
-                    <div
-                        className={`overflow-hidden transition-all duration-300 ease-out
-                            ${isOpenMobile ? 'max-h-96 opacity-100 mt-3' : 'max-h-0 opacity-0'}
+    // ── MOBILE: accordion (flat dropdown OR grouped megaDropdown) ──────────
+    if ((hasDropdown || hasMegaDropdown) && mobile) {
+        return (
+            <div className="w-full">
+                <div className="flex items-center justify-between">
+                    <Link
+                        href={link.href}
+                        onClick={onClick}
+                        className={`transition-all duration-300 ease-out border-b-2 pb-1 block
+                            ${active
+                                ? 'text-secondary border-secondary'
+                                : 'text-primary/70 border-transparent hover:text-primary hover:border-primary/30'
+                            }
                         `}
                     >
+                        {link.label}
+                    </Link>
+                    <button
+                        type="button"
+                        aria-label={`Toggle ${link.label} options`}
+                        aria-expanded={isOpenMobile}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setIsOpenMobile((prev) => !prev);
+                        }}
+                        className="p-2 -mr-2 text-primary/60 active:text-secondary transition-colors duration-150"
+                    >
+                        <ChevronDown
+                            size={22}
+                            strokeWidth={1.75}
+                            className={`transition-transform duration-300 ease-out ${isOpenMobile ? 'rotate-180' : 'rotate-0'}`}
+                        />
+                    </button>
+                </div>
+
+                <div
+                    className={`overflow-hidden transition-all duration-300 ease-out
+                        ${isOpenMobile ? 'max-h-[32rem] opacity-100 mt-3' : 'max-h-0 opacity-0'}
+                    `}
+                >
+                    {hasDropdown && (
                         <div className="flex flex-col gap-3 pl-4 border-l border-outline-variant/20">
-                            {link.dropdown.map((item) => (
+                            {link.dropdown!.map((item) => (
                                 <Link
                                     key={item.label}
                                     href={item.href}
@@ -108,12 +160,38 @@ function NavLink({ link, pathname, currentType, onClick, mobile = false }: {
                                 </Link>
                             ))}
                         </div>
-                    </div>
-                </div>
-            );
-        }
+                    )}
 
-        // DESKTOP: hover dropdown
+                    {hasMegaDropdown && (
+                        <div className="flex flex-col gap-5 pl-4 border-l border-outline-variant/20">
+                            {link.megaDropdown!.map((group) => (
+                                <div key={group.heading} className="flex flex-col gap-2.5">
+                                    <p className="text-[11px] uppercase tracking-widest text-outline font-semibold">
+                                        {group.heading}
+                                    </p>
+                                    <div className="flex flex-col gap-2.5 pl-3">
+                                        {group.items.map((item) => (
+                                            <Link
+                                                key={item.label}
+                                                href={item.href}
+                                                onClick={onClick}
+                                                className="text-base font-body text-primary/60 hover:text-primary active:text-secondary transition-colors duration-150"
+                                            >
+                                                {item.label}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // ── DESKTOP: flat hover dropdown ────────────────────────────────────────
+    if (hasDropdown) {
         return (
             <div
                 className="relative"
@@ -133,18 +211,17 @@ function NavLink({ link, pathname, currentType, onClick, mobile = false }: {
                     {link.label}
                 </Link>
 
-                {/* Dropdown */}
                 <div className={`absolute top-full left-0 mt-3 w-44 bg-background border border-outline-variant/30 rounded-lg shadow-xl overflow-hidden transition-all duration-150 origin-top
-    ${isHovered ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'}
-`}>
-                    {link.dropdown.map((item, i) => (
+                    ${isHovered ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'}
+                `}>
+                    {link.dropdown!.map((item, i) => (
                         <Link
                             key={item.label}
                             href={item.href}
                             onClick={onClick}
                             className={`group flex items-center justify-between px-4 py-2.5 text-sm font-headline text-primary/60 hover:text-primary hover:bg-outline-variant/10 transition-all duration-150
-                ${i !== link.dropdown!.length - 1 ? 'border-b border-outline-variant/10' : ''}
-            `}
+                                ${i !== link.dropdown!.length - 1 ? 'border-b border-outline-variant/10' : ''}
+                            `}
                         >
                             <span className="group-hover:translate-x-0.5 transition-transform duration-150">{item.label}</span>
                             <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-secondary text-xs">→</span>
@@ -155,6 +232,58 @@ function NavLink({ link, pathname, currentType, onClick, mobile = false }: {
         );
     }
 
+    // ── DESKTOP: mega (grouped) hover dropdown ──────────────────────────────
+    if (hasMegaDropdown) {
+        return (
+            <div
+                className="relative"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+            >
+                <Link
+                    href={link.href}
+                    onClick={onClick}
+                    className={`transition-all duration-300 ease-out border-b-2 pb-1 block md:inline-block
+                        ${active
+                            ? 'text-secondary border-secondary'
+                            : 'text-primary/70 border-transparent hover:text-primary hover:border-primary/30'
+                        }
+                    `}
+                >
+                    {link.label}
+                </Link>
+
+                <div className={`absolute top-full left-0 mt-3 w-[26rem] bg-background border border-outline-variant/30 rounded-lg shadow-xl overflow-hidden transition-all duration-150 origin-top
+                    ${isHovered ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'}
+                `}>
+                    <div className="grid grid-cols-2 divide-x divide-outline-variant/10">
+                        {link.megaDropdown!.map((group) => (
+                            <div key={group.heading} className="py-4 px-4">
+                                <p className="text-[11px] uppercase tracking-widest text-outline font-semibold px-2 mb-2">
+                                    {group.heading}
+                                </p>
+                                <div className="flex flex-col">
+                                    {group.items.map((item) => (
+                                        <Link
+                                            key={item.label}
+                                            href={item.href}
+                                            onClick={onClick}
+                                            className="group flex items-center justify-between px-2 py-2 text-sm font-headline text-primary/60 hover:text-primary hover:bg-outline-variant/10 rounded transition-all duration-150"
+                                        >
+                                            <span className="group-hover:translate-x-0.5 transition-transform duration-150">{item.label}</span>
+                                            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-secondary text-xs">→</span>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ── Plain link (no dropdown) ────────────────────────────────────────────
     return (
         <Link
             href={link.href}

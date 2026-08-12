@@ -2,9 +2,15 @@ import Link from "next/link";
 import { PerfumeSummary } from "@/types/perfumes";
 import Image from "next/image"
 
-export default function PerfumeCard({ name, brand, price, primary_image, secondary_image, slug }: PerfumeSummary) {
+interface PerfumeCardProps extends PerfumeSummary {
+    sizeQuery?: string;
+}
+
+export default function PerfumeCard({ name, brand, price, primary_image, secondary_image, slug, sizeQuery }: PerfumeCardProps) {
+    const href = sizeQuery ? `/perfume/${slug}?size=${sizeQuery}` : `/perfume/${slug}`;
+
     return (
-        <Link href={`/perfume/${slug}`} className="w-full group cursor-pointer block">
+        <Link href={href} className="w-full group cursor-pointer block">
             {/* Image Container */}
             <div className="aspect-[3/4] bg-surface-container mb-4 overflow-hidden relative">
                 {primary_image ? (

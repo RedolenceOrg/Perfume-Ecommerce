@@ -13,6 +13,9 @@ export default function ProductGrid() {
     const [loading, setLoading] = useState(false);
     const searchParams = useSearchParams();
 
+    const decantSizeFilters = searchParams.getAll('decant_size');
+    const sizeQuery = decantSizeFilters.length === 1 ? decantSizeFilters[0] : undefined;
+
     const pageRef = useRef(1);
     const hasMoreRef = useRef(true);
     const loadingRef = useRef(false);
@@ -104,7 +107,7 @@ export default function ProductGrid() {
                             className="product-fade-in"
                             style={{ animationDelay: `${(index % PAGE_SIZE) * 45}ms` }}
                         >
-                            <PerfumeCard {...perfume} />
+                            <PerfumeCard {...perfume} sizeQuery={sizeQuery} />
                         </div>
                     ))}
                 </div>

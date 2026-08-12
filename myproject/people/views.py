@@ -1,5 +1,4 @@
 import json
-from time import timezone
 from django.views import View
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
@@ -8,13 +7,15 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
-from .serializers import RegistrationSerializer,LoginSerializer,ProfileSerializer, ResetPasswordSerializer, SuggestionSerializer,updateProfileSerializer,ChangePasswordSerializer,VerifyAccountSerializer
+from rest_framework.response import Response
+from .serializers import RegistrationSerializer,LoginSerializer,ProfileSerializer, ResetPasswordSerializer, SuggestionSerializer,updateProfileSerializer,ChangePasswordSerializer,VerifyAccountSerializer,StockNotificationRequestSerializer
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import PasswordResetOTP, Suggestions
 import random
+from rest_framework.views import APIView
 from myproject.utils import send_otp_email,send_account_verification_email
 from myproject.utils import conditional_ratelimit
-
+from rest_framework.permissions import AllowAny 
 
 User = get_user_model()
 
@@ -164,6 +165,8 @@ class UpdateProfile(LoginRequiredMixin,View):
             profile.place  =  place    
         if phone_number is not None:
             profile.phone_number = phone_number
+        
+        profile.isVerified =False
         profile.save()
         return JsonResponse({
             'phone_number': profile.phone_number,
@@ -351,3 +354,24 @@ class SuggestionsView(View):
                 'created_at': suggestion.created_at,
             }
         }, status=201)
+# views.py
+
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(conditional_ratelimit(rate='10/m'), name='post')
+class NotifyStockView(APIView):
+    permission_classes = [AllowAny]  # guests can submit too
+
+    def post(self, request):
+        data = request.data.copy()
+
+        if request.user.is_authenticated:
+            data.setdefault('email', request.user.email)
+            # TODO: adjust this to wherever phone actually lives on your user model
+            data.setdefault('phone', getattr(request.user, 'phone', '') or '')
+
+        serializer = StockNotificationRequestSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save(user=request.user if request.user.is_authenticated else None)
+            return Response({'message': "We'll notify you when this is back in stock."}, status=201)
+        return Response(serializer.errors, status=400)

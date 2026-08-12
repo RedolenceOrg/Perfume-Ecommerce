@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Sum
 
 from django.contrib.auth.models import AbstractUser
+from product.models import Decant, Perfume
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -46,3 +47,25 @@ class Suggestions(models.Model):
 
     def __str__(self):
         return f"{self.suggestion[:30]}..."
+
+class StockNotificationRequest(models.Model):
+    # null = guest request (unauthenticated, manually entered contact info)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        null=True, blank=True, related_name='stock_notifications'
+    )
+    perfume = models.ForeignKey(Perfume, on_delete=models.CASCADE, related_name='notification_requests')
+    # null decant = they want the full bottle, not a specific size
+    decant = models.ForeignKey(
+        Decant, on_delete=models.CASCADE, null=True, blank=True,
+        related_name='notification_requests'
+    )
+    email = models.EmailField(blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    notified = models.BooleanField(default=False)
+
+    def __str__(self):
+        target = f"{self.decant.size}ml Decant" if self.decant else "Full Bottle"
+        who = self.user.get_username() if self.user else (self.email or self.phone)
+        return f"{self.perfume.name} - {target} - {who}"
