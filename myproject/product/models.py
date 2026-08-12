@@ -95,7 +95,7 @@ class PerfumeNote(models.Model):
     
 class Decant(models.Model):
     perfume = models.ForeignKey(Perfume, on_delete=models.CASCADE)
-    size = models.DecimalField(max_digits=5, decimal_places=2)  # Size in ml
+    size = models.DecimalField(max_digits=5, decimal_places=2) 
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default = 0)
     reserved = models.PositiveIntegerField(default=0)

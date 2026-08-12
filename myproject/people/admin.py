@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Profile
+from .models import Suggestions, User, Profile
 
 
 class ProfileInline(admin.StackedInline):
@@ -12,3 +12,7 @@ class ProfileInline(admin.StackedInline):
 class UserAdmin(BaseUserAdmin):
     inlines = (ProfileInline,)
 admin.site.register(User, UserAdmin)
+
+
+
+admin.site.register(Suggestions)

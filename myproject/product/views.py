@@ -34,13 +34,18 @@ class getPerfumeHome(APIView):
 @method_decorator(conditional_ratelimit(rate='40/m'), name='get')
 class FilterOptionsView(APIView):
     def get(self, request):
-        from .models import Brand, Notes, Family
+        from .models import Brand, Notes, Family,Decant
 
         return Response({
             'brands': list(Brand.objects.values_list('name', flat=True)),
             'notes': list(Notes.objects.values_list('name', flat=True)),
             'families': list(Family.objects.values_list('name', flat=True)),
             'types': ['Perfume', 'Attar'],
+            'decant_sizes': list(
+                Decant.objects.order_by('size')
+                .values_list('size', flat=True)
+                .distinct()
+            ),
         })
     
 @method_decorator(conditional_ratelimit(rate='60/m'), name='get')
@@ -57,6 +62,7 @@ class ShopView(APIView):
         gender = request.query_params.get('gender')
         perfume_type = request.query_params.get('type')
         perfume_collections = request.query_params.getlist('collection')
+        decant_sizes = request.query_params.getlist('decant_size')
 
         perfumes = Perfume.objects.select_related('brand').prefetch_related('images')
 
@@ -78,7 +84,8 @@ class ShopView(APIView):
             perfumes = perfumes.filter(price__lte=price_max)
         if gender:
             perfumes = perfumes.filter(gender__iexact=gender)
-
+        if decant_sizes:
+            perfumes = perfumes.filter(decant__size__in=decant_sizes)
         # ✅ distinct only when M2M filters are applied (they cause duplicate rows)
         if family or notes:
             perfumes = perfumes.distinct()

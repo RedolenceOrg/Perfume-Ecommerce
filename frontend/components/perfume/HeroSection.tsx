@@ -256,6 +256,48 @@ export default function HeroSection({ perfume }: HeroProps) {
                     </div>
                 </div>
 
+                {/* Shipping Info */}
+                <div className="border-t border-outline/10 pt-4 space-y-1.5">
+                    <p className="text-[11px] uppercase tracking-widest text-outline font-semibold">
+                        Shipping
+                    </p>
+                    <p className="text-xs text-outline leading-relaxed">
+                        Shipping charges are calculated at checkout.
+                    </p>
+                    <ul className="text-xs text-outline leading-relaxed list-disc list-inside">
+                        <li>Inside Valley: NRS 100</li>
+                        <li>Outside Valley: NRS 150</li>
+                    </ul>
+                </div>
+
+                {/* Payment Gateways */}
+                <div className="flex items-center gap-3 pt-1">
+                    <p className="text-[11px] uppercase tracking-widest text-outline font-semibold mr-1">
+                        We Accept
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <div className="h-12 w-32 relative bg-white flex items-center justify-center p-1.5">
+                            <Image
+                                src="/brands/esewa.png"
+                                alt="eSewa"
+                                fill
+                                className="object-contain p-1"
+                            />
+                        </div>
+                        <div className="h-12 w-32 relative bg-white flex items-center justify-center p-1.5">
+                            <Image
+                                src="/brands/khalti.png"
+                                alt="Khalti"
+                                fill
+                                className="object-contain p-2"
+                            />
+                        </div>
+                        <p className="text-xs text-outline">
+                            Cash On Delivery
+                        </p>
+                    </div>
+                </div>
+
                 <div className="border-t border-outline/10 pt-6">
                     <NotePyramid perfume={perfume} />
                 </div>
