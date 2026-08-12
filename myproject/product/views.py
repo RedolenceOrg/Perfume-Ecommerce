@@ -175,12 +175,31 @@ class RelatedPerfumesView(APIView):
     def get(self, request):
         notes = request.query_params.getlist('note')
         exclude_slug = request.query_params.get('exclude')
-        
-        perfumes = Perfume.objects.filter(note__name__in=notes)\
-            .exclude(slug=exclude_slug)\
-            .annotate(match_count=Count('note'))\
+
+        decant_in_stock = Decant.objects.filter(
+            perfume=OuterRef('pk'),
+            stock__gt=F('reserved')
+        )
+
+        perfumes = (
+            Perfume.objects
+            .filter(note__name__in=notes)
+            .exclude(slug=exclude_slug)
+            .annotate(
+    has_decant_stock=Exists(decant_in_stock),
+    match_count=Count(
+        'note',
+        filter=Q(note__name__in=notes),
+        distinct=True
+    )
+)
+            .filter(
+                Q(stock__gt=F('reserved')) |
+                Q(has_decant_stock=True)
+            )
             .order_by('-match_count')[:10]
-        
+        )
+
         serializer = PerfumeListSerializer(perfumes, many=True)
         return Response(serializer.data)
 
