@@ -18,7 +18,7 @@ MAX_CANDIDATES = 15
 
 from django.db.models import Exists, OuterRef
 
-
+@method_decorator(csrf_protect,name = 'dispatch')
 @method_decorator(conditional_ratelimit(rate='40/m'), name='get')
 class getPerfumeHome(APIView):
     def get(self, request):
@@ -49,7 +49,7 @@ class getPerfumeHome(APIView):
             'restocked': PerfumeListSerializer(restocked, many=True).data,
             'seasonal': PerfumeListSerializer(seasonal, many=True).data,
         })
-    
+@method_decorator(csrf_protect,name = 'dispatch')
 @method_decorator(conditional_ratelimit(rate='40/m'), name='get')
 class FilterOptionsView(APIView):
     def get(self, request):
@@ -68,7 +68,7 @@ class FilterOptionsView(APIView):
         })
     
 
-
+@method_decorator(csrf_protect,name = 'dispatch')
 @method_decorator(conditional_ratelimit(rate='60/m'), name='get')
 class ShopView(APIView):
     def get(self, request):
@@ -139,7 +139,7 @@ class ShopView(APIView):
             'page': page,
             'has_more': end < total,
         })
-    
+@method_decorator(csrf_protect,name = 'dispatch')   
 @method_decorator(conditional_ratelimit(rate='60/m'), name='get')
 class PerfumeDetailView(APIView):
     def get(self, request, slug):
@@ -188,7 +188,7 @@ class PerfumeDetailView(APIView):
             'related': PerfumeListSerializer(related, many=True).data
         })
 
-
+@method_decorator(csrf_protect,name = 'dispatch')
 @method_decorator(conditional_ratelimit(rate='60/m'), name='get')
 class RelatedPerfumesView(APIView):
     def get(self, request):
@@ -221,14 +221,14 @@ class RelatedPerfumesView(APIView):
 
         serializer = PerfumeListSerializer(perfumes, many=True)
         return Response(serializer.data)
-
+@method_decorator(csrf_protect,name = 'dispatch')
 @method_decorator(conditional_ratelimit(rate='40/m'), name='get')    
 class AtomizerPage(APIView):
     def get(self, request):
         atomizers = Atomizer.objects.all().prefetch_related('variants')
         serializer = AtomizerSerializer(atomizers, many=True)
         return Response(serializer.data)
-
+@method_decorator(csrf_protect,name = 'dispatch')
 @method_decorator(conditional_ratelimit(rate='40/m'), name='get')   
 class ThriftPage(APIView):
     def get(self, request):

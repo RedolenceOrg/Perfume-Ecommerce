@@ -21,12 +21,21 @@ interface NavLinkData {
     label: string;
     href: string;
     highlight?: boolean;
-    dropdown?: SimpleItem[];       // flat dropdown (e.g. Travel Size Decants)
-    megaDropdown?: DropdownGroup[]; // grouped dropdown (e.g. Perfumes: Gender / Categories)
+    dropdown?: SimpleItem[];       // flat dropdown
+    megaDropdown?: DropdownGroup[]; // grouped dropdown
 }
 
 const DECANT_SIZES = ['3', '5', '10', '20'];
-const ALL_DECANTS_HREF = `/shop?${DECANT_SIZES.map((s) => `decant_size=${s}`).join('&')}`;
+const decantSizeQuery = DECANT_SIZES.map((s) => `decant_size=${s}`).join('&');
+const ALL_DECANTS_HREF = `/shop?${decantSizeQuery}`;
+
+// Helper: build a /shop URL that combines arbitrary filters with ALL decant sizes
+function buildDecantHref(params: Record<string, string>): string {
+    const paramString = Object.entries(params)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('&');
+    return `/shop?${paramString}&${decantSizeQuery}`;
+}
 
 const navLinks: NavLinkData[] = [
     { label: 'Home', href: '/' },
@@ -53,18 +62,30 @@ const navLinks: NavLinkData[] = [
             },
         ],
     },
-    { label: 'Attars', href: '/shop?type=Attar' },
     {
         label: 'Travel Size Decants',
         href: ALL_DECANTS_HREF,
-        dropdown: [
-            { label: 'All Decants', href: ALL_DECANTS_HREF },
-            { label: '3ml', href: '/shop?decant_size=3' },
-            { label: '5ml', href: '/shop?decant_size=5' },
-            { label: '10ml', href: '/shop?decant_size=10' },
-            { label: '20ml', href: '/shop?decant_size=20' },
+        megaDropdown: [
+            {
+                heading: 'Gender',
+                items: [
+                    { label: 'Male', href: buildDecantHref({ type: 'Perfume', gender: 'Male' }) },
+                    { label: 'Female', href: buildDecantHref({ type: 'Perfume', gender: 'Female' }) },
+                    { label: 'Unisex', href: buildDecantHref({ type: 'Perfume', gender: 'Unisex' }) },
+                ],
+            },
+            {
+                heading: 'Categories',
+                items: [
+                    { label: 'Niche', href: buildDecantHref({ type: 'Perfume', collection: 'niche' }) },
+                    { label: 'Designer', href: buildDecantHref({ type: 'Perfume', collection: 'designer' }) },
+                    { label: 'Middle Eastern', href: buildDecantHref({ type: 'Perfume', collection: 'middle_eastern' }) },
+                    { label: 'In House', href: buildDecantHref({ type: 'Perfume', collection: 'in_house' }) },
+                ],
+            },
         ],
     },
+    { label: 'Attars', href: '/shop?type=Attar' },
     { label: 'Atomizer', href: '/atomizer' },
     { label: 'Thrift', href: '/thrift' },
     { label: 'Wellbeing', href: '/wellbeing' },
