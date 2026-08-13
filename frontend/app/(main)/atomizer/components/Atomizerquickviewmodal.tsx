@@ -99,12 +99,13 @@ export default function AtomizerQuickViewModal({
                 {/* Details */}
                 <div className="w-full md:w-1/2 p-6 flex flex-col gap-4">
                     <div>
-                        <span className="font-label text-[10px] text-secondary font-bold uppercase tracking-widest">
-                            {variant.size}ml
-                        </span>
+
                         <h2 className="font-headline text-2xl text-primary leading-tight mt-1">
                             {atomizer.name}
                         </h2>
+                        <span className="font-label text-[14px] text-secondary font-bold uppercase tracking-widest">
+                            {variant.size}ml
+                        </span>
                     </div>
 
                     <p className="font-body text-sm text-outline leading-relaxed">
