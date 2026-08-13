@@ -5,7 +5,7 @@ import AtomizerHero from "./components/AtomizerHero";
 export default async function Atomizer() {
 
     try {
-        const res = await apiGet(`/api/atomizers/`);
+        const res = await apiGet(`/api/atomizers/`, { next: { revalidate: 60 } });
         if (!res.ok) return <div>Product not found</div>
         const products = await res.json();
 
