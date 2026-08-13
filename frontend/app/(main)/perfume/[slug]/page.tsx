@@ -5,6 +5,7 @@ import Performance from "@/components/perfume/Performance"
 import Breadcrumbs from "@/components/perfume/Breadcrumbs"
 import { collections } from "@/types/perfumes"
 import { apiGet } from "@/context/api"
+import SearchBar from "@/components/searchBar"
 
 export default async function PerfumePage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params
@@ -36,7 +37,12 @@ export default async function PerfumePage({ params }: { params: Promise<{ slug: 
 
         return (
             <main className="max-w-screen-2xl mx-auto pt-[66px]">
-                <Breadcrumbs items={breadcrumbItems} />
+                <div className="px-6 lg:px-16 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <Breadcrumbs items={breadcrumbItems} />
+                    <div className="w-full lg:w-1/2 lg:flex lg:justify-end">
+                        <SearchBar className="w-full lg:max-w-md" />
+                    </div>
+                </div>
                 <HeroSection perfume={perfume} />
                 <Description description={perfume.description} />
                 <Performance longevity={perfume.longevity?.level} sillage={perfume.sillage?.level} />

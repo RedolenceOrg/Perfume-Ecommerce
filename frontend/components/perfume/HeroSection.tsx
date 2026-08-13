@@ -244,58 +244,74 @@ export default function HeroSection({ perfume }: HeroProps) {
                     )
                 })()}
                 {/* Size Selection */}
-                <div className="grid grid-cols-3 gap-3">
-                    {perfume.decant.map((decant) => {
-                        const isOutOfStock = decant.available_stock <= 0
-                        return (
-                            <div
-                                key={decant.size}
-                                onClick={() => handleSelect(decant)}
-                                className={`border p-4 text-center transition-all duration-300 rounded-xl relative cursor-pointer
+                <div className="space-y-4">
+                    {perfume.decant.length > 0 && (
+                        <div className="space-y-2">
+                            <p className="text-[11px] uppercase tracking-widest text-outline font-bold text-primary">
+                                Decants
+                            </p>
+                            <div className="grid grid-cols-3 gap-3">
+                                {[...perfume.decant]
+                                    .sort((a, b) => Number(a.size) - Number(b.size))
+                                    .map((decant) => {
+                                        const isOutOfStock = decant.available_stock <= 0
+                                        return (
+                                            <div
+                                                key={decant.size}
+                                                onClick={() => handleSelect(decant)}
+                                                className={`border p-4 h-16 flex flex-col items-center justify-center text-center transition-all duration-300 rounded-xl relative cursor-pointer
                                     ${isOutOfStock ? 'opacity-50 bg-surface-container-low' : ''}
                                     ${isSelected(decant)
-                                        ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
-                                        : !isOutOfStock ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10 hover:border-secondary/40'
-                                    }`}
-                            >
-                                <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
-                                    {Math.round(Number(decant.size))}ml
-                                </p>
-                                <p className="font-headline text-sm font-semibold text-primary">
-                                    {isOutOfStock ? 'OUT OF STOCK' : `NRS ${Math.round(Number(decant.price))}`}
-                                </p>
-                                {isOutOfStock && (
-                                    <p className="text-[10px] uppercase tracking-widest text-secondary font-semibold mt-1">
-                                        Notify Me
-                                    </p>
-                                )}
+                                                        ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
+                                                        : !isOutOfStock ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10 hover:border-secondary/40'
+                                                    }`}
+                                            >
+                                                <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
+                                                    {Math.round(Number(decant.size))}ml
+                                                </p>
+                                                <p className="font-headline text-sm font-semibold text-primary">
+                                                    {isOutOfStock ? 'OUT OF STOCK' : `NRS ${Math.round(Number(decant.price))}`}
+                                                </p>
+                                                {isOutOfStock && (
+                                                    <p className="text-[10px] uppercase tracking-widest text-secondary font-semibold mt-1">
+                                                        Notify Me
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )
+                                    })}
                             </div>
-                        )
-                    })}
+                        </div>
+                    )}
 
-                    <div
-                        onClick={() => handleSelect('full')}
-                        className={`col-span-3 border p-4 text-center transition-all duration-300 rounded-xl cursor-pointer
-        ${perfume.available_stock <= 0 ? 'opacity-50 bg-surface-container-low' : ''}
-        ${isSelected('full')
-                                ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
-                                : perfume.available_stock > 0 ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10 hover:border-secondary/40'
-                            }`}
-                    >
-                        <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
-                            Full Bottle · {perfume.full_bottle_size}ml
+                    <div className="space-y-2">
+                        <p className="text-[11px] uppercase tracking-widest text-outline font-bold text-primary">
+                            Full Bottle
                         </p>
-                        <p className="font-headline text-sm font-semibold text-primary">
-                            {perfume.available_stock <= 0
-                                ? 'OUT OF STOCK'
-                                : `NRS ${Math.round(Number(perfume.price)).toLocaleString()}`
-                            }
-                        </p>
-                        {perfume.available_stock <= 0 && (
-                            <p className="text-[10px] uppercase tracking-widest text-secondary font-semibold mt-1">
-                                Notify Me
+                        <div
+                            onClick={() => handleSelect('full')}
+                            className={`border p-4 h-16 flex flex-col items-center justify-center text-center transition-all duration-300 rounded-xl cursor-pointer
+                ${perfume.available_stock <= 0 ? 'opacity-50 bg-surface-container-low' : ''}
+                ${isSelected('full')
+                                    ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
+                                    : perfume.available_stock > 0 ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10 hover:border-secondary/40'
+                                }`}
+                        >
+                            <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
+                                {perfume.full_bottle_size}ml
                             </p>
-                        )}
+                            <p className="font-headline text-sm font-semibold text-primary">
+                                {perfume.available_stock <= 0
+                                    ? 'OUT OF STOCK'
+                                    : `NRS ${Math.round(Number(perfume.price)).toLocaleString()}`
+                                }
+                            </p>
+                            {perfume.available_stock <= 0 && (
+                                <p className="text-[10px] uppercase tracking-widest text-secondary font-semibold mt-1">
+                                    Notify Me
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
 
