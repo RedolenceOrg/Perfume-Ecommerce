@@ -112,11 +112,11 @@ class MeView(View):
                 {'detail': 'Not logged in'},
                 status=403
             )
-        tier = request.user.profile.total_spend
-        if tier <=5500:
-            rank = False
-        else:
-            rank = True
+        # tier = request.user.profile.total_spend
+        # if tier <=5500:
+        #     rank = False
+        # else:
+        #     rank = True
 
         return JsonResponse({
             'id': request.user.id,
@@ -124,7 +124,6 @@ class MeView(View):
             'email': request.user.email,
             'first_name':request.user.first_name,
             'isVerified':request.user.isVerified,
-            'rank': rank
         })
     
 

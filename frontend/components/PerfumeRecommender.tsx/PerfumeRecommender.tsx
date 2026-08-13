@@ -42,7 +42,33 @@ const STEPS: Step[] = [
     { id: "gender", label: "Step 1 of 6", question: "Who is this for?", type: "single", options: GENDER_OPTIONS, required: true },
     { id: "price_max", label: "Step 2 of 6", question: "What's your maximum budget?", type: "price", placeholder: "e.g. 15000", required: true },
     { id: "collection", label: "Step 3 of 6", question: "Which collection interests you?", type: "multi", options: COLLECTION_OPTIONS, required: true },
-    { id: "family", label: "Step 4 of 6", question: "What scent family do you like?", type: "multi", options: ["Floral", "Woody", "Amber", "Fresh", "Oriental", "Citrus", "Musk", "Gourmand"], required: true },
+    {
+        id: "family",
+        label: "Step 4 of 6",
+        question: "What scent family do you like?",
+        type: "multi",
+        options: [
+            "Floral",
+            "Amber",
+            "Woody",
+            "Fresh",
+            "Fruity",
+            "Citrus",
+            "Gourmand",
+            "Aromatic",
+            "Aquatic",
+            "Spicy",
+            "Musky",
+            "Chypre",
+            "Green",
+            "Oriental",
+            "Balsamic",
+            "Fougère",
+            "Powdery",
+            "Marine"
+        ],
+        required: true
+    },
     { id: "notes", label: "Step 5 of 6", question: "Any notes you love?", type: "text", placeholder: "vanilla, oud, bergamot...", required: false },
     { id: "occasion", label: "Step 6 of 6", question: "What's the occasion?", type: "text", placeholder: "daily wear, date night, office...", required: false },
 ];
@@ -326,7 +352,7 @@ export default function PerfumeRecommender() {
     if (authLoading) return null;
 
     // Same check as before — just no longer blocks the whole component.
-    const isLocked = !user || !user.rank;
+    const isLocked = !user || !user.isVerified
 
     const step = STEPS[current];
     const progress = isDone ? 100 : Math.round((current / STEPS.length) * 100);
@@ -377,8 +403,8 @@ export default function PerfumeRecommender() {
                     {isLocked ? (
                         <div className="h-full flex items-center justify-center py-10 text-center">
                             <p className="font-headline text-sm text-primary leading-relaxed max-w-[260px]">
-                                You must be <span className="font-semibold">Tier 1: Top</span> and a{" "}
-                                <span className="font-semibold">Verified Account</span> to use this.
+                                You must be a
+                                <span className="font-semibold"> Verified Account</span> to use this.
                             </p>
                         </div>
                     ) : isDone ? (
