@@ -381,6 +381,7 @@ export default function HeroSection({ perfume }: HeroProps) {
                                 src="/brands/esewa.png"
                                 alt="eSewa"
                                 fill
+                                sizes='100px'
                                 className="object-contain p-1"
                             />
                         </div>
@@ -389,6 +390,7 @@ export default function HeroSection({ perfume }: HeroProps) {
                                 src="/brands/khalti.png"
                                 alt="Khalti"
                                 fill
+                                sizes='400px'
                                 className="object-contain p-2"
                             />
                         </div>
