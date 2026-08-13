@@ -324,7 +324,9 @@ export default function PerfumeRecommender() {
 
     if (!mounted) return null;
     if (authLoading) return null;
-    if (!user || !user.rank) return null;
+
+    // Same check as before — just no longer blocks the whole component.
+    const isLocked = !user || !user.rank;
 
     const step = STEPS[current];
     const progress = isDone ? 100 : Math.round((current / STEPS.length) * 100);
@@ -360,17 +362,26 @@ export default function PerfumeRecommender() {
                     </button>
                 </div>
 
-                {/* Progress bar */}
-                <div className="h-0.5 bg-outline-variant">
-                    <div
-                        className="h-full bg-secondary transition-all duration-400 ease-out"
-                        style={{ width: `${progress}%` }}
-                    />
-                </div>
+                {/* Progress bar — skipped entirely while locked */}
+                {!isLocked && (
+                    <div className="h-0.5 bg-outline-variant">
+                        <div
+                            className="h-full bg-secondary transition-all duration-400 ease-out"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                )}
 
                 {/* Body */}
                 <div className="px-4 pt-5 pb-3 min-h-[200px] max-h-[70vh] overflow-y-auto" data-lenis-prevent>
-                    {isDone ? (
+                    {isLocked ? (
+                        <div className="h-full flex items-center justify-center py-10 text-center">
+                            <p className="font-headline text-sm text-primary leading-relaxed max-w-[260px]">
+                                You must be <span className="font-semibold">Tier 1: Top</span> and a{" "}
+                                <span className="font-semibold">Verified Account</span> to use this.
+                            </p>
+                        </div>
+                    ) : isDone ? (
                         <div className="py-2">
                             {isLoading ? (
                                 <div className="text-center">
@@ -466,45 +477,48 @@ export default function PerfumeRecommender() {
                     )}
                 </div>
 
-                {/* Footer */}
-                <div className="px-4 pb-4 flex items-center justify-between">
-                    {isDone ? (
-                        <button
-                            type="button"
-                            onClick={handleReset}
-                            className="w-full py-2 rounded-xl bg-primary text-[#fbf9f5] text-sm font-label font-medium hover:bg-primary-container transition-colors"
-                        >
-                            Start over
-                        </button>
-                    ) : (
-                        <>
-                            <span className="text-xs text-outline font-label">
-                                {current + 1} / {STEPS.length}
-                            </span>
-                            <div className="flex gap-2">
-                                {current > 0 && (
+                {/* Footer — hidden entirely while locked */}
+                {!isLocked && (
+                    <div className="px-4 pb-4 flex items-center justify-between">
+                        {isDone ? (
+                            <button
+                                type="button"
+                                onClick={handleReset}
+                                className="w-full py-2 rounded-xl bg-primary text-[#fbf9f5] text-sm font-label font-medium hover:bg-primary-container transition-colors"
+                            >
+                                Start over
+                            </button>
+                        ) : (
+                            <>
+                                <span className="text-xs text-outline font-label">
+                                    {current + 1} / {STEPS.length}
+                                </span>
+                                <div className="flex gap-2">
+                                    {current > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={handleBack}
+                                            className="px-4 py-2 rounded-xl border border-outline-variant text-sm text-outline font-label hover:border-outline hover:text-primary transition-colors"
+                                        >
+                                            Back
+                                        </button>
+                                    )}
                                     <button
                                         type="button"
-                                        onClick={handleBack}
-                                        className="px-4 py-2 rounded-xl border border-outline-variant text-sm text-outline font-label hover:border-outline hover:text-primary transition-colors"
+                                        onClick={handleNext}
+                                        disabled={!canGoNext}
+                                        className="px-4 py-2 rounded-xl bg-primary text-[#fbf9f5] text-sm font-label font-medium hover:bg-primary-container transition-colors disabled:bg-outline-variant disabled:cursor-not-allowed"
                                     >
-                                        Back
+                                        {isLastStep ? "Find my scent" : "Next"}
                                     </button>
-                                )}
-                                <button
-                                    type="button"
-                                    onClick={handleNext}
-                                    disabled={!canGoNext}
-                                    className="px-4 py-2 rounded-xl bg-primary text-[#fbf9f5] text-sm font-label font-medium hover:bg-primary-container transition-colors disabled:bg-outline-variant disabled:cursor-not-allowed"
-                                >
-                                    {isLastStep ? "Find my scent" : "Next"}
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
-            {/* Bubble button */}
+
+            {/* Bubble button — always visible, regardless of lock state */}
             <button
                 type="button"
                 onClick={() => setIsOpen((o) => !o)}
@@ -513,7 +527,7 @@ export default function PerfumeRecommender() {
                 className="flex items-center gap-2 px-4 h-[52px] rounded-full bg-primary text-[#fbf9f5] hover:scale-105 active:scale-95 transition-transform shadow-sm pointer-events-auto"
             >
                 <span className="text-sm font-label whitespace-nowrap">Find your scent</span>
-                <span className="text-xl">✦</span>
+                <span className="text-xl">🤖</span>
             </button>
         </div>
     );
