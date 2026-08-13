@@ -1,12 +1,44 @@
 import Link from "next/link";
 import { PerfumeSummary } from "@/types/perfumes";
-import Image from "next/image"
+import Image from "next/image";
+import { Info } from "lucide-react";
 
-export default function PerfumeCard({ name, brand, price, primary_image, secondary_image, slug }: PerfumeSummary) {
+interface PerfumeCardProps extends PerfumeSummary {
+    sizeQuery?: string;
+}
+
+const AVAILABILITY_BADGE: Record<string, { label: string; className: string }> = {
+    bottle_only: {
+        label: "Bottle Only",
+        className: "text-primary bg-surface-container-lowest/90 border-outline-variant/60",
+    },
+    decant_only: {
+        label: "Decants Only",
+        className: "text-secondary bg-secondary-container/20 border-secondary/30",
+    },
+};
+
+export default function PerfumeCard({ name, brand, price, primary_image, secondary_image, slug, availability_badge, sizeQuery }: PerfumeCardProps) {
+    const href = sizeQuery ? `/perfume/${slug}?size=${sizeQuery}` : `/perfume/${slug}`;
+    const badge = availability_badge ? AVAILABILITY_BADGE[availability_badge] : null;
+
     return (
-        <Link href={`/perfume/${slug}`} className="w-full group cursor-pointer block">
+        <Link href={href} className="w-full group cursor-pointer block">
             {/* Image Container */}
             <div className="aspect-[3/4] bg-surface-container mb-4 overflow-hidden relative">
+
+                {badge && (
+                    <div
+                        className={`absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1.5
+        border rounded-sm backdrop-blur-md
+        text-[8px] uppercase tracking-[0.18em] font-bold font-label
+        shadow-sm ${badge.className}`}
+                    >
+                        <Info size={10} strokeWidth={2} />
+                        {badge.label}
+                    </div>
+                )}
+
                 {primary_image ? (
                     <Image
                         src={primary_image}

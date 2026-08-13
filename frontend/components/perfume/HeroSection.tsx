@@ -2,15 +2,22 @@
 import Image from 'next/image'
 import { Perfume, Decant } from '@/types/perfumes'
 import NotePyramid from './NotePyramid'
-import { useState, useMemo, useCallback } from 'react'
-import { authapiPost } from '@/context/api'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { authapiPost, apiPost } from '@/context/api'
+import { useAuth } from '@/context/AuthContext'
 import { toast } from 'react-toastify'
 
 interface HeroProps {
     perfume: Perfume
 }
 
+const NOTIFY_ENDPOINT = '/authenticate/notificationrequest/'
+
 export default function HeroSection({ perfume }: HeroProps) {
+    const searchParams = useSearchParams()
+    const { user } = useAuth()
+
     const primaryImage = useMemo(() =>
         perfume.images.find(img => img.is_primary) || perfume.images[0]
         , [perfume.images])
@@ -19,6 +26,13 @@ export default function HeroSection({ perfume }: HeroProps) {
     const [quantity, setQuantity] = useState(1)
     const [selectedImage, setSelectedImage] = useState(primaryImage)
     const [copied, setCopied] = useState(false) // State for clipboard feedback
+
+    // Notify-me state — set when the user clicks an out-of-stock size
+    const [notifyTarget, setNotifyTarget] = useState<Decant | 'full' | null>(null)
+    const [notifyEmail, setNotifyEmail] = useState('')
+    const [notifyPhone, setNotifyPhone] = useState('')
+    const [notifySubmitting, setNotifySubmitting] = useState(false)
+    const [notifySubmitted, setNotifySubmitted] = useState(false)
 
     const currentMaxStock = useMemo(() =>
         selectedSize === 'full'
@@ -36,9 +50,31 @@ export default function HeroSection({ perfume }: HeroProps) {
 
     const isDisabled = !selectedSize || currentMaxStock <= 0
 
+    // Auto-select the size the user filtered/searched for, e.g. coming from
+    // /shop?decant_size=10 -> product link /perfume/slug?size=10.
+    // Only auto-selects if that size exists AND is currently in stock —
+    // an out-of-stock size shouldn't get silently selected on page load.
+    useEffect(() => {
+        const sizeParam = searchParams.get('size')
+        if (!sizeParam) return
+        const match = perfume.decant.find(
+            (d) => Math.round(Number(d.size)) === Math.round(Number(sizeParam))
+        )
+        if (match && match.available_stock > 0) {
+            setSelectedSize(match)
+            setQuantity(1)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    // Out-of-stock tiles open the notify-me modal instead of doing nothing
     const handleSelect = useCallback((variant: Decant | 'full') => {
         const stock = variant === 'full' ? perfume.available_stock : variant.available_stock
-        if (stock <= 0) return
+        if (stock <= 0) {
+            setNotifyTarget(variant)
+            setNotifySubmitted(false)
+            return
+        }
         setSelectedSize(prev => prev === variant ? null : variant)
         setQuantity(1)
     }, [perfume.available_stock])
@@ -73,6 +109,60 @@ export default function HeroSection({ perfume }: HeroProps) {
             toast.error('Failed to copy link')
         }
     }, [])
+
+    const closeNotifyModal = useCallback(() => {
+        if (notifySubmitting) return
+        setNotifyTarget(null)
+        setNotifyEmail('')
+        setNotifyPhone('')
+        setNotifySubmitted(false)
+    }, [notifySubmitting])
+
+    // Logged-in users: server attaches their account email/phone automatically,
+    // so we send the request WITH credentials and no manual contact fields.
+    // Guests: plain POST, contact info collected in the form below.
+    const handleNotifySubmit = useCallback(async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!notifyTarget) return
+
+        const decant_id = notifyTarget === 'full' ? null : notifyTarget.id
+
+        if (!user && !notifyEmail && !notifyPhone) {
+            toast.error('Please provide an email or phone number')
+            return
+        }
+
+        setNotifySubmitting(true)
+        try {
+            const payload = user
+                ? { perfume: perfume.slug, decant_id }
+                : { perfume: perfume.slug, decant_id, email: notifyEmail, phone: notifyPhone }
+
+            const res = user
+                ? await authapiPost(NOTIFY_ENDPOINT, payload)
+                : await apiPost(NOTIFY_ENDPOINT, payload)
+
+            const data = await res.json()
+            if (!res.ok) {
+                const firstError = typeof data === 'object' ? Object.values(data)[0] : null
+                const message = Array.isArray(firstError) ? firstError[0] : data?.message
+                toast.error(message || 'Failed to submit request')
+                return
+            }
+            setNotifySubmitted(true)
+            toast.success("We'll notify you when it's back in stock!")
+        } catch {
+            toast.error('Something went wrong. Please try again.')
+        } finally {
+            setNotifySubmitting(false)
+        }
+    }, [notifyTarget, notifyEmail, notifyPhone, perfume.slug, user])
+
+    const notifyTargetLabel = notifyTarget === 'full'
+        ? `Full Bottle · ${perfume.full_bottle_size}ml`
+        : notifyTarget
+            ? `${Math.round(Number(notifyTarget.size))}ml Decant`
+            : ''
 
     return (
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10 px-6 lg:px-16 items-start pt-3 lg:pt-6">
@@ -154,48 +244,74 @@ export default function HeroSection({ perfume }: HeroProps) {
                     )
                 })()}
                 {/* Size Selection */}
-                <div className="grid grid-cols-3 gap-3">
-                    {perfume.decant.map((decant) => {
-                        const isOutOfStock = decant.available_stock <= 0
-                        return (
-                            <div
-                                key={decant.size}
-                                onClick={() => handleSelect(decant)}
-                                className={`border p-4 text-center transition-all duration-300 rounded-xl relative
-                                    ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-surface-container-low' : 'cursor-pointer'}
+                <div className="space-y-4">
+                    {perfume.decant.length > 0 && (
+                        <div className="space-y-2">
+                            <p className="text-[11px] uppercase tracking-widest text-outline font-bold text-primary">
+                                Decants
+                            </p>
+                            <div className="grid grid-cols-3 gap-3">
+                                {[...perfume.decant]
+                                    .sort((a, b) => Number(a.size) - Number(b.size))
+                                    .map((decant) => {
+                                        const isOutOfStock = decant.available_stock <= 0
+                                        return (
+                                            <div
+                                                key={decant.size}
+                                                onClick={() => handleSelect(decant)}
+                                                className={`border p-4 h-16 flex flex-col items-center justify-center text-center transition-all duration-300 rounded-xl relative cursor-pointer
+                                    ${isOutOfStock ? 'opacity-50 bg-surface-container-low' : ''}
                                     ${isSelected(decant)
-                                        ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
-                                        : !isOutOfStock ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10'
-                                    }`}
-                            >
-                                <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
-                                    {Math.round(Number(decant.size))}ml
-                                </p>
-                                <p className="font-headline text-sm font-semibold text-primary">
-                                    {isOutOfStock ? 'OUT OF STOCK' : `NRS ${Math.round(Number(decant.price))}`}
-                                </p>
+                                                        ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
+                                                        : !isOutOfStock ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10 hover:border-secondary/40'
+                                                    }`}
+                                            >
+                                                <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
+                                                    {Math.round(Number(decant.size))}ml
+                                                </p>
+                                                <p className="font-headline text-sm font-semibold text-primary">
+                                                    {isOutOfStock ? 'OUT OF STOCK' : `NRS ${Math.round(Number(decant.price))}`}
+                                                </p>
+                                                {isOutOfStock && (
+                                                    <p className="text-[10px] uppercase tracking-widest text-secondary font-semibold mt-1">
+                                                        Notify Me
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )
+                                    })}
                             </div>
-                        )
-                    })}
+                        </div>
+                    )}
 
-                    <div
-                        onClick={() => handleSelect('full')}
-                        className={`col-span-3 border p-4 text-center transition-all duration-300 rounded-xl
-        ${perfume.available_stock <= 0 ? 'opacity-50 cursor-not-allowed bg-surface-container-low' : 'cursor-pointer'}
-        ${isSelected('full')
-                                ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
-                                : perfume.available_stock > 0 ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10'
-                            }`}
-                    >
-                        <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
-                            Full Bottle · {perfume.full_bottle_size}ml
+                    <div className="space-y-2">
+                        <p className="text-[11px] uppercase tracking-widest text-outline font-bold text-primary">
+                            Full Bottle
                         </p>
-                        <p className="font-headline text-sm font-semibold text-primary">
-                            {perfume.available_stock <= 0
-                                ? 'OUT OF STOCK'
-                                : `NRS ${Math.round(Number(perfume.price)).toLocaleString()}`
-                            }
-                        </p>
+                        <div
+                            onClick={() => handleSelect('full')}
+                            className={`border p-4 h-16 flex flex-col items-center justify-center text-center transition-all duration-300 rounded-xl cursor-pointer
+                ${perfume.available_stock <= 0 ? 'opacity-50 bg-surface-container-low' : ''}
+                ${isSelected('full')
+                                    ? 'border-secondary bg-secondary/10 shadow-sm scale-[1.02]'
+                                    : perfume.available_stock > 0 ? 'border-outline/20 hover:border-secondary hover:shadow-sm' : 'border-outline/10 hover:border-secondary/40'
+                                }`}
+                        >
+                            <p className="text-[11px] uppercase tracking-widest text-outline mb-1">
+                                {perfume.full_bottle_size}ml
+                            </p>
+                            <p className="font-headline text-sm font-semibold text-primary">
+                                {perfume.available_stock <= 0
+                                    ? 'OUT OF STOCK'
+                                    : `NRS ${Math.round(Number(perfume.price)).toLocaleString()}`
+                                }
+                            </p>
+                            {perfume.available_stock <= 0 && (
+                                <p className="text-[10px] uppercase tracking-widest text-secondary font-semibold mt-1">
+                                    Notify Me
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -271,24 +387,26 @@ export default function HeroSection({ perfume }: HeroProps) {
                 </div>
 
                 {/* Payment Gateways */}
-                <div className="flex items-center gap-3 pt-1">
-                    <p className="text-[11px] uppercase tracking-widest text-outline font-semibold mr-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
+                    <p className="text-[11px] uppercase tracking-widest text-outline font-semibold sm:mr-1">
                         We Accept
                     </p>
-                    <div className="flex items-center gap-2">
-                        <div className="h-12 w-32 relative bg-white flex items-center justify-center p-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="h-10 w-24 sm:h-12 sm:w-32 relative bg-white flex items-center justify-center p-1.5">
                             <Image
                                 src="/brands/esewa.png"
                                 alt="eSewa"
                                 fill
+                                sizes='100px'
                                 className="object-contain p-1"
                             />
                         </div>
-                        <div className="h-12 w-32 relative bg-white flex items-center justify-center p-1.5">
+                        <div className="h-10 w-24 sm:h-12 sm:w-32 relative bg-white flex items-center justify-center p-1.5">
                             <Image
                                 src="/brands/khalti.png"
                                 alt="Khalti"
                                 fill
+                                sizes='400px'
                                 className="object-contain p-2"
                             />
                         </div>
@@ -302,6 +420,102 @@ export default function HeroSection({ perfume }: HeroProps) {
                     <NotePyramid perfume={perfume} />
                 </div>
             </div>
+
+            {/* Notify Me Modal */}
+            {notifyTarget && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-primary/20 backdrop-blur-sm px-4"
+                    onClick={closeNotifyModal}
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full max-w-sm bg-background rounded-xl shadow-2xl p-6 space-y-5"
+                    >
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <h3 className="font-headline text-lg text-primary">Notify Me</h3>
+                                <p className="text-xs text-outline mt-1">
+                                    {perfume.name} — {notifyTargetLabel}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={closeNotifyModal}
+                                aria-label="Close"
+                                className="material-symbols-outlined text-outline hover:text-primary transition-colors"
+                            >
+                                close
+                            </button>
+                        </div>
+
+                        {notifySubmitted ? (
+                            <div className="py-4 text-center space-y-2">
+                                <span className="material-symbols-outlined text-4xl text-emerald-600">check_circle</span>
+                                <p className="text-sm text-primary font-medium">You're on the list!</p>
+                                <p className="text-xs text-outline">
+                                    We'll reach out as soon as this is back in stock.
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={closeNotifyModal}
+                                    className="mt-2 w-full py-2.5 bg-primary text-white text-xs uppercase tracking-widest hover:opacity-90 transition-opacity"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleNotifySubmit} className="space-y-4">
+                                {user ? (
+                                    // Logged-in: contact info is attached server-side from the account,
+                                    // so there's nothing to fill in — just confirm and submit.
+                                    <p className="text-xs text-outline leading-relaxed">
+                                        We'll notify you at the email and phone number on your account
+                                        as soon as this is back in stock.
+                                    </p>
+                                ) : (
+                                    <>
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-widest text-outline mb-1.5 block">
+                                                Email
+                                            </label>
+                                            <input
+                                                type="email"
+                                                value={notifyEmail}
+                                                onChange={(e) => setNotifyEmail(e.target.value)}
+                                                placeholder="you@example.com"
+                                                className="w-full bg-transparent border-b border-outline-variant py-2 px-1 text-sm focus:outline-none focus:border-primary transition-colors font-body"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-widest text-outline mb-1.5 block">
+                                                Phone Number
+                                            </label>
+                                            <input
+                                                type="tel"
+                                                value={notifyPhone}
+                                                onChange={(e) => setNotifyPhone(e.target.value)}
+                                                placeholder="98XXXXXXXX"
+                                                className="w-full bg-transparent border-b border-outline-variant py-2 px-1 text-sm focus:outline-none focus:border-primary transition-colors font-body"
+                                            />
+                                        </div>
+                                        <p className="text-[10px] text-outline">
+                                            Provide at least one — we'll reach out as soon as this is back in stock.
+                                        </p>
+                                    </>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={notifySubmitting}
+                                    className="w-full py-3 bg-primary text-white text-xs uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {notifySubmitting ? 'Submitting...' : 'Notify Me'}
+                                </button>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            )}
         </section>
     )
 }

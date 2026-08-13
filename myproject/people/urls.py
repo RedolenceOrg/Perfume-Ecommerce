@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CSRFView, DeleteAccount, RequestResetPasswordView, ResetPasswordView, SignupView, LoginView, LogoutView, MeView,ProfileView, SuggestionsView,UpdateProfile,UpdatePasword,RequestVerifyAccount,VerifyAccount
+from .views import CSRFView, DeleteAccount, RequestResetPasswordView, ResetPasswordView, SignupView, LoginView, LogoutView, MeView,ProfileView, SuggestionsView,UpdateProfile,UpdatePasword,RequestVerifyAccount,VerifyAccount,NotifyStockView
 
 urlpatterns = [
     path('csrf/', CSRFView.as_view()),
@@ -15,5 +15,6 @@ urlpatterns = [
     path('reset-password/', ResetPasswordView.as_view()),
     path('request-verify/', RequestVerifyAccount.as_view()),
     path('verify-account/', VerifyAccount.as_view()),
-    path('suggestions/', SuggestionsView.as_view())
+    path('suggestions/', SuggestionsView.as_view()),
+    path('notificationrequest/', NotifyStockView.as_view()),
 ]

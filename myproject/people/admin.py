@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import Suggestions, User, Profile
+from .models import StockNotificationRequest, Suggestions, User, Profile
 
 
 class ProfileInline(admin.StackedInline):
@@ -16,3 +16,4 @@ admin.site.register(User, UserAdmin)
 
 
 admin.site.register(Suggestions)
+admin.site.register(StockNotificationRequest)

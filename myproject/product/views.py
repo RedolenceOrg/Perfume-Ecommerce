@@ -1,11 +1,11 @@
-from django.db.models import Q
+from django.db.models import Q,F, Exists, OuterRef
 from rest_framework.views import APIView
 from django.db.models import Count
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from myproject.utils import conditional_ratelimit
 from .serializers import AtomizerSerializer, NasalStripSerializer, PerfumeListSerializer, PerfumeSerializer, ThriftSerializer
-from .models import Atomizer, NasalStrip, Perfume, Thrift,Notes
+from .models import Atomizer, Decant, NasalStrip, Perfume, Thrift,Notes
 import json
 from django.views import View
 from django.http import JsonResponse
@@ -16,10 +16,29 @@ from decouple import config
 co = cohere.ClientV2(api_key = config('AI_API_KEY'))
 MAX_CANDIDATES = 15
 
+from django.db.models import Exists, OuterRef
+
+
 @method_decorator(conditional_ratelimit(rate='40/m'), name='get')
 class getPerfumeHome(APIView):
     def get(self, request):
-        base_qs = Perfume.objects.select_related('brand').prefetch_related('images')
+        decant_in_stock = Decant.objects.filter(
+            perfume=OuterRef('pk'),
+            stock__gt=F('reserved')
+        )
+
+        base_qs = (
+            Perfume.objects
+            .select_related('brand')
+            .prefetch_related('images')
+            .annotate(
+                has_decant_stock=Exists(decant_in_stock)
+            )
+            .filter(
+                Q(stock__gt=F('reserved')) |
+                Q(has_decant_stock=True)
+            )
+        )
 
         new_arrivals = base_qs.order_by('-date_added')[:10]
         restocked = base_qs.filter(is_restocked=True)
@@ -48,6 +67,8 @@ class FilterOptionsView(APIView):
             ),
         })
     
+
+
 @method_decorator(conditional_ratelimit(rate='60/m'), name='get')
 class ShopView(APIView):
     def get(self, request):
@@ -84,9 +105,27 @@ class ShopView(APIView):
             perfumes = perfumes.filter(price__lte=price_max)
         if gender:
             perfumes = perfumes.filter(gender__iexact=gender)
+
         if decant_sizes:
-            perfumes = perfumes.filter(decant__size__in=decant_sizes)
-        # ✅ distinct only when M2M filters are applied (they cause duplicate rows)
+            matching_decant = Decant.objects.filter(
+                perfume=OuterRef('pk'),
+                size__in=decant_sizes,
+                stock__gt=F('reserved'),
+            )
+            perfumes = perfumes.filter(Exists(matching_decant))
+
+        # NEW: global stock gate — only show a perfume if EITHER the full bottle
+        # has stock, OR at least one decant (any size) has stock.
+        any_decant_in_stock = Decant.objects.filter(
+            perfume=OuterRef('pk'),
+            stock__gt=F('reserved'),
+        )
+        perfumes = perfumes.annotate(
+            has_stock_decant=Exists(any_decant_in_stock)
+        ).filter(
+            Q(stock__gt=F('reserved')) | Q(has_stock_decant=True)
+        )
+
         if family or notes:
             perfumes = perfumes.distinct()
 
@@ -118,12 +157,31 @@ class PerfumeDetailView(APIView):
             data['notes']['base']
         )
 
-        related = Perfume.objects.filter(note__name__in=all_notes) \
-                .exclude(slug=slug) \
-                .select_related('brand') \
-                .prefetch_related('images') \
-                .annotate(match_count=Count('note', distinct=True)) \
-                .order_by('-match_count')[:10]
+        decant_in_stock = Decant.objects.filter(
+            perfume=OuterRef('pk'),
+            stock__gt=F('reserved')
+        )
+
+        related = (
+            Perfume.objects
+            .filter(note__name__in=all_notes)
+            .exclude(slug=slug)
+            .select_related('brand')
+            .prefetch_related('images')
+            .annotate(
+                match_count=Count(
+                    'note',
+                    filter=Q(note__name__in=all_notes),
+                    distinct=True
+                ),
+                has_decant_stock=Exists(decant_in_stock),
+            )
+            .filter(
+                Q(stock__gt=F('reserved')) |
+                Q(has_decant_stock=True)
+            )
+            .order_by('-match_count')[:10]
+        )
 
         return Response({
             'perfume': data,
@@ -136,12 +194,31 @@ class RelatedPerfumesView(APIView):
     def get(self, request):
         notes = request.query_params.getlist('note')
         exclude_slug = request.query_params.get('exclude')
-        
-        perfumes = Perfume.objects.filter(note__name__in=notes)\
-            .exclude(slug=exclude_slug)\
-            .annotate(match_count=Count('note'))\
+
+        decant_in_stock = Decant.objects.filter(
+            perfume=OuterRef('pk'),
+            stock__gt=F('reserved')
+        )
+
+        perfumes = (
+            Perfume.objects
+            .filter(note__name__in=notes)
+            .exclude(slug=exclude_slug)
+            .annotate(
+    has_decant_stock=Exists(decant_in_stock),
+    match_count=Count(
+        'note',
+        filter=Q(note__name__in=notes),
+        distinct=True
+    )
+)
+            .filter(
+                Q(stock__gt=F('reserved')) |
+                Q(has_decant_stock=True)
+            )
             .order_by('-match_count')[:10]
-        
+        )
+
         serializer = PerfumeListSerializer(perfumes, many=True)
         return Response(serializer.data)
 

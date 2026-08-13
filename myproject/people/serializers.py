@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-from .models import PasswordResetOTP, Profile
+
+from product.models import Decant, Perfume
+from .models import PasswordResetOTP, Profile, StockNotificationRequest
 from orders.serializers import OrderSerializer
 from django.db.models import Sum
 
@@ -104,3 +106,23 @@ class VerifyAccountSerializer(serializers.Serializer):
 
 class SuggestionSerializer(serializers.Serializer):
     suggestion = serializers.CharField(max_length=200)
+
+
+class StockNotificationRequestSerializer(serializers.ModelSerializer):
+    perfume = serializers.SlugRelatedField(slug_field='slug', queryset=Perfume.objects.all())
+    decant_id = serializers.PrimaryKeyRelatedField(
+        source='decant', queryset=Decant.objects.all(), required=False, allow_null=True
+    )
+
+    class Meta:
+        model = StockNotificationRequest
+        fields = ['perfume', 'decant_id', 'email', 'phone']
+
+    def validate(self, data):
+        if not data.get('email') and not data.get('phone'):
+            raise serializers.ValidationError("Provide at least an email or a phone number.")
+        decant = data.get('decant')
+        perfume = data.get('perfume')
+        if decant and decant.perfume_id != perfume.id:
+            raise serializers.ValidationError("That decant doesn't belong to this perfume.")
+        return data
