@@ -108,28 +108,43 @@ class Decant(models.Model):
     
 
 class Atomizer(models.Model):
-    name = models.CharField(max_length=30)
-    description = models.TextField(max_length=300)
+    name = models.CharField(max_length=255)
+    description = models.TextField()
     is_premium = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.name}"
+        return self.name
+
 
 class AtomizerVariant(models.Model):
-    atomizer = models.ForeignKey(Atomizer, on_delete=models.CASCADE, related_name='variants')
-    size = models.DecimalField(max_digits=5, decimal_places=2)  # Size in ml
-    price = models.DecimalField(max_digits=6, decimal_places=2)
-    colors = models.CharField(max_length=50,blank=True)
-    stock = models.PositiveIntegerField(default=0)
-    reserved = models.PositiveIntegerField(default=0)
-    image = models.ImageField(upload_to='atomizer_images/',null=True,blank=True)
+    atomizer = models.ForeignKey(Atomizer, related_name='variants', on_delete=models.CASCADE)
+    size = models.PositiveIntegerField()  # in ml
+    colors = models.CharField(max_length=50, blank=True)  # CSS color value, e.g. "red" or "#c94b4b"
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    stock = models.PositiveIntegerField(default = 0)
+    reserved = models.PositiveIntegerField(default= 0)
+
+    class Meta:
+        ordering = ['size']
 
     def __str__(self):
-        return f"{self.atomizer.description} - {self.size}ml Atomizer"
+        return f"{self.atomizer.name} - {self.size}ml ({self.colors or 'no color'})"
     @property
     def available_stock(self):
         return self.stock - self.reserved
 
+
+class AtomizerVariantImage(models.Model):
+    variant = models.ForeignKey(AtomizerVariant, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='atomizer-images/')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"Image {self.order} for {self.variant}"
+    
 class ThriftImage(models.Model):
     thrift  = models.ForeignKey('Thrift', on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='thrift_images/')
@@ -158,3 +173,4 @@ class NasalStrip(models.Model):
         return self.stock - self.reserved
     def __str__(self):
         return f"Nasal Strip - Price: {self.price}"
+

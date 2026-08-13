@@ -5,13 +5,14 @@ from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from myproject.utils import conditional_ratelimit
 from .serializers import AtomizerSerializer, NasalStripSerializer, PerfumeListSerializer, PerfumeSerializer, ThriftSerializer
-from .models import Atomizer, Decant, NasalStrip, Perfume, Thrift,Notes
+from .models import Atomizer, Decant, NasalStrip, Perfume, Thrift,Notes,AtomizerVariant
 import json
 from django.views import View
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect
 import cohere
 from decouple import config
+from django.db.models import Prefetch
 
 co = cohere.ClientV2(api_key = config('AI_API_KEY'))
 MAX_CANDIDATES = 15
@@ -221,13 +222,27 @@ class RelatedPerfumesView(APIView):
 
         serializer = PerfumeListSerializer(perfumes, many=True)
         return Response(serializer.data)
-@method_decorator(csrf_protect,name = 'dispatch')
-@method_decorator(conditional_ratelimit(rate='40/m'), name='get')    
+
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(conditional_ratelimit(rate='40/m'), name='get')
 class AtomizerPage(APIView):
     def get(self, request):
-        atomizers = Atomizer.objects.all().prefetch_related('variants')
+        # 1. Filter variants in Python stock logic using F() expressions
+        in_stock_variants = AtomizerVariant.objects.filter(
+            stock__gt=F('reserved')
+        ).prefetch_related('images')
+
+        # 2. Filter parent atomizers that have at least one in-stock variant
+        atomizers = (
+            Atomizer.objects
+            .filter(variants__stock__gt=F('variants__reserved'))
+            .prefetch_related(Prefetch('variants', queryset=in_stock_variants))
+            .distinct()
+        )
+
         serializer = AtomizerSerializer(atomizers, many=True)
         return Response(serializer.data)
+    
 @method_decorator(csrf_protect,name = 'dispatch')
 @method_decorator(conditional_ratelimit(rate='40/m'), name='get')   
 class ThriftPage(APIView):
