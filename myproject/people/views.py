@@ -206,7 +206,7 @@ class UpdatePasword(LoginRequiredMixin,View):
         auth_logout(request)
         
         return JsonResponse({'detail':"Password successfully changed"},status = 200)
-    
+
 @method_decorator(csrf_protect,name = 'dispatch')
 class DeleteAccount(LoginRequiredMixin,View):
     def delete(self,request):
@@ -328,7 +328,8 @@ class VerifyAccount(View):
 
         except User.DoesNotExist:
             return JsonResponse({'detail':'This user does not exist'},status = 400)
-@method_decorator(conditional_ratelimit(rate='2/m'), name='dispatch')
+        
+@method_decorator(conditional_ratelimit(rate='2/d'), name='dispatch')
 @method_decorator(csrf_protect,name = 'dispatch')
 class SuggestionsView(View):
     def post(self,request):
@@ -357,7 +358,7 @@ class SuggestionsView(View):
 
 
 @method_decorator(csrf_protect, name='dispatch')
-@method_decorator(conditional_ratelimit(rate='10/m'), name='post')
+@method_decorator(conditional_ratelimit(rate='10/d'), name='post')
 class NotifyStockView(APIView):
     permission_classes = [AllowAny]  # guests can submit too
 
