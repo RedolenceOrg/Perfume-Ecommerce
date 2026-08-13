@@ -157,12 +157,31 @@ class PerfumeDetailView(APIView):
             data['notes']['base']
         )
 
-        related = Perfume.objects.filter(note__name__in=all_notes) \
-                .exclude(slug=slug) \
-                .select_related('brand') \
-                .prefetch_related('images') \
-                .annotate(match_count=Count('note', distinct=True)) \
-                .order_by('-match_count')[:10]
+        decant_in_stock = Decant.objects.filter(
+            perfume=OuterRef('pk'),
+            stock__gt=F('reserved')
+        )
+
+        related = (
+            Perfume.objects
+            .filter(note__name__in=all_notes)
+            .exclude(slug=slug)
+            .select_related('brand')
+            .prefetch_related('images')
+            .annotate(
+                match_count=Count(
+                    'note',
+                    filter=Q(note__name__in=all_notes),
+                    distinct=True
+                ),
+                has_decant_stock=Exists(decant_in_stock),
+            )
+            .filter(
+                Q(stock__gt=F('reserved')) |
+                Q(has_decant_stock=True)
+            )
+            .order_by('-match_count')[:10]
+        )
 
         return Response({
             'perfume': data,
