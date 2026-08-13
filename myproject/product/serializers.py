@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Atomizer, AtomizerVariant, Decant, NasalStrip, Perfume,Notes, PerfumeImage,PerfumeNote,Brand,Family, Thrift
+from .models import Atomizer, AtomizerVariant, Decant, NasalStrip, Perfume,Notes, PerfumeImage,PerfumeNote,Brand,Family, Thrift,AtomizerVariantImage
 from django.db.models import F
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
@@ -137,19 +137,28 @@ class PerfumeSerializer(serializers.ModelSerializer):
         }
         return data
 
+class AtomizerVariantImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AtomizerVariantImage
+        fields = ['id', 'image', 'order']
+
+
 class AtomizerVariantSerializer(serializers.ModelSerializer):
-    available_stock = serializers.ReadOnlyField()
+    images = AtomizerVariantImageSerializer(many=True, read_only=True)
+    available_stock = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = AtomizerVariant
-        fields = ['id','size', 'price','colors','available_stock','image']
+        fields = ['id', 'size', 'price', 'colors', 'stock', 'reserved', 'available_stock', 'images']
 
 
 class AtomizerSerializer(serializers.ModelSerializer):
-    variants = AtomizerVariantSerializer(many=True,read_only=True)
+    variants = AtomizerVariantSerializer(many=True, read_only=True)
+
     class Meta:
         model = Atomizer
-        fields = ['id','name','description','is_premium','variants']
-
+        fields = ['id', 'name', 'description', 'is_premium', 'variants']
+        
 class ThriftSerializer(serializers.ModelSerializer):
     perfume_name = serializers.CharField(source='perfume.name', read_only=True)
     brand = serializers.CharField(source='perfume.brand.name', read_only=True)

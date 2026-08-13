@@ -3,7 +3,7 @@ from .models import (
     Atomizer, AtomizerVariant, NasalStrip,
     Perfume, PerfumeImage, PerfumeNote,
     Notes, Family, Brand,
-    Decant, Longevity, Sillage, Thrift, ThriftImage
+    Decant, Longevity, Sillage, Thrift, ThriftImage,AtomizerVariantImage
 )
 
 
@@ -116,14 +116,27 @@ class ThriftAdmin(admin.ModelAdmin):
 # Atomizer
 # ──────────────────────────────────────────
 
+class AtomizerVariantImageInline(admin.TabularInline):
+    model = AtomizerVariantImage
+    extra = 4
+
+
+class AtomizerVariantInline(admin.TabularInline):
+    model = AtomizerVariant
+    extra = 1
+
+
+@admin.register(AtomizerVariant)
+class AtomizerVariantAdmin(admin.ModelAdmin):
+    list_display = ['atomizer', 'size', 'colors', 'price']
+    # readonly_fields = ['reserved', 'available_stock']
+    inlines = [AtomizerVariantImageInline]
+
+
 @admin.register(Atomizer)
 class AtomizerAdmin(admin.ModelAdmin):
-    list_display = ['name', 'is_premium', 'variant_count']
+    list_display = ['name', 'is_premium']
     inlines = [AtomizerVariantInline]
-
-    def variant_count(self, obj):
-        return obj.variants.count()
-    variant_count.short_description = 'Variants'
 
 # ──────────────────────────────────────────
 # Supporting models

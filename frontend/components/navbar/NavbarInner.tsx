@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { ChevronDown, ShoppingCart, User as UserIcon, Menu, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, ShoppingCart, User as UserIcon, Menu, X } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────
 interface SimpleItem {
@@ -17,17 +17,42 @@ interface DropdownGroup {
     items: SimpleItem[];
 }
 
+// A gender entry that, when hovered/tapped, reveals its own list of
+// collection links (each link already has BOTH gender + collection baked in).
+interface NestedGenderGroup {
+    label: string;      // e.g. "Male"
+    href: string;        // gender-only link (used if they click the gender label itself)
+    children: SimpleItem[]; // collection links, each combining gender + collection
+}
+
 interface NavLinkData {
     label: string;
     href: string;
     highlight?: boolean;
-    dropdown?: SimpleItem[];       // flat dropdown
-    megaDropdown?: DropdownGroup[]; // grouped dropdown
+    dropdown?: SimpleItem[];            // flat dropdown
+    megaDropdown?: DropdownGroup[];     // grouped, independent dropdown (unused now, kept for reuse)
+    nestedDropdown?: NestedGenderGroup[]; // Gender -> Collection dependent dropdown
 }
 
 const DECANT_SIZES = ['3', '5', '10', '20'];
 const decantSizeQuery = DECANT_SIZES.map((s) => `decant_size=${s}`).join('&');
 const ALL_DECANTS_HREF = `/shop?${decantSizeQuery}`;
+
+const GENDERS = ['Male', 'Female', 'Unisex'] as const;
+const COLLECTIONS: { label: string; value: string }[] = [
+    { label: 'Niche', value: 'niche' },
+    { label: 'Designer', value: 'designer' },
+    { label: 'Middle Eastern', value: 'middle_eastern' },
+    { label: 'In House', value: 'in_house' },
+];
+
+// Helper: build a /shop URL from arbitrary filters
+function buildHref(params: Record<string, string>): string {
+    const paramString = Object.entries(params)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('&');
+    return `/shop?${paramString}`;
+}
 
 // Helper: build a /shop URL that combines arbitrary filters with ALL decant sizes
 function buildDecantHref(params: Record<string, string>): string {
@@ -37,53 +62,41 @@ function buildDecantHref(params: Record<string, string>): string {
     return `/shop?${paramString}&${decantSizeQuery}`;
 }
 
+// Builds the Gender -> Collection nested structure for Perfumes (no decant size constraint)
+function buildPerfumeNestedDropdown(): NestedGenderGroup[] {
+    return GENDERS.map((gender) => ({
+        label: gender,
+        href: buildHref({ type: 'Perfume', gender }),
+        children: COLLECTIONS.map((c) => ({
+            label: c.label,
+            href: buildHref({ type: 'Perfume', gender, collection: c.value }),
+        })),
+    }));
+}
+
+// Builds the Gender -> Collection nested structure for Travel Size Decants (all decant sizes applied)
+function buildDecantNestedDropdown(): NestedGenderGroup[] {
+    return GENDERS.map((gender) => ({
+        label: gender,
+        href: buildDecantHref({ type: 'Perfume', gender }),
+        children: COLLECTIONS.map((c) => ({
+            label: c.label,
+            href: buildDecantHref({ type: 'Perfume', gender, collection: c.value }),
+        })),
+    }));
+}
+
 const navLinks: NavLinkData[] = [
     { label: 'Home', href: '/' },
     {
         label: 'Perfumes',
         href: '/shop?type=Perfume',
-        megaDropdown: [
-            {
-                heading: 'Gender',
-                items: [
-                    { label: 'Male', href: '/shop?type=Perfume&gender=Male' },
-                    { label: 'Female', href: '/shop?type=Perfume&gender=Female' },
-                    { label: 'Unisex', href: '/shop?type=Perfume&gender=Unisex' },
-                ],
-            },
-            {
-                heading: 'Categories',
-                items: [
-                    { label: 'Niche', href: '/shop?type=Perfume&collection=niche' },
-                    { label: 'Designer', href: '/shop?type=Perfume&collection=designer' },
-                    { label: 'Middle Eastern', href: '/shop?type=Perfume&collection=middle_eastern' },
-                    { label: 'In House', href: '/shop?type=Perfume&collection=in_house' },
-                ],
-            },
-        ],
+        nestedDropdown: buildPerfumeNestedDropdown(),
     },
     {
         label: 'Travel Size Decants',
         href: ALL_DECANTS_HREF,
-        megaDropdown: [
-            {
-                heading: 'Gender',
-                items: [
-                    { label: 'Male', href: buildDecantHref({ type: 'Perfume', gender: 'Male' }) },
-                    { label: 'Female', href: buildDecantHref({ type: 'Perfume', gender: 'Female' }) },
-                    { label: 'Unisex', href: buildDecantHref({ type: 'Perfume', gender: 'Unisex' }) },
-                ],
-            },
-            {
-                heading: 'Categories',
-                items: [
-                    { label: 'Niche', href: buildDecantHref({ type: 'Perfume', collection: 'niche' }) },
-                    { label: 'Designer', href: buildDecantHref({ type: 'Perfume', collection: 'designer' }) },
-                    { label: 'Middle Eastern', href: buildDecantHref({ type: 'Perfume', collection: 'middle_eastern' }) },
-                    { label: 'In House', href: buildDecantHref({ type: 'Perfume', collection: 'in_house' }) },
-                ],
-            },
-        ],
+        nestedDropdown: buildDecantNestedDropdown(),
     },
     { label: 'Attars', href: '/shop?type=Attar' },
     { label: 'Atomizer', href: '/atomizer' },
@@ -102,7 +115,10 @@ function NavLink({ link, pathname, currentType, onClick, mobile = false }: {
 }) {
     const [isHovered, setIsHovered] = useState(false);
     const [isOpenMobile, setIsOpenMobile] = useState(false);
+    const [hoveredGender, setHoveredGender] = useState<string | null>(null);
+    const [openMobileGender, setOpenMobileGender] = useState<string | null>(null);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const genderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const isActive = () => {
         if (link.href.includes('?')) {
@@ -121,11 +137,125 @@ function NavLink({ link, pathname, currentType, onClick, mobile = false }: {
     };
 
     const handleMouseLeave = () => {
-        timeoutRef.current = setTimeout(() => setIsHovered(false), 150);
+        timeoutRef.current = setTimeout(() => {
+            setIsHovered(false);
+            setHoveredGender(null);
+        }, 150);
+    };
+
+    const handleGenderMouseEnter = (genderLabel: string) => {
+        if (genderTimeoutRef.current) clearTimeout(genderTimeoutRef.current);
+        setHoveredGender(genderLabel);
+    };
+
+    const handleGenderMouseLeave = () => {
+        genderTimeoutRef.current = setTimeout(() => setHoveredGender(null), 150);
     };
 
     const hasDropdown = !!link.dropdown;
     const hasMegaDropdown = !!link.megaDropdown;
+    const hasNestedDropdown = !!link.nestedDropdown;
+
+    // ── MOBILE: two-level accordion (Gender -> Collection) ─────────────────
+    if (hasNestedDropdown && mobile) {
+        return (
+            <div className="w-full">
+                <div className="flex items-center justify-between">
+                    <Link
+                        href={link.href}
+                        onClick={onClick}
+                        className={`transition-all duration-300 ease-out border-b-2 pb-1 block
+                            ${active
+                                ? 'text-secondary border-secondary'
+                                : 'text-primary/70 border-transparent hover:text-primary hover:border-primary/30'
+                            }
+                        `}
+                    >
+                        {link.label}
+                    </Link>
+                    <button
+                        type="button"
+                        aria-label={`Toggle ${link.label} options`}
+                        aria-expanded={isOpenMobile}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setIsOpenMobile((prev) => !prev);
+                            if (isOpenMobile) setOpenMobileGender(null);
+                        }}
+                        className="p-2 -mr-2 text-primary/60 active:text-secondary transition-colors duration-150"
+                    >
+                        <ChevronDown
+                            size={22}
+                            strokeWidth={1.75}
+                            className={`transition-transform duration-300 ease-out ${isOpenMobile ? 'rotate-180' : 'rotate-0'}`}
+                        />
+                    </button>
+                </div>
+
+                <div
+                    className={`overflow-hidden transition-all duration-300 ease-out
+                        ${isOpenMobile ? 'max-h-[40rem] opacity-100 mt-3' : 'max-h-0 opacity-0'}
+                    `}
+                >
+                    <div className="flex flex-col gap-3 pl-4 border-l border-outline-variant/20">
+                        {link.nestedDropdown!.map((gender) => {
+                            const isGenderOpen = openMobileGender === gender.label;
+                            return (
+                                <div key={gender.label} className="flex flex-col">
+                                    <div className="flex items-center justify-between">
+                                        <Link
+                                            href={gender.href}
+                                            onClick={onClick}
+                                            className="text-base font-body text-primary/60 hover:text-primary active:text-secondary transition-colors duration-150"
+                                        >
+                                            {gender.label}
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            aria-label={`Toggle ${gender.label} collections`}
+                                            aria-expanded={isGenderOpen}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                e.preventDefault();
+                                                setOpenMobileGender((prev) => (prev === gender.label ? null : gender.label));
+                                            }}
+                                            className="p-1.5 -mr-1.5 text-primary/50 active:text-secondary transition-colors duration-150"
+                                        >
+                                            <ChevronDown
+                                                size={16}
+                                                strokeWidth={1.75}
+                                                className={`transition-transform duration-300 ease-out ${isGenderOpen ? 'rotate-180' : 'rotate-0'}`}
+                                            />
+                                        </button>
+                                    </div>
+
+                                    <div
+                                        className={`overflow-hidden transition-all duration-300 ease-out
+                                            ${isGenderOpen ? 'max-h-60 opacity-100 mt-2' : 'max-h-0 opacity-0'}
+                                        `}
+                                    >
+                                        <div className="flex flex-col gap-2 pl-4 border-l border-outline-variant/10">
+                                            {gender.children.map((collection) => (
+                                                <Link
+                                                    key={collection.label}
+                                                    href={collection.href}
+                                                    onClick={onClick}
+                                                    className="text-sm font-body text-primary/50 hover:text-primary active:text-secondary transition-colors duration-150"
+                                                >
+                                                    {collection.label}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     // ── MOBILE: accordion (flat dropdown OR grouped megaDropdown) ──────────
     if ((hasDropdown || hasMegaDropdown) && mobile) {
@@ -211,6 +341,77 @@ function NavLink({ link, pathname, currentType, onClick, mobile = false }: {
         );
     }
 
+    // ── DESKTOP: nested hover dropdown (Gender -> flyout Collections) ──────
+    if (hasNestedDropdown) {
+        return (
+            <div
+                className="relative"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+            >
+                <Link
+                    href={link.href}
+                    onClick={onClick}
+                    className={`transition-all duration-300 ease-out border-b-2 pb-1 block md:inline-block
+                        ${active
+                            ? 'text-secondary border-secondary'
+                            : 'text-primary/70 border-transparent hover:text-primary hover:border-primary/30'
+                        }
+                    `}
+                >
+                    {link.label}
+                </Link>
+
+                <div className={`absolute top-full left-0 mt-3 w-48 bg-background border border-outline-variant/30 rounded-lg shadow-xl overflow-visible transition-all duration-150 origin-top
+                    ${isHovered ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-y-1 pointer-events-none'}
+                `}>
+                    {link.nestedDropdown!.map((gender, i) => {
+                        const isGenderHovered = hoveredGender === gender.label;
+                        return (
+                            <div
+                                key={gender.label}
+                                className="relative"
+                                onMouseEnter={() => handleGenderMouseEnter(gender.label)}
+                                onMouseLeave={handleGenderMouseLeave}
+                            >
+                                <Link
+                                    href={gender.href}
+                                    onClick={onClick}
+                                    className={`group flex items-center justify-between px-4 py-2.5 text-sm font-headline transition-all duration-150
+                                        ${isGenderHovered ? 'text-primary bg-outline-variant/10' : 'text-primary/60 hover:text-primary hover:bg-outline-variant/10'}
+                                        ${i !== link.nestedDropdown!.length - 1 ? 'border-b border-outline-variant/10' : ''}
+                                    `}
+                                >
+                                    <span className="group-hover:translate-x-0.5 transition-transform duration-150">{gender.label}</span>
+                                    <ChevronRight size={14} strokeWidth={1.75} className="text-secondary" />
+                                </Link>
+
+                                {/* Flyout: collections for this gender */}
+                                <div className={`absolute top-0 left-full ml-1 w-48 bg-background border border-outline-variant/30 rounded-lg shadow-xl overflow-hidden transition-all duration-150 origin-top-left
+                                    ${isGenderHovered ? 'opacity-100 scale-100 translate-x-0 pointer-events-auto' : 'opacity-0 scale-95 -translate-x-1 pointer-events-none'}
+                                `}>
+                                    {gender.children.map((collection, j) => (
+                                        <Link
+                                            key={collection.label}
+                                            href={collection.href}
+                                            onClick={onClick}
+                                            className={`group flex items-center justify-between px-4 py-2.5 text-sm font-headline text-primary/60 hover:text-primary hover:bg-outline-variant/10 transition-all duration-150
+                                                ${j !== gender.children.length - 1 ? 'border-b border-outline-variant/10' : ''}
+                                            `}
+                                        >
+                                            <span className="group-hover:translate-x-0.5 transition-transform duration-150">{collection.label}</span>
+                                            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 text-secondary text-xs">→</span>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    }
+
     // ── DESKTOP: flat hover dropdown ────────────────────────────────────────
     if (hasDropdown) {
         return (
@@ -253,7 +454,7 @@ function NavLink({ link, pathname, currentType, onClick, mobile = false }: {
         );
     }
 
-    // ── DESKTOP: mega (grouped) hover dropdown ──────────────────────────────
+    // ── DESKTOP: mega (grouped, independent) hover dropdown ────────────────
     if (hasMegaDropdown) {
         return (
             <div

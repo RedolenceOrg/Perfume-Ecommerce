@@ -415,7 +415,7 @@ class CartDetailView(LoginRequiredMixin, View):
 
             if product:
                 if item.product_type == "atomizer":
-                    img_url = product.image.url if product.image else None
+                    img_url = product.images.first().image.url if product.images.exists() else None
                 if item.product_type == "nasalstrip":
                     img_url = product.image.url if product.image else None
                 if item.product_type == "thrift":

@@ -51,14 +51,23 @@ export interface PerfumeSummary {
     slug: string;
     availability_badge: string | null;
 }
+
+
+export interface AtomizerVariantImage {
+    id: number;
+    image: string;
+    order: number;
+}
+
 export interface AtomizerVariant {
     id: number;
-    available_stock: number;
     size: number;
     price: number;
     colors: string;
-    image: string;
+    available_stock: number;
+    images: AtomizerVariantImage[];
 }
+
 export interface Atomizer {
     id: number;
     name: string;
