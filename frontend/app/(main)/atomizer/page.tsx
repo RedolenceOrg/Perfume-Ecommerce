@@ -1,6 +1,6 @@
 import { apiGet } from "@/context/api";
-import AtomizerCard from "./components/atomizerCard";
-import AtomizerHero from "./components/atomizerHero";
+import AtomizerGrid from "./components/AtomizerGrid";
+import AtomizerHero from "./components/AtomizerHero";
 
 export default async function Atomizer() {
 
@@ -12,7 +12,7 @@ export default async function Atomizer() {
         return (
             <section className="w-full min-h-screen bg-background">
                 <AtomizerHero />
-                <AtomizerCard atomizers={products} />
+                <AtomizerGrid data={products} />
             </section>
         );
     }
