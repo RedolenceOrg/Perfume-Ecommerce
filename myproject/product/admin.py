@@ -136,7 +136,6 @@ class AtomizerVariantAdmin(admin.ModelAdmin):
 @admin.register(Atomizer)
 class AtomizerAdmin(admin.ModelAdmin):
     list_display = ['name', 'is_premium']
-    inlines = [AtomizerVariantInline]
 
 # ──────────────────────────────────────────
 # Supporting models
