@@ -1,6 +1,6 @@
 
 const STORE = {
-  name: "Your Store Name",
+  name: "Redolence Nepal",
   addressLines: ["Mid Baneshwor", "Kathmandu, Nepal"],
   hours: [
     { days: "Sun - Fri", time: "11am - 7pm" },
