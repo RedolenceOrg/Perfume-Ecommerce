@@ -10,6 +10,7 @@ import { apiGet } from "@/context/api";
 import FAQ from "@/components/faq";
 import PerfumeRecommender from "@/components/PerfumeRecommender.tsx/PerfumeRecommender";
 import BrandScroll from "@/components/BrandScroll";
+import StoreLocation from "@/components/StoreLocation";
 
 
 export default async function Home() {
@@ -33,6 +34,7 @@ export default async function Home() {
         <BrandScroll />
         <DecantsHighlight />
         <ThriftSection />
+        <StoreLocation />
         <FAQ />
       </div>
     );
