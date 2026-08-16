@@ -1,13 +1,13 @@
 
 const STORE = {
   name: "Your Store Name",
-  addressLines: ["Street Address, Area", "Kathmandu, Nepal"],
+  addressLines: ["Mid Baneshwor", "Kathmandu, Nepal"],
   hours: [
-    { days: "Sun - Fri", time: "10am - 7pm" },
-    { days: "Saturday", time: "11am - 5pm" },
+    { days: "Sun - Fri", time: "11am - 7pm" },
+    { days: "Saturday", time: "12am - 6pm" },
   ],
-  phone: "+977-XXXXXXXXXX",
-  email: "hello@yourstore.com",
+  phone: "+977-9810334949",
+  email: "info@redolencenpl.com",
   mapsEmbedUrl:
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5293.150661175265!2d85.33642202452795!3d27.693988547193086!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb19ff916e7afd%3A0x1b5ad7f323124ad3!2sRedolence%20Nepal!5e0!3m2!1sen!2snp!4v1786805479123!5m2!1sen!2snp",
   mapsLink: "https://www.google.com/maps/search/?api=1&query=Redolence+Nepal",

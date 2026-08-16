@@ -12,6 +12,7 @@ export default function ThriftSection() {
                         src="https://i.pinimg.com/736x/42/11/f0/4211f0e4a0244a2bd5eb173ad2031e81.jpg"
                         alt="Curated vintage perfume bottles"
                         fill
+                        sizes="400px"
                         className="object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
