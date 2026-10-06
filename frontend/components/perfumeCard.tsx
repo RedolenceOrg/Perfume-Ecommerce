@@ -23,7 +23,7 @@ export default function PerfumeCard({ name, brand, price, primary_image, seconda
     const badge = availability_badge ? AVAILABILITY_BADGE[availability_badge] : null;
 
     return (
-        <Link href={href} className="w-full group cursor-pointer block">
+        <Link href={href} prefetch={false} className="w-full group cursor-pointer block">
             {/* Image Container */}
             <div className="aspect-[3/4] bg-surface-container mb-4 overflow-hidden relative">
 

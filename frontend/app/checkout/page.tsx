@@ -37,9 +37,11 @@ export default function CheckoutPage() {
     const [phoneNumber, setPhoneNumber] = useState('')
     const [paymentMethod, setPaymentMethod] = useState('cod')
 
-    const shippingCharge = district
-        ? VALLEY_DISTRICTS.includes(district) ? 100 : 150
-        : 0
+    const shippingCharge = !district
+        ? 0
+        : user?.freeShipping
+            ? 0
+            : VALLEY_DISTRICTS.includes(district) ? 100 : 150
 
     const subtotal = cartData
         ? cartData.items.reduce((acc, item) => acc + item.total_price, 0)
@@ -182,6 +184,8 @@ export default function CheckoutPage() {
     )
 
     if (!cartData) return null
+
+
 
     return (
         <>

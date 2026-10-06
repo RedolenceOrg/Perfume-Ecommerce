@@ -1,8 +1,8 @@
 from django.contrib import admin
-from .models import Order, Cart, CartItem, OrderItem
 from django.utils.html import format_html
-
-
+from .models import Order, Cart, CartItem, OrderItem
+from people.models import GiftClaim  # adjust import path to wherever GiftClaim actually lives
+from django.utils.safestring import mark_safe
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
@@ -16,10 +16,15 @@ class OrderItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     ordering = ['-created_at']
     inlines = [OrderItemInline]
-    list_display = ('short_id', 'user', 'colored_status', 'colored_payment_status', 'payment_method', 'total_amount', 'district', 'phone_number', 'created_at')
+    list_display = (
+        'short_id', 'user', 'colored_status', 'colored_payment_status',
+        'payment_method', 'total_amount', 'district', 'phone_number',
+        'gift_status', 'created_at',
+    )
     list_filter = ('status', 'payment_status', 'payment_method', 'district')
     search_fields = ('user__email', 'user__username', 'phone_number', 'place')
     readonly_fields = ('id', 'user', 'total_amount', 'payment_method', 'district', 'place', 'phone_number', 'created_at', 'reservation_expires_at')
+    actions = ['mark_gift_sent']
 
     fields = (
         'id', 'user',
@@ -61,6 +66,29 @@ class OrderAdmin(admin.ModelAdmin):
             color, obj.payment_status.upper()
         )
     colored_payment_status.short_description = 'Payment'
+
+
+
+    def gift_status(self, obj):
+            pending = obj.user.profile.pending_gifts
+            if not pending:
+                return "-"  # plain string is fine, nothing to escape
+            return format_html(
+                '<span style="background:#b91c1c; color:white; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:bold;">GIFT PENDING: {}</span>',
+                ", ".join(pending)
+            )
+    gift_status.short_description = 'Gift'
+
+    def mark_gift_sent(self, request, queryset):
+        count = 0
+        for order in queryset:
+            profile = order.user.profile
+            for gift in profile.pending_gifts:
+                _, created = GiftClaim.objects.get_or_create(profile=profile, gift=gift)
+                if created:
+                    count += 1
+        self.message_user(request, f"Marked {count} gift(s) as sent.")
+    mark_gift_sent.short_description = "Mark pending gift(s) as sent for selected orders"
 
 
 class CartItemInline(admin.TabularInline):

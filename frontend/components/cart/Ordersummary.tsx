@@ -1,11 +1,11 @@
 import { useRouter } from 'next/navigation'
 
 interface OrderSummaryProps {
-    subtotal: number;
-    discountPercent: number;
-    discountAmount: number;
-    grandTotal: number;
-    hasoutofstock: boolean;
+    subtotal: number
+    discountPercent: number
+    discountAmount: number
+    grandTotal: number
+    hasoutofstock: boolean
 }
 
 export default function OrderSummary({
@@ -13,7 +13,7 @@ export default function OrderSummary({
     discountPercent,
     discountAmount,
     grandTotal,
-    hasoutofstock
+    hasoutofstock,
 }: OrderSummaryProps) {
     const router = useRouter()
 
@@ -43,28 +43,34 @@ export default function OrderSummary({
                         </div>
                     )}
 
+                    {/* Estimated Delivery */}
                     <div className="flex justify-between font-body text-sm">
                         <span className="text-outline">Estimated Delivery</span>
                         <span className="text-secondary text-[10px] uppercase tracking-tighter font-bold text-right">
-                            Out of Valley: NRS 150<br />
+                            Out of Valley: NRS 150
+                            <br />
                             Inside Valley: NRS 100
                         </span>
                     </div>
+                    <p className="text-[9px] text-outline/70 text-right italic -mt-2">
+                        (Subject to change for Member Perks)
+                    </p>
 
                     {/* Grand Total after Discount */}
                     <div className="pt-6 flex justify-between items-baseline font-headline text-3xl border-t border-outline-variant">
-                        <span className="text-lg font-body uppercase tracking-widest text-outline">Total</span>
-                        <span className="text-primary">NRS {Math.round(grandTotal).toLocaleString()}</span>
+                        <span className="text-lg font-body uppercase tracking-widest text-outline">
+                            Total
+                        </span>
+                        <span className="text-primary">
+                            NRS {Math.round(grandTotal).toLocaleString()}
+                        </span>
                     </div>
                 </div>
 
                 <button
                     onClick={() => !hasoutofstock && router.push('/checkout')}
                     disabled={hasoutofstock}
-                    className={`group flex items-center justify-between px-8 py-5 w-full bg-primary text-surface-container-lowest rounded-xl transition-all duration-300 shadow-lg
-                        ${hasoutofstock
-                            ? 'opacity-50 cursor-not-allowed'
-                            : 'hover:opacity-90'
+                    className={`group flex items-center justify-between px-8 py-5 w-full bg-primary text-surface-container-lowest rounded-xl transition-all duration-300 shadow-lg ${hasoutofstock ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'
                         }`}
                 >
                     <span className="text-[11px] font-label font-bold uppercase tracking-[0.25em]">
@@ -78,7 +84,8 @@ export default function OrderSummary({
                 <div className="bg-surface-container-lowest/50 p-4 rounded-lg">
                     <p className="text-[10px] font-body text-outline leading-relaxed text-center italic">
                         "A fragrance is a story told in scent."
-                        <br />Thank you for choosing Redolence Nepal.
+                        <br />
+                        Thank you for choosing Redolence Nepal.
                     </p>
                 </div>
             </div>

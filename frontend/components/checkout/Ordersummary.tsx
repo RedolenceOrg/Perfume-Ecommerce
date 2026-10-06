@@ -74,16 +74,21 @@ export default function OrderSummary({ cartData, subtotal, total, shippingCharge
 
                 <div className="flex justify-between text-base text-outline">
                     <span>Delivery</span>
-                    {district ? (
+
+                    {!district ? (
+                        <span className="text-xs uppercase tracking-widest font-bold text-outline/50">
+                            Select district
+                        </span>
+                    ) : shippingCharge === 0 ? (
+                        <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                            Member Perk — Free Shipping
+                        </span>
+                    ) : (
                         <span className="text-sm font-bold text-primary">
                             NPR {shippingCharge}
                             <span className="text-[10px] text-outline font-normal ml-1">
                                 ({VALLEY_DISTRICTS.includes(district) ? 'inside valley' : 'outside valley'})
                             </span>
-                        </span>
-                    ) : (
-                        <span className="text-xs uppercase tracking-widest font-bold text-outline/50">
-                            Select district
                         </span>
                     )}
                 </div>

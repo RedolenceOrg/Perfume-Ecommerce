@@ -269,9 +269,12 @@ class CheckoutView(LoginRequiredMixin, View):
             return JsonResponse({'detail': 'Cart is empty'}, status=400)
         
         shipping_charge = 100 if serializer.validated_data['district'] in VALLEY_DISTRICTS else 150
-        
         profile = request.user.profile
+
+        if profile.total_spend >= 25500:
+            shipping_charge = 0
         discount_percent = 0
+
         if request.user.isVerified:
             discount_percent = get_discount_percent(float(profile.total_spend))
         

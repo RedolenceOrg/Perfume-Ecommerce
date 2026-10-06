@@ -4,6 +4,11 @@ from django.db.models import Sum
 from django.contrib.auth.models import AbstractUser
 from product.models import Decant, Perfume
 
+GIFT_TIERS = [
+    (25500, '5ml'),
+    (60500, '10ml'),
+    (115500, '20ml'),
+]
 class User(AbstractUser):
     email = models.EmailField(unique=True)
     isVerified = models.BooleanField(default= False)
@@ -31,6 +36,15 @@ class Profile(models.Model):
         ).aggregate(
             total=Sum("total_amount")
         )["total"] or 0
+    @property
+    def qualified_gifts(self):
+        spend = self.total_spend
+        return [gift for threshold, gift in GIFT_TIERS if spend >= threshold]
+
+    @property
+    def pending_gifts(self):
+        sent = set(self.gift_claims.filter(sent=True).values_list('gift', flat=True))
+        return [g for g in self.qualified_gifts if g not in sent]
 
 class PasswordResetOTP(models.Model):
     email = models.EmailField()
@@ -69,3 +83,13 @@ class StockNotificationRequest(models.Model):
         target = f"{self.decant.size}ml Decant" if self.decant else "Full Bottle"
         who = self.user.get_username() if self.user else (self.email or self.phone)
         return f"{self.perfume.name} - {target} - {who}"
+
+class GiftClaim(models.Model):
+    GIFT_CHOICES = [('3ml', '3ml Atomizer'), ('5ml', '5ml Atomizer'), ('20ml', '20ml Atomizer')]
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='gift_claims')
+    gift = models.CharField(max_length=20, choices=GIFT_CHOICES)
+    sent = models.BooleanField(default=True)  # a row existing = it was sent
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('profile', 'gift')

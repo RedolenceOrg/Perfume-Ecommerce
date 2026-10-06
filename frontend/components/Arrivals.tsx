@@ -83,7 +83,7 @@ export default function Arrivals({ heading, perfumes }: ArrivalsProps) {
                 {/* Carousel Container */}
                 <div
                     ref={scrollRef}
-                    className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth snap-x touch-pan-x touch-pan-y"
+                    className="flex gap-4 overflow-x-auto overflow-y-hidden no-scrollbar scroll-smooth snap-x touch-pan-x touch-pan-y"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', touchAction: 'pan-x pan-y' }}
                 >
                     {perfumes.map((perfume) => (
