@@ -21,6 +21,8 @@ class OrderAdmin(admin.ModelAdmin):
         'payment_method', 'total_amount', 'district', 'phone_number',
         'gift_status', 'created_at',
     )
+    # Avoids one extra query per row for user/profile in the changelist
+    list_select_related = ('user', 'user__profile')
     list_filter = ('status', 'payment_status', 'payment_method', 'district')
     search_fields = ('user__email', 'user__username', 'phone_number', 'place')
     readonly_fields = ('id', 'user', 'total_amount', 'payment_method', 'district', 'place', 'phone_number', 'created_at', 'reservation_expires_at')
@@ -32,6 +34,17 @@ class OrderAdmin(admin.ModelAdmin):
         'total_amount', 'district', 'place', 'phone_number',
         'created_at',
     )
+
+    @staticmethod
+    def _get_profile(order):
+        """Return the order's user profile, or None if the order has no user
+        (guest checkout / deleted user) or the user has no profile row."""
+        user = order.user
+        if user is None:
+            return None
+        # RelatedObjectDoesNotExist subclasses AttributeError, so getattr's
+        # default catches a missing profile as well.
+        return getattr(user, 'profile', None)
 
     def short_id(self, obj):
         return str(obj.id)[:8] + '...'
@@ -67,27 +80,39 @@ class OrderAdmin(admin.ModelAdmin):
         )
     colored_payment_status.short_description = 'Payment'
 
-
-
     def gift_status(self, obj):
-            pending = obj.user.profile.pending_gifts
-            if not pending:
-                return "-"  # plain string is fine, nothing to escape
-            return format_html(
-                '<span style="background:#b91c1c; color:white; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:bold;">GIFT PENDING: {}</span>',
-                ", ".join(pending)
-            )
+        profile = self._get_profile(obj)
+        if profile is None:
+            return "-"  # no user or no profile, so no gifts to show
+
+        pending = profile.pending_gifts
+        if not pending:
+            return "-"  # plain string is fine, nothing to escape
+        return format_html(
+            '<span style="background:#b91c1c; color:white; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:bold;">GIFT PENDING: {}</span>',
+            ", ".join(pending)
+        )
     gift_status.short_description = 'Gift'
 
     def mark_gift_sent(self, request, queryset):
         count = 0
-        for order in queryset:
-            profile = order.user.profile
+        skipped = 0
+        for order in queryset.select_related('user', 'user__profile'):
+            profile = self._get_profile(order)
+            if profile is None:
+                skipped += 1
+                continue
             for gift in profile.pending_gifts:
                 _, created = GiftClaim.objects.get_or_create(profile=profile, gift=gift)
                 if created:
                     count += 1
         self.message_user(request, f"Marked {count} gift(s) as sent.")
+        if skipped:
+            self.message_user(
+                request,
+                f"Skipped {skipped} order(s) with no user or profile.",
+                level='warning',
+            )
     mark_gift_sent.short_description = "Mark pending gift(s) as sent for selected orders"
 
 
